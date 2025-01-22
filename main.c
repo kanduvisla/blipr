@@ -81,87 +81,40 @@ SDL_Color adjust_color_brightness(SDL_Color color, float percent) {
     return adjusted;
 }
 
-// Draw a rect
-void drawRect(int x, int y, int width, int height, SDL_Color color) {
-    // Set the draw color
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-
-    // Draw top line
-    SDL_Rect rect = {x, y, width, height};
-    SDL_RenderFillRect(renderer, &rect);
-}
-
-// Draw an outlined rect
-void drawBeveledRectOutline(int x, int y, int width, int height, int thickness, SDL_Color color) {
-    int depth = 64;
-
-    SDL_Color darker = adjust_color_brightness(color, -0.5f);
-    SDL_Color lighter = adjust_color_brightness(color, 0.5f);
-
-    // Set the draw color
+/**
+ * Set the renderer color
+ */
+void setColor(SDL_Color color) {
     SDL_SetRenderDrawColor(
         renderer, 
-        lighter.r,
-        lighter.g,
-        lighter.b,
+        color.r,
+        color.g,
+        color.b,
         color.a
     );
-
-    // Draw top line
-    SDL_Rect topRect = {x, y, width, thickness};
-    SDL_RenderFillRect(renderer, &topRect);
-
-    // Draw left line
-    SDL_Rect leftRect = {x, y, thickness, height};
-    SDL_RenderFillRect(renderer, &leftRect);
-
-    // Set the draw color
-    SDL_SetRenderDrawColor(
-        renderer, 
-        darker.r,
-        darker.g,
-        darker.b,
-        color.a
-    );
-
-    // Draw bottom line
-    SDL_Rect bottomRect = {x, y + height - thickness, width, thickness};
-    SDL_RenderFillRect(renderer, &bottomRect);
-
-    // // Draw right line
-    SDL_Rect rightRect = {x + width - thickness, y + thickness, thickness, height - thickness};
-    SDL_RenderFillRect(renderer, &rightRect);
 }
 
-// Draw an outlined rect
-void drawRectOutline(int x, int y, int width, int height, int thickness, SDL_Color color) {
-    // Set the draw color
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-
-    // Draw top line
-    SDL_Rect topRect = {x, y, width, thickness};
-    SDL_RenderFillRect(renderer, &topRect);
-
-    // Draw bottom line
-    SDL_Rect bottomRect = {x, y + height - thickness, width, thickness};
-    SDL_RenderFillRect(renderer, &bottomRect);
-
-    // Draw left line
-    SDL_Rect leftRect = {x, y, thickness, height};
-    SDL_RenderFillRect(renderer, &leftRect);
-
-    // // Draw right line
-    SDL_Rect rightRect = {x + width - thickness, y, thickness, height};
-    SDL_RenderFillRect(renderer, &rightRect);
-}
-
-void drawBeveledRect(int x, int y, int width, int height, SDL_Color color) {
-    drawRect(x, y, width, height, color);
-    drawBeveledRectOutline(x, y, width, height, GRID_UNIT / 2, color);
-}
-
+/**
+ * Draw a simple button
+ */
 void drawButton(int x, int y, int width, int height) {
     drawBeveledRect(x, y, width, height, colorLightGray);
+}
+
+/**
+ * Draw sequencer button
+ */
+void drawSequencerButton(int x, int y, int width, int height, bool isActive) {
+    drawBeveledRect(x, y, width, height, colorLightGray);
+    drawBeveledRectOutline(x + (width / 2) - 3, y + height - 5, 6, 3, colorLightGray, true);
+    SDL_Color indicatorColor = adjust_color_brightness(colorRed, isActive ? 0 : -0.75f);
+    drawLine(
+        x + (width / 2) - 2, 
+        y + height - 4,
+        x + (width / 2) + 1, 
+        y + height - 4,
+        indicatorColor
+    );
 }
 
 /**
@@ -284,16 +237,6 @@ int main(void)
 
             // 16 dots on the bottom for the steps:
             for (int i = 0; i < PATTERN_LENGTH; ++i) {
-                /*
-                drawRect(
-                    ren, 
-                    2 + (i * 2),
-                    HEIGHT - (GRID_UNIT * 3),
-                    1,
-                    GRID_UNIT,
-                    noteCounter == i ? colorWhite : colorGray
-                );
-                */
                 drawPixel(
                     2 + (i * 2),
                     HEIGHT - (GRID_UNIT * 3),
@@ -310,8 +253,13 @@ int main(void)
                 );
             }
 
+            // Sequencer buttons:
+
+
             // Test area:
-            // drawButton(ren, GRID_UNIT * 2, GRID_UNIT * 2, 100, 100);
+            // drawButton(GRID_UNIT * 2, GRID_UNIT * 2, 10, 10);
+            drawSequencerButton(2, 2, 10, 10, true);
+            drawSequencerButton(13, 2, 10, 10, false);
 
             // Clear the renderer:
             SDL_SetRenderTarget(renderer, NULL);
