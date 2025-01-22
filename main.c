@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <time.h>
+#include "globals.h"
+#include "drawing_utils.h"
+#include "drawing.h"
 
 #define WINDOW_WIDTH 720
 #define WINDOW_HEIGHT 720
@@ -56,44 +59,6 @@ int64_t getTimespecDiffInNanoSeconds(struct timespec *start, struct timespec *en
     return temp.tv_sec * 1000000000LL + temp.tv_nsec;
 }
 
-// Adjust color brightness
-SDL_Color adjust_color_brightness(SDL_Color color, float percent) {
-    SDL_Color adjusted;
-    
-    // Ensure percent is between -1.0 and 1.0
-    percent = (percent < -1.0f) ? -1.0f : (percent > 1.0f) ? 1.0f : percent;
-    
-    if (percent < 0) {
-        // Darken
-        adjusted.r = (Uint8)(color.r * (1 + percent));
-        adjusted.g = (Uint8)(color.g * (1 + percent));
-        adjusted.b = (Uint8)(color.b * (1 + percent));
-    } else {
-        // Lighten
-        adjusted.r = (Uint8)(color.r + (255 - color.r) * percent);
-        adjusted.g = (Uint8)(color.g + (255 - color.g) * percent);
-        adjusted.b = (Uint8)(color.b + (255 - color.b) * percent);
-    }
-    
-    // Keep alpha the same
-    adjusted.a = color.a;
-    
-    return adjusted;
-}
-
-/**
- * Set the renderer color
- */
-void setColor(SDL_Color color) {
-    SDL_SetRenderDrawColor(
-        renderer, 
-        color.r,
-        color.g,
-        color.b,
-        color.a
-    );
-}
-
 /**
  * Draw a simple button
  */
@@ -107,7 +72,7 @@ void drawButton(int x, int y, int width, int height) {
 void drawSequencerButton(int x, int y, int width, int height, bool isActive) {
     drawBeveledRect(x, y, width, height, colorLightGray);
     drawBeveledRectOutline(x + (width / 2) - 3, y + height - 5, 6, 3, colorLightGray, true);
-    SDL_Color indicatorColor = adjust_color_brightness(colorRed, isActive ? 0 : -0.75f);
+    SDL_Color indicatorColor = adjustColorBrightness(colorRed, isActive ? 0 : -0.75f);
     drawLine(
         x + (width / 2) - 2, 
         y + height - 4,
@@ -115,14 +80,6 @@ void drawSequencerButton(int x, int y, int width, int height, bool isActive) {
         y + height - 4,
         indicatorColor
     );
-}
-
-/**
- * Draw a single pixel
- */
-void drawPixel(int x, int y, SDL_Color color) {
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-    SDL_RenderDrawPoint(renderer, x, y);
 }
 
 /**

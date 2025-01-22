@@ -1,3 +1,7 @@
+#include <SDL.h>
+#include <stdbool.h>
+#include "globals.h"
+#include "drawing_utils.h"
 #include "drawing.h"
 
 /**
@@ -26,8 +30,8 @@ void drawLine(int x1, int y1, int x2, int y2, SDL_Color color) {
 void drawBeveledRectOutline(int x, int y, int width, int height, SDL_Color color, bool inversed) {
     int depth = 64;
 
-    SDL_Color darker = adjust_color_brightness(color, -0.5f);
-    SDL_Color lighter = adjust_color_brightness(color, 0.5f);
+    SDL_Color darker = adjustColorBrightness(color, -0.5f);
+    SDL_Color lighter = adjustColorBrightness(color, 0.5f);
 
     // Set the draw color
     setColor(inversed ? darker : lighter);
@@ -72,7 +76,19 @@ void drawRectOutline(int x, int y, int width, int height, int thickness, SDL_Col
     SDL_RenderFillRect(renderer, &rightRect);
 }
 
+/**
+ * Draw a beveled rect
+ */
 void drawBeveledRect(int x, int y, int width, int height, SDL_Color color) {
     drawRect(x + 1, y + 1, width - 2, height - 2, color);
     drawBeveledRectOutline(x, y, width, height, color, false);
 }
+
+/**
+ * Draw a single pixel
+ */
+void drawPixel(int x, int y, SDL_Color color) {
+    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+    SDL_RenderDrawPoint(renderer, x, y);
+}
+
