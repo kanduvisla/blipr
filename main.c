@@ -7,11 +7,12 @@
 #include "colors.h"
 #include "drawing_components.h"
 #include "drawing.h"
+#include "drawing_text.h"
 
 #define WINDOW_WIDTH 720
 #define WINDOW_HEIGHT 720
 #define NANOS_PER_SEC 1000000000LL  // Number of nanoseconds in a second
-#define SCALE_FACTOR 8 // scale ratio (720 / 8 = 90 x 90 px)
+#define SCALE_FACTOR 9 // scale ratio (720 / 9 = 80 x 80 px)
 #define WIDTH (WINDOW_WIDTH / SCALE_FACTOR)
 #define HEIGHT (WINDOW_HEIGHT / SCALE_FACTOR)
 #define GRID_UNIT 1
@@ -183,14 +184,25 @@ int main(void)
             }
 
             // Sequencer buttons:
-            for (int i = 0; i < 4; ++i) {
-                drawSequencerButton(2 + i * 22, 2, 21, 10, false);
+            /*
+            int buttonWidth = 19;
+            int buttonHeight = 19;
+            for (int y = 0; y < 4; ++y) {
+                for (int x = 0; x < 4; ++x) {
+                    drawSequencerButton(
+                        2 + x * buttonWidth, 
+                        2 + y * buttonWidth, 
+                        buttonWidth, 
+                        buttonHeight, 
+                        (y * 4) + x == noteCounter
+                    );
+                }
             }
+            */
 
             // Test area:
-            // drawButton(GRID_UNIT * 2, GRID_UNIT * 2, 10, 10);
-            // drawSequencerButton(2, 2, 10, 10, true);
-            // drawSequencerButton(13, 2, 10, 10, false);
+            // drawCharacter(2, 2, 'A', COLOR_WHITE);
+            drawText(2, 2, "THIS IS A LINE OF TEXT SPANNING MULTIPLE LINES.", WIDTH - 4, COLOR_WHITE);
 
             // Clear the renderer:
             SDL_SetRenderTarget(renderer, NULL);
