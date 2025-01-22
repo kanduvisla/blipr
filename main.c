@@ -4,7 +4,8 @@
 #include <stdbool.h>
 #include <time.h>
 #include "globals.h"
-#include "drawing_utils.h"
+#include "colors.h"
+#include "drawing_components.h"
 #include "drawing.h"
 
 #define WINDOW_WIDTH 720
@@ -33,12 +34,6 @@ double bpm = 120.0;
 // Used for delay calculations:
 int64_t nanoSecondsPerPulse = 0;
 
-// Colors:
-SDL_Color colorRed = {255, 0, 0, 255};
-SDL_Color colorGray = {96, 96, 96, 255};
-SDL_Color colorLightGray = {192, 192, 192, 255};
-SDL_Color colorWhite = {255, 255, 255, 255};
-
 void calculateMicroSecondsPerPulse() {
     double beatsPerSecond = bpm / 60.0;
     double secondsPerBeat = 1.0 / beatsPerSecond;
@@ -57,29 +52,6 @@ int64_t getTimespecDiffInNanoSeconds(struct timespec *start, struct timespec *en
         temp.tv_nsec = end->tv_nsec - start->tv_nsec;
     }
     return temp.tv_sec * 1000000000LL + temp.tv_nsec;
-}
-
-/**
- * Draw a simple button
- */
-void drawButton(int x, int y, int width, int height) {
-    drawBeveledRect(x, y, width, height, colorLightGray);
-}
-
-/**
- * Draw sequencer button
- */
-void drawSequencerButton(int x, int y, int width, int height, bool isActive) {
-    drawBeveledRect(x, y, width, height, colorLightGray);
-    drawBeveledRectOutline(x + (width / 2) - 3, y + height - 5, 6, 3, colorLightGray, true);
-    SDL_Color indicatorColor = adjustColorBrightness(colorRed, isActive ? 0 : -0.75f);
-    drawLine(
-        x + (width / 2) - 2, 
-        y + height - 4,
-        x + (width / 2) + 1, 
-        y + height - 4,
-        indicatorColor
-    );
 }
 
 /**
@@ -197,7 +169,7 @@ int main(void)
                 drawPixel(
                     2 + (i * 2),
                     HEIGHT - (GRID_UNIT * 3),
-                    noteCounter == i ? colorRed : colorGray
+                    noteCounter == i ? COLOR_RED : COLOR_GRAY
                 );
             }            
 
@@ -206,7 +178,7 @@ int main(void)
                 drawPixel(
                     WIDTH - 9 + (i * 2),
                     HEIGHT - (GRID_UNIT * 3),
-                    pageCounter == i ? colorRed : colorGray
+                    pageCounter == i ? COLOR_RED : COLOR_GRAY
                 );
             }
 
