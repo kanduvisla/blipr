@@ -78,7 +78,7 @@ int main(void)
     calculateMicroSecondsPerPulse();
 
     // Clock:
-    struct timespec prevTime, nowTime, newTime;
+    struct timespec prevTime, nowTime;
     clock_gettime(CLOCK_MONOTONIC, &nowTime);
     prevTime = nowTime;
 
@@ -183,12 +183,14 @@ int main(void)
             }
 
             // Sequencer buttons:
-
+            for (int i = 0; i < 4; ++i) {
+                drawSequencerButton(2 + i * 22, 2, 21, 10, false);
+            }
 
             // Test area:
             // drawButton(GRID_UNIT * 2, GRID_UNIT * 2, 10, 10);
-            drawSequencerButton(2, 2, 10, 10, true);
-            drawSequencerButton(13, 2, 10, 10, false);
+            // drawSequencerButton(2, 2, 10, 10, true);
+            // drawSequencerButton(13, 2, 10, 10, false);
 
             // Clear the renderer:
             SDL_SetRenderTarget(renderer, NULL);
