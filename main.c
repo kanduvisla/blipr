@@ -82,16 +82,30 @@ int main(void)
     int noteCounter = -1;
     int pageCounter = 0;
 
+    // Array to keep track of key states
+    bool keyStates[SDL_NUM_SCANCODES] = {false};
+
     // While application is running
     while(!quit)
     {
         // Handle events on queue
-        while(SDL_PollEvent(&e) != 0 ) // poll for event
-        {
+        while(SDL_PollEvent(&e) != 0 ) {
             //User requests quit
-            if( e.type == SDL_QUIT ) // unless player manually quits
-            {
+            if (e.type == SDL_QUIT) {
                 quit = true;
+            } else if (e.type == SDL_KEYDOWN) {
+                SDL_Scancode scanCode = e.key.keysym.scancode;
+                if (!keyStates[scanCode]) {
+                    keyStates[scanCode] = true;
+                    printf("Key pressed: %s\n", SDL_GetKeyName(e.key.keysym.sym));
+                    if (e.key.keysym.sym == SDLK_ESCAPE) {
+                        quit = true;
+                    }
+                }
+            } else if (e.type == SDL_KEYUP) {
+                SDL_Scancode scanCode = e.key.keysym.scancode;
+                keyStates[scanCode] = false;
+                printf("Key released: %s\n", SDL_GetKeyName(e.key.keysym.sym));
             }
         }
 
