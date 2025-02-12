@@ -1,13 +1,14 @@
 CC = gcc
 CFLAGS = -Wall -Wextra $(shell sdl2-config --cflags)
 LIBS = $(shell sdl2-config --libs)
+
 OBJS = main.o drawing.o drawing_utils.o drawing_components.o colors.o drawing_text.o
 EXECUTABLE = build/blipr
 
 $(EXECUTABLE): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
 
-main.o: main.c globals.h colors.h drawing.h drawing_components.h
+main.o: main.c globals.h colors.h drawing.h drawing_components.h constants.h
 	$(CC) $(CFLAGS) -c main.c
 
 drawing.o: drawing.c globals.h drawing.h drawing_utils.h

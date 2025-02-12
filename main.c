@@ -8,23 +8,7 @@
 #include "drawing_components.h"
 #include "drawing.h"
 #include "drawing_text.h"
-
-#define WINDOW_WIDTH 720
-#define WINDOW_HEIGHT 720
-#define NANOS_PER_SEC 1000000000LL  // Number of nanoseconds in a second
-#define SCALE_FACTOR 9 // scale ratio (720 / 9 = 80 x 80 px)
-#define WIDTH (WINDOW_WIDTH / SCALE_FACTOR)
-#define HEIGHT (WINDOW_HEIGHT / SCALE_FACTOR)
-#define GRID_UNIT 1
-
-// Pulse per quarter note
-#define PPQN 24
-#define LINES_PER_BAR 4             // Assuming we're always in 4/4
-#define PATTERN_LENGTH 16
-
-// MAX/MIN Macro
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#include "constants.h"
 
 // Renderer:
 SDL_Renderer *renderer = NULL;
@@ -121,6 +105,9 @@ int main(void)
 
         // Check if ppqn is trigged:
         if (isPpqnTrigged) {
+            // Do stuff on PPQN level
+
+            // End
             isPpqnTrigged = false;
             isClockResetRequired = true;
             isRenderRequired = true;
@@ -133,6 +120,9 @@ int main(void)
 
         // Check if note change is trigged:
         if (isNoteTrigged) {
+            // Do stuff on Note level
+
+            // End
             isNoteTrigged = false;
             noteCounter += 1;
             if (noteCounter % LINES_PER_BAR == 0) {
@@ -150,6 +140,9 @@ int main(void)
 
         // Check if Bar (set of lines, the "B" in BPM) is trigged:
         if (isBeatTrigged) {
+            // Do stuff on Beat level
+
+            // End
             isBeatTrigged = false;
         }
 
@@ -159,50 +152,13 @@ int main(void)
             SDL_SetRenderTarget(renderer, renderTarget);
 
             // BPM Blinker:
-            float p = (float)((noteCounter % 4) * PPQN + ppqnCounter) / (float)(PPQN * 4);
-            int r = 255 * (1-p);
-
-            SDL_Color colorBlinker = {r, 0, 0, 255};
-            drawRectOutline(0, 0, WIDTH, HEIGHT, GRID_UNIT, colorBlinker);
-
-            // 16 dots on the bottom for the steps:
-            for (int i = 0; i < PATTERN_LENGTH; ++i) {
-                drawPixel(
-                    2 + (i * 2),
-                    HEIGHT - (GRID_UNIT * 3),
-                    noteCounter == i ? COLOR_RED : COLOR_GRAY
-                );
-            }            
-
-            // 4 dots on the bottom right to indicate page:
-            for (int i = 0; i < 4; ++i) {
-                drawPixel(
-                    WIDTH - 9 + (i * 2),
-                    HEIGHT - (GRID_UNIT * 3),
-                    pageCounter == i ? COLOR_RED : COLOR_GRAY
-                );
-            }
-
-            // Sequencer buttons:
-            /*
-            int buttonWidth = 19;
-            int buttonHeight = 19;
-            for (int y = 0; y < 4; ++y) {
-                for (int x = 0; x < 4; ++x) {
-                    drawSequencerButton(
-                        2 + x * buttonWidth, 
-                        2 + y * buttonWidth, 
-                        buttonWidth, 
-                        buttonHeight, 
-                        (y * 4) + x == noteCounter
-                    );
-                }
-            }
-            */
+            drawBPMBlinker(noteCounter, ppqnCounter);
+            drawNoteCounter(noteCounter);
+            drawPageCounter(pageCounter);
 
             // Test area:
             // drawCharacter(2, 2, 'A', COLOR_WHITE);
-            drawText(2, 2, "THIS IS A LINE OF TEXT SPANNING MULTIPLE LINES.", WIDTH - 4, COLOR_WHITE);
+            drawText(2, 2, "HELLO WORLD.", WIDTH - 4, COLOR_WHITE);
 
             // Clear the renderer:
             SDL_SetRenderTarget(renderer, NULL);
