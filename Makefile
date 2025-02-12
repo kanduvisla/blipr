@@ -32,6 +32,7 @@ file_handling.o: project.h
 project.o: project.c
 	$(CC) $(CFLAGS) -c project.c
 
+# clean target
 clean:
 	rm -f $(EXECUTABLE) $(OBJS)
 

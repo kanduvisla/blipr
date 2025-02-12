@@ -28,8 +28,6 @@ void drawLine(int x1, int y1, int x2, int y2, SDL_Color color) {
  * Draw an outlined rect
  */ 
 void drawBeveledRectOutline(int x, int y, int width, int height, SDL_Color color, bool inversed) {
-    int depth = 64;
-
     SDL_Color darker = adjustColorBrightness(color, -0.5f);
     SDL_Color lighter = adjustColorBrightness(color, 0.5f);
 

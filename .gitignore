@@ -1,3 +1,6 @@
 build/
 .vscode/
 *.o
+
+# ignore save files
+*.blipr

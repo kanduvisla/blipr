@@ -15,9 +15,10 @@ void writeProjectFile(struct Project *project, const char *fileName) {
 
     fwrite(project, sizeof(struct Project), 1, file);
     fclose(file);
+    printf("Saved project file.\n");
 }
 
-struct Project readProjectFile() {
+struct Project readProjectFile(const char *fileName) {
     struct Project project = initializeProject();
     
     return project;

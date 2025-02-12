@@ -3,7 +3,7 @@
 
 #include "project.h"
 
-void writeProjectFile(struct Project project);
-struct Project readProjectFile();
+void writeProjectFile(struct Project *project, const char *fileName);
+struct Project readProjectFile(const char *fileName);
 
 #endif

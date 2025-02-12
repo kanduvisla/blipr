@@ -89,7 +89,7 @@ int main(void)
 
     // Project file:
     struct Project project = initializeProject();
-    writeProjectFile(project);
+    writeProjectFile(&project, "tmp.blipr");
 
     // While application is running
     while(!quit)

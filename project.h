@@ -7,32 +7,51 @@
  * A step contains a note
  */
 struct Step {
-    char note[3];       // C-5, D#3, etc.
+    char note;          // byte representation of note C-5, D#3, etc.
     uint8_t velocity;   // 0-127
     uint8_t nudge;      // -63 - 63
 };
 
+void stepToByteArray(const struct Step *step, uint8_t *bytes);
+struct Step byteArrayToStep(const uint8_t *bytes);
+
 /**
- * A pattern contains of 64 steps
+ * A tracks contains 64 steps and some metadata
  */
-struct Pattern {
+struct Track {
+    char name[32]; // "Track 0" - "Track 15"
     uint8_t midiDevice;
     uint8_t midiChannel;
     uint8_t program;
+    uint8_t pageLength;
+    // Steps are only used for the "Sequencer"-program
     struct Step steps[64];
 };
 
+void trackToByteArray(const struct Track *track, uint8_t *bytes);
+struct Track byteArrayToTrack(const uint8_t *bytes);
+
 /**
- * A sequence contains of 16 patterns
+ * A pattern contains 16 tracks
+ */
+struct Pattern {
+    char name[32];
+    struct Track tracks[16];
+};
+
+/**
+ * A sequence contains 16 patterns
  */
 struct Sequence {
+    char name[32];
     struct Pattern patterns[16];
 };
 
 /**
- * A Project contains of 16 sequences
+ * A Project contains 16 sequences
  */
 struct Project {
+    char name[32];
     struct Sequence sequences[16];
 };
 
