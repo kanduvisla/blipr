@@ -9,6 +9,8 @@
 #include "drawing.h"
 #include "drawing_text.h"
 #include "constants.h"
+#include "project.h"
+#include "file_handling.h"
 
 // Renderer:
 SDL_Renderer *renderer = NULL;
@@ -84,6 +86,10 @@ int main(void)
 
     // Array to keep track of key states
     bool keyStates[SDL_NUM_SCANCODES] = {false};
+
+    // Project file:
+    struct Project project = initializeProject();
+    writeProjectFile(project);
 
     // While application is running
     while(!quit)
