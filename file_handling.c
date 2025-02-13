@@ -3,8 +3,9 @@
 #include "file_handling.h"
 #include "project.h"
 
-#define MAX_LINE_LENGTH 1000
-
+/**
+ * Save project to file
+ */
 void writeProjectFile(struct Project *project, const char *fileName) {
     FILE *file = fopen(fileName, "w");
     
@@ -13,13 +14,31 @@ void writeProjectFile(struct Project *project, const char *fileName) {
         return;
     }
 
-    fwrite(project, sizeof(struct Project), 1, file);
+    unsigned char arr[PROJECT_BYTE_SIZE];
+    projectToByteArray(project, arr);
+
+    printf("Saving project \"%s\"...\n", project->name);
+    fwrite(arr, PROJECT_BYTE_SIZE, 1, file);
     fclose(file);
     printf("Saved project file.\n");
 }
 
-struct Project readProjectFile(const char *fileName) {
-    struct Project project = initializeProject();
-    
-    return project;
+/**
+ * Read Project from file
+ */
+void readProjectFile(struct Project *project, const char *fileName) {
+    FILE *file;
+
+    // Open file
+    file = fopen(fileName, "rb");
+    if (file == NULL) {
+        printf("Error opening file\n");
+        return;
+    }
+
+    unsigned char arr[PROJECT_BYTE_SIZE];
+    fread(arr, 1, PROJECT_BYTE_SIZE, file);
+    fclose(file);
+
+    *project = byteArrayToProject(arr);
 }

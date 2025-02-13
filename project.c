@@ -143,6 +143,7 @@ struct Project byteArrayToProject(const unsigned char bytes[PROJECT_BYTE_SIZE]) 
     for (int i = 0; i < 16; i++) {
         project.sequences[i] = byteArrayToSequence(bytes + 256  + (i  * SEQUENCE_BYTE_SIZE));
     }
+    return project;
 }
 
 /**
@@ -153,15 +154,12 @@ struct Project initializeProject() {
     strcpy(project.name, "New Project");
     for (int i = 0; i < 16; i++) {
         struct Sequence sequence;
-        // strcpy(sequence.name, sprintf("Sequence %d", i));
         snprintf(sequence.name, sizeof(sequence.name), "Sequence %d", i);
         for (int j = 0; j < 16; j++) {
             struct Pattern pattern;
-            // strcpy(pattern.name, sprintf("Pattern %d", j));
             snprintf(pattern.name, sizeof(pattern.name), "Pattern %d", j);
             for (int k = 0; k < 16; k++) {
                 struct Track track;
-                // strcpy(track.name, sprintf("Track %d", k));
                 snprintf(track.name, sizeof(track.name), "Track %d", k);
                 track.midiDevice = 0;
                 track.midiChannel = 0;
