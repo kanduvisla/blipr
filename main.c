@@ -25,7 +25,7 @@ void calculateMicroSecondsPerPulse() {
     double beatsPerSecond = bpm / 60.0;
     double secondsPerBeat = 1.0 / beatsPerSecond;
     int64_t nanoSecondsPerBeat = secondsPerBeat * NANOS_PER_SEC;
-    int64_t nanoSecondsPerNote = nanoSecondsPerBeat / LINES_PER_BAR;    
+    int64_t nanoSecondsPerNote = nanoSecondsPerBeat / LINES_PER_BAR;
     nanoSecondsPerPulse = nanoSecondsPerNote / PPQN;
 }
 
@@ -49,7 +49,9 @@ int main(void)
     SDL_Window      *win = NULL;
     SDL_Texture     *renderTarget = NULL;
 
-    SDL_Init(SDL_INIT_EVERYTHING);
+    SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles2");
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
     SDL_CreateWindowAndRenderer(720, 720, 0, &win, &renderer);
 
     renderTarget = SDL_CreateTexture(
@@ -59,6 +61,28 @@ int main(void)
         WINDOW_WIDTH / SCALE_FACTOR,
         WINDOW_HEIGHT / SCALE_FACTOR
     );
+
+    // Get renderer info
+    SDL_RendererInfo info;
+    if (SDL_GetRendererInfo(renderer, &info) == 0) {
+        printf("Renderer name: %s\n", info.name);
+        printf("Renderer flags: ");
+
+        if (info.flags & SDL_RENDERER_SOFTWARE) printf("Software ");
+        if (info.flags & SDL_RENDERER_ACCELERATED) printf("Accelerated ");
+        if (info.flags & SDL_RENDERER_PRESENTVSYNC) printf("VSync ");
+        if (info.flags & SDL_RENDERER_TARGETTEXTURE) printf("TargetTexture ");
+
+        printf("\n");
+
+        if (info.flags & SDL_RENDERER_ACCELERATED) {
+            printf("Hardware acceleration is enabled.\n");
+        } else {
+            printf("Hardware acceleration is not enabled.\n");
+        }
+    } else {
+        printf("Couldn't get renderer info! SDL_Error: %s\n", SDL_GetError());
+    }
 
     // Flag to determine if the app should quit:
     bool quit = false;
@@ -128,7 +152,7 @@ int main(void)
         // Calculate with monotonic clock:
         clock_gettime(CLOCK_MONOTONIC, &nowTime);
         int64_t elapsedNs = getTimespecDiffInNanoSeconds(&prevTime, &nowTime);
-        
+
         if (elapsedNs > nanoSecondsPerPulse) {
             isPpqnTrigged = true;
         }
@@ -140,7 +164,7 @@ int main(void)
             // End
             isPpqnTrigged = false;
             isClockResetRequired = true;
-            isRenderRequired = true;
+            // isRenderRequired = true;
             ppqnCounter += 1;
             if (ppqnCounter % PPQN == 0) {
                 ppqnCounter = 0;
@@ -154,6 +178,7 @@ int main(void)
 
             // End
             isNoteTrigged = false;
+            isRenderRequired = true;
             noteCounter += 1;
             if (noteCounter % LINES_PER_BAR == 0) {
                 isBeatTrigged = true;
@@ -175,6 +200,8 @@ int main(void)
             // End
             isBeatTrigged = false;
         }
+
+	// isRenderRequired = false;
 
         // Drawing magic:
         if (isRenderRequired) {
@@ -208,13 +235,13 @@ int main(void)
         // Re-calculate clock (if required):
         if (isClockResetRequired) {
             // Reset clock:
-            isClockResetRequired = false;            
+            isClockResetRequired = false;
             clock_gettime(CLOCK_MONOTONIC, &prevTime);
         }
     }
 
     SDL_DestroyTexture(renderTarget);
-    SDL_DestroyRenderer(renderer);    
+    SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(win);
     SDL_Quit();
 
