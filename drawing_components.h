@@ -9,4 +9,9 @@ void drawBPMBlinker(int noteCounter, int ppqnCounter);
 void drawNoteCounter(int noteCounter);
 void drawPageCounter(int pageCounter);
 
+/**
+ * Draw a basic 4x6 grid
+ */
+void drawBasicGrid();
+
 #endif

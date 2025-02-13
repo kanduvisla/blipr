@@ -66,3 +66,22 @@ void drawPageCounter(int pageCounter) {
         );
     }
 }
+
+/**
+ * Draw a basic 4x6 grid
+ */
+void drawBasicGrid() {
+    int size = 10;
+
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 6; j++) {
+            drawRect(
+                2 + (i * size),
+                2 + (j * size),
+                size,
+                GRID_UNIT,
+                COLOR_GRAY
+            );
+        }
+    }
+}

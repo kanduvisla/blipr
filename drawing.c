@@ -57,6 +57,9 @@ void drawRectOutline(int x, int y, int width, int height, int thickness, SDL_Col
     // Set the draw color
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
 
+    // // Set the rect
+    // SDL_Rect rectToDraw = {x, y, width, height};
+    
     // Draw top line
     SDL_Rect topRect = {x, y, width, thickness};
     SDL_RenderFillRect(renderer, &topRect);
@@ -72,6 +75,10 @@ void drawRectOutline(int x, int y, int width, int height, int thickness, SDL_Col
     // // Draw right line
     SDL_Rect rightRect = {x + width - thickness, y, thickness, height};
     SDL_RenderFillRect(renderer, &rightRect);
+}
+
+void drawSingleLineRectOutline(int x, int y, int width, int height, SDL_Color color) {
+    
 }
 
 /**

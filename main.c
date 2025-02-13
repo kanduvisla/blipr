@@ -188,7 +188,8 @@ int main(void)
 
             // Test area:
             // drawCharacter(2, 2, 'A', COLOR_WHITE);
-            drawText(2, 2, "[BLIPR]", WIDTH - 4, COLOR_WHITE);
+            // drawText(2, 2, "[BLIPR]", WIDTH - 4, COLOR_WHITE);
+            drawBasicGrid();
 
             // Clear the renderer:
             SDL_SetRenderTarget(renderer, NULL);
