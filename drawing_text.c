@@ -263,7 +263,31 @@ const int characters[][CHAR_HEIGHT][CHAR_WIDTH] = {
      {0,0,0,0,0},
      {1,1,1,1,1},
      {0,0,0,0,0},
-     {0,0,0,0,0}}
+     {0,0,0,0,0}},
+    // - [
+    {{0,0,1,1,0},
+     {0,0,1,0,0},
+     {0,0,1,0,0},
+     {0,0,1,0,0},
+     {0,0,1,1,0}},
+    // - ]
+    {{0,1,1,0,0},
+     {0,0,1,0,0},
+     {0,0,1,0,0},
+     {0,0,1,0,0},
+     {0,1,1,0,0}},
+    // - (
+    {{0,0,0,1,0},
+     {0,0,1,0,0},
+     {0,0,1,0,0},
+     {0,0,1,0,0},
+     {0,0,0,1,0}},
+    // - )
+    {{0,1,0,0,0},
+     {0,0,1,0,0},
+     {0,0,1,0,0},
+     {0,0,1,0,0},
+     {0,1,0,0,0}},
 };
 
 /**
@@ -284,6 +308,10 @@ void drawCharacter(int startX, int startY, char character, SDL_Color color) {
             case '?': charIndex = 39; break;
             case ':': charIndex = 40; break;
             case '-': charIndex = 41; break;
+            case '[': charIndex = 42; break;
+            case ']': charIndex = 43; break;
+            case '(': charIndex = 44; break;
+            case ')': charIndex = 45; break;
             default: return;  // Unsupported character
         }
     }
