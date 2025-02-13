@@ -7,13 +7,13 @@
  * A step contains a note
  */
 struct Step {
-    char note;          // byte representation of note C-5, D#3, etc.
-    uint8_t velocity;   // 0-127
-    uint8_t nudge;      // -63 - 63
+    unsigned char note;       // byte representation of note C-5, D#3, etc.
+    unsigned char velocity;   // 0-127
+    char nudge;      // -63 - 63
 };
 
-void stepToByteArray(const struct Step *step, uint8_t *bytes);
-struct Step byteArrayToStep(const uint8_t *bytes);
+void stepToByteArray(const struct Step *step, unsigned char bytes[16]);
+struct Step byteArrayToStep(const unsigned char bytes[16]);
 
 /**
  * A tracks contains 64 steps and some metadata

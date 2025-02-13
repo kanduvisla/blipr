@@ -7,7 +7,7 @@ SRCS = main.c drawing.c drawing_utils.c drawing_components.c drawing_text.c colo
 OBJS = $(SRCS:.c=.o)
 
 TEST_TARGET = build/test_blipr
-TEST_SRCS = tests/main_test.c tests/project_test.c
+TEST_SRCS = tests/main_test.c project.c
 TEST_OBJS = $(TEST_SRCS:.c=.o)
 
 # Main build target

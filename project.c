@@ -11,21 +11,21 @@
  * Byte 3       : Nudge
  * Bytes 4-12   : Spare
  */
-void stepToByteArray(const struct Step *step, uint8_t *bytes) {
+void stepToByteArray(const struct Step *step, unsigned char bytes[16]) {
     bytes[0] = step->note;
     bytes[1] = step->velocity;
-    bytes[2] = (uint8_t)(step->nudge + 63);
+    bytes[2] = (unsigned char)(step->nudge + 63);
     memset(bytes + 3, 0, STEP_BYTE_SIZE - 3);
 }
 
 /**
  * Convert Byte Array to Step
  */
-struct Step byteArrayToStep(const uint8_t *bytes) {
+struct Step byteArrayToStep(const unsigned char bytes[16]) {
     struct Step step;
     step.note = bytes[0];
     step.velocity = bytes[1];
-    step.nudge = (int8_t)bytes[2] - 63;
+    step.nudge = (char)bytes[2] - 63;
     return step;
 }
 
@@ -61,7 +61,6 @@ struct Track byteArrayToTrack(const uint8_t *bytes) {
     track.midiChannel = bytes[33];
     track.program = bytes[34];
     track.pageLength = bytes[35];
-
     return track;
 }
 
