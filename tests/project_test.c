@@ -67,10 +67,21 @@ void testTrackToByteArray() {
         step.nudge = 0;
         track.steps[s] = step;
     }
+    track.steps[42].note = 78;
 
     unsigned char arr[1088];
     trackToByteArray(&track, arr);
+
+    struct Track track2 = byteArrayToTrack(arr);
+    assert(strcmp(track2.name, "Track 3") == 0);
+    assert(track2.midiDevice == 4);
+    assert(track2.midiChannel == 2);
+    assert(track2.program == 1);
+    assert(track2.pageLength == 16);
+    assert(track2.steps[42].note == 78);
 }
+
+
 
 void testProjectFile() {
     testStepToByteArray();

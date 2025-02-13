@@ -63,6 +63,12 @@ struct Track byteArrayToTrack(const unsigned char bytes[1088]) {
     track.midiChannel = bytes[33];
     track.program = bytes[34];
     track.pageLength = bytes[35];
+    for (int i = 0; i < 64; ++i) {
+        unsigned char arr[16];
+        // Copy part of byte array into arr
+        memcpy(arr, bytes + 64 + (i * STEP_BYTE_SIZE), STEP_BYTE_SIZE);
+        track.steps[i] = byteArrayToStep(arr);
+    }
     return track;
 }
 
