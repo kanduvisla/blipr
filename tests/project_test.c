@@ -34,7 +34,7 @@ void testStepToByteArray() {
     step.velocity = 110;
     step.nudge = 0;
 
-    unsigned char arr[16];
+    unsigned char arr[STEP_BYTE_SIZE];
     stepToByteArray(&step, arr);
     
     assertByte(arr[0], 0x4E);
@@ -43,7 +43,7 @@ void testStepToByteArray() {
 }
 
 void testByteArrayToStep() {
-    unsigned char arr[16] = {0x4E, 0x6E, 0x3F};
+    unsigned char arr[STEP_BYTE_SIZE] = {0x4E, 0x6E, 0x3F};
     struct Step step = byteArrayToStep(arr);
 
     assert(step.note == 78);
@@ -69,7 +69,7 @@ void testTrackToByteArray() {
     }
     track.steps[42].note = 78;
 
-    unsigned char arr[1088];
+    unsigned char arr[TRACK_BYTE_SIZE];
     trackToByteArray(&track, arr);
 
     struct Track track2 = byteArrayToTrack(arr);
@@ -81,7 +81,13 @@ void testTrackToByteArray() {
     assert(track2.steps[42].note == 78);
 }
 
+/// --- Pattern tests
 
+void testPatternToByteArray() {
+    // TODO
+}
+
+/// --- Entry point
 
 void testProjectFile() {
     testStepToByteArray();
