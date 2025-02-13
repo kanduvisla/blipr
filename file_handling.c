@@ -26,19 +26,31 @@ void writeProjectFile(struct Project *project, const char *fileName) {
 /**
  * Read Project from file
  */
-void readProjectFile(struct Project *project, const char *fileName) {
+struct Project* readProjectFile(const char *fileName) {
     FILE *file;
 
     // Open file
     file = fopen(fileName, "rb");
     if (file == NULL) {
         printf("Error opening file\n");
-        return;
+        return NULL;
     }
 
     unsigned char arr[PROJECT_BYTE_SIZE];
-    fread(arr, 1, PROJECT_BYTE_SIZE, file);
+    size_t bytesRead = fread(arr, 1, PROJECT_BYTE_SIZE, file);
     fclose(file);
 
+    if (bytesRead != PROJECT_BYTE_SIZE) {
+        printf("Error reading file: unexpected file size\n");
+        return NULL;
+    }
+
+    struct Project* project = malloc(sizeof(struct Project));
+    if (project == NULL) {
+        printf("Memory allocation failed\n");
+        return NULL;
+    }
+
     *project = byteArrayToProject(arr);
+    return project;
 }

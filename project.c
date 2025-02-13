@@ -115,7 +115,7 @@ struct Sequence byteArrayToSequence(const unsigned char bytes[SEQUENCE_BYTE_SIZE
     struct Sequence sequence;
     memcpy(sequence.name, bytes, 32);
     for (int i = 0; i < 16; i++) {
-        sequence.patterns[i] = byteArrayToPattern(bytes + 32 + (i * PATTERN_BYTE_SIZE));
+        sequence.patterns[i] = byteArrayToPattern(bytes + 64 + (i * PATTERN_BYTE_SIZE));
     }
     return sequence;
 }
@@ -124,7 +124,7 @@ struct Sequence byteArrayToSequence(const unsigned char bytes[SEQUENCE_BYTE_SIZE
  * Convert Project to Byte Array
  * byte 1-32    : Name
  * byte 33-256  : Spare
- * byte 256-... : Pattern Data
+ * byte 257-... : Sequence Data
  */
 void projectToByteArray(const struct Project *project, unsigned char bytes[PROJECT_BYTE_SIZE]) {
     memcpy(bytes, project->name, 32);
@@ -154,13 +154,13 @@ struct Project initializeProject() {
     strcpy(project.name, "New Project");
     for (int i = 0; i < 16; i++) {
         struct Sequence sequence;
-        snprintf(sequence.name, sizeof(sequence.name), "Sequence %d", i);
+        snprintf(sequence.name, sizeof(sequence.name), "Sequence %d", i + 1);
         for (int j = 0; j < 16; j++) {
             struct Pattern pattern;
-            snprintf(pattern.name, sizeof(pattern.name), "Pattern %d", j);
+            snprintf(pattern.name, sizeof(pattern.name), "Pattern %d", j + 1);
             for (int k = 0; k < 16; k++) {
                 struct Track track;
-                snprintf(track.name, sizeof(track.name), "Track %d", k);
+                snprintf(track.name, sizeof(track.name), "Track %d", k + 1);
                 track.midiDevice = 0;
                 track.midiChannel = 0;
                 track.program = 0;

@@ -88,12 +88,22 @@ int main(void)
     bool keyStates[SDL_NUM_SCANCODES] = {false};
 
     // Project file:
-    struct Project project = initializeProject();
-    writeProjectFile(&project, "tmp.blipr");
+    struct Project *project = readProjectFile("data.blipr");
+    if (project == NULL) {
+        printf("No project found, creating new project\n");
+        project = malloc(sizeof(struct Project));
+        if (project == NULL) {
+            printf("Memory allocation failed\n");
+            return 1;  // or handle the error appropriately
+        }
+        *project = initializeProject();
+        writeProjectFile(project, "data.blipr");
+    } else {
+        printf("Loaded project: %s\n", project->name);
+    }
 
     // While application is running
-    while(!quit)
-    {
+    while(!quit) {
         // Handle events on queue
         while(SDL_PollEvent(&e) != 0 ) {
             //User requests quit
@@ -206,6 +216,9 @@ int main(void)
     SDL_DestroyRenderer(renderer);    
     SDL_DestroyWindow(win);
     SDL_Quit();
+
+    writeProjectFile(project, "data.blipr");
+    free(project);
 
     return (0);
 }

@@ -4,10 +4,10 @@
 #include <stdint.h>
 
 #define STEP_BYTE_SIZE 16
-#define TRACK_BYTE_SIZE (64 + (64 * STEP_BYTE_SIZE))
-#define PATTERN_BYTE_SIZE (64 + (16 * TRACK_BYTE_SIZE))
-#define SEQUENCE_BYTE_SIZE (64 + (16 * PATTERN_BYTE_SIZE))
-#define PROJECT_BYTE_SIZE (256 + (16 * SEQUENCE_BYTE_SIZE))
+#define TRACK_BYTE_SIZE (64 + (64 * STEP_BYTE_SIZE))        // 64 bytes header + 64 steps
+#define PATTERN_BYTE_SIZE (64 + (16 * TRACK_BYTE_SIZE))     // 64 bytes header + 16 tracks
+#define SEQUENCE_BYTE_SIZE (64 + (16 * PATTERN_BYTE_SIZE))  // 64 bytes header + 16 patterns
+#define PROJECT_BYTE_SIZE (256 + (16 * SEQUENCE_BYTE_SIZE)) // 256 bytes header + 16 sequences
 
 /**
  * A step contains a note
