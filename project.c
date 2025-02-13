@@ -11,7 +11,7 @@
  * Byte 3       : Nudge
  * Bytes 4-12   : Spare
  */
-void stepToByteArray(const struct Step *step, unsigned char bytes[16]) {
+void stepToByteArray(const struct Step *step, unsigned char bytes[STEP_BYTE_SIZE]) {
     bytes[0] = step->note;
     bytes[1] = step->velocity;
     bytes[2] = (unsigned char)(step->nudge + 63);
@@ -21,7 +21,7 @@ void stepToByteArray(const struct Step *step, unsigned char bytes[16]) {
 /**
  * Convert Byte Array to Step
  */
-struct Step byteArrayToStep(const unsigned char bytes[16]) {
+struct Step byteArrayToStep(const unsigned char bytes[STEP_BYTE_SIZE]) {
     struct Step step;
     step.note = bytes[0];
     step.velocity = bytes[1];
@@ -37,9 +37,9 @@ struct Step byteArrayToStep(const unsigned char bytes[16]) {
  * byte 35      : program 
  * byte 36      : page length
  * byte 37-64   : Spare
- * byte 65-1088 : Steps data (64 steps)
+ * byte 65-1088 : Steps data (64 steps, 16 bytes each)
  */
-void trackToByteArray(const struct Track *track, uint8_t *bytes) {
+void trackToByteArray(const struct Track *track, unsigned char bytes[1088]) {
     memcpy(bytes, track->name, 32);
     bytes[32] = track->midiDevice;
     bytes[33] = track->midiChannel;
@@ -47,14 +47,16 @@ void trackToByteArray(const struct Track *track, uint8_t *bytes) {
     bytes[35] = track->pageLength;
     memset(bytes + 36, 0, 64 - 36);
     for (int i = 0; i < 64; ++i) {
-        stepToByteArray(&track->steps[i], bytes + 64 + (i * 64));
+        unsigned char arr[STEP_BYTE_SIZE];
+        stepToByteArray(&track->steps[i], arr);
+        memcpy(bytes + 64 + (i * STEP_BYTE_SIZE), arr, STEP_BYTE_SIZE);
     }
 }
 
 /**
  * Convert Byte Array to Track
  */
-struct Track byteArrayToTrack(const uint8_t *bytes) {
+struct Track byteArrayToTrack(const unsigned char bytes[1088]) {
     struct Track track;
     memcpy(track.name, bytes, 32);
     track.midiDevice = bytes[32];

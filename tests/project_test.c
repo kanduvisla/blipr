@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 #include "../project.h"
 
 bool assertByte(unsigned char value, unsigned char expected) {
@@ -25,6 +26,8 @@ bool assert(bool value) {
     }
 }
 
+/// --- Step tests
+
 void testStepToByteArray() {
     struct Step step;
     step.note = 78;
@@ -48,7 +51,29 @@ void testByteArrayToStep() {
     assert(step.nudge == 0);
 }
 
+/// --- Track tests
+
+void testTrackToByteArray() {
+    struct Track track;
+    snprintf(track.name, sizeof(track.name), "Track %d", 3);
+    track.midiDevice = 4;
+    track.midiChannel = 2;
+    track.program = 1;
+    track.pageLength = 16;
+    for (int s = 0; s < 64; s++) {
+        struct Step step;
+        step.note = 0;
+        step.velocity = 0;
+        step.nudge = 0;
+        track.steps[s] = step;
+    }
+
+    unsigned char arr[1088];
+    trackToByteArray(&track, arr);
+}
+
 void testProjectFile() {
     testStepToByteArray();
     testByteArrayToStep();
+    testTrackToByteArray();
 }

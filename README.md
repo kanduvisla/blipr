@@ -65,17 +65,19 @@ Can hold 16*16 = 256 patterns
     - ABCD   = page A,B,C or D
         - L.Shift ABCD = page length (16, 32, 48, 64)
 
-### 2: Euclidean Rhytm Generator
+### 2: Tracker
 
-### 3: Fibonacci
+### 3: Euclidean Rhytm Generator
 
-### 4: Circle of Fifths
+### 4: Fibonacci
 
-### 5: L-System
+### 5: Circle of Fifths
 
-### 6: Arpeggiator
+### 6: L-System
 
-### 7: Random
+### 7: Arpeggiator
 
-### 8: Phase Pattern Generator
+### 8: Random
+
+### 9: Phase Pattern Generator
 

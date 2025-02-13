@@ -28,8 +28,8 @@ struct Track {
     struct Step steps[64];
 };
 
-void trackToByteArray(const struct Track *track, uint8_t *bytes);
-struct Track byteArrayToTrack(const uint8_t *bytes);
+void trackToByteArray(const struct Track *track, unsigned char bytes[1088]);
+struct Track byteArrayToTrack(const unsigned char bytes[1088]);
 
 /**
  * A pattern contains 16 tracks
