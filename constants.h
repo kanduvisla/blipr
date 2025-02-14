@@ -4,7 +4,7 @@
 #define WINDOW_WIDTH 720
 #define WINDOW_HEIGHT 720
 #define NANOS_PER_SEC 1000000000LL  // Number of nanoseconds in a second
-#define SCALE_FACTOR 4.5f           // Scale ratio
+#define SCALE_FACTOR 4              // Scale ratio, 4=180x180px
 #define WIDTH (WINDOW_WIDTH / SCALE_FACTOR)
 #define HEIGHT (WINDOW_HEIGHT / SCALE_FACTOR)
 #define GRID_UNIT 1

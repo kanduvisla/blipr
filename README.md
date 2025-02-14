@@ -17,14 +17,14 @@ This program is made to be operated with a 24-key keypad:
 [a] [s] [d] [f]
 [z] [x] [c] [v] 
 ABCD-pad:
-[7] [8] [9] [0]
+[7]  [8]  [9] [0]
 Func-pad:
-[^] [<] [>] [^]
+[^1] [^2] [ ] [F]
 
-^       = Left Shift
-<       = Arrow left
->       = Arrow right
+^1      = (Shift 1) Left Ctrl
+^2      = (Shift 2) Left Shift
 (empty) = Space
+F       = (Func) Right Shift
 .       = tbd
 ```
 
@@ -33,9 +33,10 @@ Func-pad:
 Holding R. Shift enables the global menu. The keys will then do the following:
 - 1234      : Select midi device
 - 5-16      : Select midi channel of selected device
-- A         : Load Project
-- B         : Save Project
-- C         : 
+- A         : 
+- B         : 
+- C         : File Operations
+    - Load / Save Project
 - D         : Select Program
     - 1-16 program
 - Arrows    : increase/decrease BPM

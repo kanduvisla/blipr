@@ -111,6 +111,9 @@ int main(void)
     // Array to keep track of key states
     bool keyStates[SDL_NUM_SCANCODES] = {false};
 
+    // State:
+    int selectedProgram = 0;
+
     // Project file:
     struct Project *project = readProjectFile("data.blipr");
     if (project == NULL) {
@@ -164,7 +167,7 @@ int main(void)
             // End
             isPpqnTrigged = false;
             isClockResetRequired = true;
-            // isRenderRequired = true;
+            isRenderRequired = true;
             ppqnCounter += 1;
             if (ppqnCounter % PPQN == 0) {
                 ppqnCounter = 0;
@@ -178,7 +181,7 @@ int main(void)
 
             // End
             isNoteTrigged = false;
-            isRenderRequired = true;
+            // isRenderRequired = true;
             noteCounter += 1;
             if (noteCounter % LINES_PER_BAR == 0) {
                 isBeatTrigged = true;
@@ -201,27 +204,27 @@ int main(void)
             isBeatTrigged = false;
         }
 
-	// isRenderRequired = false;
+	    // isRenderRequired = false;
 
         // Drawing magic:
         if (isRenderRequired) {
             // Set the render target to our texture
             SDL_SetRenderTarget(renderer, renderTarget);
+            // Clear the render target
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+            SDL_RenderClear(renderer);
 
             // BPM Blinker:
             drawBPMBlinker(noteCounter, ppqnCounter);
-            drawNoteCounter(noteCounter);
-            drawPageCounter(pageCounter);
+            // drawNoteCounter(noteCounter);
+            // drawPageCounter(pageCounter);
 
             // Test area:
-            // drawCharacter(2, 2, 'A', COLOR_WHITE);
             // drawText(2, 2, "[BLIPR]", WIDTH - 4, COLOR_WHITE);
-            drawBasicGrid();
+            drawBasicGrid(&selectedProgram, keyStates);
 
             // Clear the renderer:
             SDL_SetRenderTarget(renderer, NULL);
-            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Set to black
-            SDL_RenderClear(renderer);
 
             // Draw the scaled-up texture to the screen
             SDL_Rect destRect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};

@@ -1,6 +1,7 @@
 #include <SDL.h>
 #include "globals.h"
 #include "drawing_utils.h"
+#include "drawing_text.h"
 #include "drawing.h"
 #include "colors.h"
 #include "constants.h"
@@ -70,18 +71,53 @@ void drawPageCounter(int pageCounter) {
 /**
  * Draw a basic 4x6 grid
  */
-void drawBasicGrid() {
-    int size = 10;
+void drawBasicGrid(int *selectedProgram, bool keyStates[SDL_NUM_SCANCODES]) {
+    int width = HEIGHT / 6;
 
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 6; j++) {
-            drawRect(
-                2 + (i * size),
-                2 + (j * size),
-                size,
-                GRID_UNIT,
+    // 16-Pad
+    for (int j = 0; j < 4; j++) {
+        int height = width;
+        for (int i = 0; i < 4; i++) {
+            drawSingleLineRectOutline(
+                2 + i + (i * width),
+                2 + j + (j * height),
+                width,
+                height,
                 COLOR_GRAY
             );
+        }
+    }
+
+    char characters[] = {'A', 'B', 'C', 'D'};
+    char bottomButtonsDescriptions[4][3] = {"^1", "^2", "--", "FN"};
+
+    // Bottom Pad
+    for (int j = 0; j < 2; j++) {
+        int height = width / 2;
+        for (int i = 0; i < 4; i++) {
+            // Draw from bottom up
+            int x = 2 + i + (i * width);
+            int y = HEIGHT - 2 - j - ((j + 1) * height);
+
+            if (
+                (j == 0 && i == 0 && keyStates[SDL_SCANCODE_LCTRL]) ||
+                (j == 0 && i == 1 && keyStates[SDL_SCANCODE_LSHIFT]) ||
+                (j == 0 && i == 2 && keyStates[SDL_SCANCODE_SPACE]) ||
+                (j == 0 && i == 3 && keyStates[SDL_SCANCODE_RSHIFT])
+            ) {
+                drawRect(x, y, width, height, COLOR_GRAY);
+                drawSingleLineRectOutline(x, y, width, height, COLOR_LIGHT_GRAY);
+            } else {
+                drawSingleLineRectOutline(x, y, width, height, COLOR_GRAY);
+            }
+
+            if (j == 0) {
+                drawText(x + 10, y + 5, bottomButtonsDescriptions[i], width, COLOR_WHITE);
+            }
+
+            if (j == 1) {
+                drawCharacter(x + 13, y + 5, characters[i], COLOR_WHITE);
+            }
         }
     }
 }
