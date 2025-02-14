@@ -3,7 +3,7 @@ CFLAGS = -Wall -Wextra $(shell sdl2-config --cflags)
 LIBS = $(shell sdl2-config --libs)
 
 TARGET = build/blipr
-SRCS = main.c drawing.c drawing_utils.c drawing_components.c drawing_text.c colors.c file_handling.c project.c programs/sequencer.c
+SRCS = main.c drawing.c drawing_utils.c drawing_components.c drawing_text.c drawing_icons.c colors.c file_handling.c project.c programs/sequencer.c
 OBJS = $(SRCS:.c=.o)
 
 TEST_TARGET = build/test_blipr

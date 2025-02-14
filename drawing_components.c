@@ -103,7 +103,11 @@ void drawBasicGrid(int *selectedProgram, bool keyStates[SDL_NUM_SCANCODES]) {
                 (j == 0 && i == 0 && keyStates[BLIPR_KEY_SHIFT_1]) ||
                 (j == 0 && i == 1 && keyStates[BLIPR_KEY_SHIFT_2]) ||
                 (j == 0 && i == 2 && keyStates[BLIPR_KEY_SPACE]) ||
-                (j == 0 && i == 3 && keyStates[BLIPR_KEY_SHIFT_3])
+                (j == 0 && i == 3 && keyStates[BLIPR_KEY_SHIFT_3]) ||
+                (j == 1 && i == 0 && keyStates[BLIPR_KEY_A]) ||
+                (j == 1 && i == 1 && keyStates[BLIPR_KEY_B]) ||
+                (j == 1 && i == 2 && keyStates[BLIPR_KEY_C]) ||
+                (j == 1 && i == 3 && keyStates[BLIPR_KEY_D])
             ) {
                 drawRect(x, y, width, height, COLOR_GRAY);
                 drawSingleLineRectOutline(x, y, width, height, COLOR_LIGHT_GRAY);

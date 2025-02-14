@@ -8,6 +8,7 @@
 #include "drawing_components.h"
 #include "drawing.h"
 #include "drawing_text.h"
+#include "drawing_icons.h"
 #include "constants.h"
 #include "project.h"
 #include "file_handling.h"
@@ -117,6 +118,7 @@ int main(void)
 
     // State:
     int selectedProgram = BLIPR_PROGRAM_SEQUENCER;
+    bool isConfigurationModeActive = false;
     int selectedMidiInstrument = 1;
     int selectedMidiChannel = 1;
     int selectedTrack = 0;
@@ -150,6 +152,16 @@ int main(void)
                 if (!keyStates[scanCode]) {
                     keyStates[scanCode] = true;
                     
+                    if (scanCode == BLIPR_KEY_SHIFT_3) {
+                        // Back button:
+                        isConfigurationModeActive = false;
+                    }
+
+                    if (keyStates[BLIPR_KEY_SHIFT_3] && scanCode == BLIPR_KEY_D) {
+                        // Active configuration mode:
+                        isConfigurationModeActive = true;
+                    }
+
                     // Update currently active program:
                     if (selectedProgram == BLIPR_PROGRAM_SEQUENCER) {
                         // Draw the sequencer:
@@ -238,11 +250,19 @@ int main(void)
             // Basic Grid:
             drawBasicGrid(&selectedProgram, keyStates);
 
-            // Currently active program:
-            if (selectedProgram == BLIPR_PROGRAM_SEQUENCER) {
-                // Draw the sequencer:
-                drawSequencer(project, &noteCounter);
+            // Configuration mode:
+            if (isConfigurationModeActive) {
+
+            } else {
+                // Currently active program:
+                if (selectedProgram == BLIPR_PROGRAM_SEQUENCER) {
+                    // Draw the sequencer:
+                    drawSequencer(project, &noteCounter);
+                }
             }
+
+            // Test:
+            drawIcon(10, 10, BLIPR_ICON_UKNOWN, COLOR_WHITE);
 
             // Clear the renderer:
             SDL_SetRenderTarget(renderer, NULL);
