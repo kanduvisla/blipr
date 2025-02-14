@@ -2,6 +2,7 @@
 #define DRAWING_COMPONENTS_H
 
 #include <stdbool.h>
+#include <SDL.h>
 
 void drawButton(int x, int y, int width, int height);
 void drawSequencerButton(int x, int y, int width, int height, bool isActive);
@@ -12,6 +13,6 @@ void drawPageCounter(int pageCounter);
 /**
  * Draw a basic 4x6 grid
  */
-void drawBasicGrid();
+void drawBasicGrid(int *selectedProgram, bool keyStates[SDL_NUM_SCANCODES]);
 
 #endif

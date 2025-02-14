@@ -11,6 +11,7 @@
 #include "constants.h"
 #include "project.h"
 #include "file_handling.h"
+#include "programs/sequencer.h"
 
 // Renderer:
 SDL_Renderer *renderer = NULL;
@@ -110,9 +111,17 @@ int main(void)
 
     // Array to keep track of key states
     bool keyStates[SDL_NUM_SCANCODES] = {false};
+    
+    // Array to keep track of key triggs (this trig only 1 frame, they're triggers to do 1 action on keydown)
+    bool keyTrigs[SDL_NUM_SCANCODES] = {false};
 
     // State:
-    int selectedProgram = 0;
+    int selectedProgram = BLIPR_PROGRAM_SEQUENCER;
+    int selectedMidiInstrument = 1;
+    int selectedMidiChannel = 1;
+    int selectedTrack = 0;
+    int selectedPattern = 0;
+    int selectedSequence = 0;
 
     // Project file:
     struct Project *project = readProjectFile("data.blipr");
@@ -140,6 +149,13 @@ int main(void)
                 SDL_Scancode scanCode = e.key.keysym.scancode;
                 if (!keyStates[scanCode]) {
                     keyStates[scanCode] = true;
+                    
+                    // Update currently active program:
+                    if (selectedProgram == BLIPR_PROGRAM_SEQUENCER) {
+                        // Draw the sequencer:
+                        updateSequencer(project, keyStates, scanCode);
+                    }
+
                     printf("Key pressed: %s\n", SDL_GetKeyName(e.key.keysym.sym));
                     if (e.key.keysym.sym == SDLK_ESCAPE) {
                         quit = true;
@@ -163,6 +179,9 @@ int main(void)
         // Check if ppqn is trigged:
         if (isPpqnTrigged) {
             // Do stuff on PPQN level
+
+            // Run sequencer:
+            runSequencer(project, &ppqnCounter);
 
             // End
             isPpqnTrigged = false;
@@ -204,7 +223,6 @@ int main(void)
             isBeatTrigged = false;
         }
 
-	    // isRenderRequired = false;
 
         // Drawing magic:
         if (isRenderRequired) {
@@ -216,12 +234,15 @@ int main(void)
 
             // BPM Blinker:
             drawBPMBlinker(noteCounter, ppqnCounter);
-            // drawNoteCounter(noteCounter);
-            // drawPageCounter(pageCounter);
 
-            // Test area:
-            // drawText(2, 2, "[BLIPR]", WIDTH - 4, COLOR_WHITE);
+            // Basic Grid:
             drawBasicGrid(&selectedProgram, keyStates);
+
+            // Currently active program:
+            if (selectedProgram == BLIPR_PROGRAM_SEQUENCER) {
+                // Draw the sequencer:
+                drawSequencer(project, &noteCounter);
+            }
 
             // Clear the renderer:
             SDL_SetRenderTarget(renderer, NULL);

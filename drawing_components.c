@@ -100,10 +100,10 @@ void drawBasicGrid(int *selectedProgram, bool keyStates[SDL_NUM_SCANCODES]) {
             int y = HEIGHT - 2 - j - ((j + 1) * height);
 
             if (
-                (j == 0 && i == 0 && keyStates[SDL_SCANCODE_LCTRL]) ||
-                (j == 0 && i == 1 && keyStates[SDL_SCANCODE_LSHIFT]) ||
-                (j == 0 && i == 2 && keyStates[SDL_SCANCODE_SPACE]) ||
-                (j == 0 && i == 3 && keyStates[SDL_SCANCODE_RSHIFT])
+                (j == 0 && i == 0 && keyStates[BLIPR_KEY_SHIFT_1]) ||
+                (j == 0 && i == 1 && keyStates[BLIPR_KEY_SHIFT_2]) ||
+                (j == 0 && i == 2 && keyStates[BLIPR_KEY_SPACE]) ||
+                (j == 0 && i == 3 && keyStates[BLIPR_KEY_SHIFT_3])
             ) {
                 drawRect(x, y, width, height, COLOR_GRAY);
                 drawSingleLineRectOutline(x, y, width, height, COLOR_LIGHT_GRAY);

@@ -28,6 +28,15 @@ F       = (Func) Right Shift
 .       = tbd
 ```
 
+Basically the functionality for all programs is identical, with the following mantra:
+
+- 16-pad    : These are functional buttons, depending on the program
+- ABCD      : These are functional buttons, depending on the program
+- Shift 1   : This button can be used on the 16-pad, or ABCD pad to do 1 alternative action
+- Shift 2   : This button can be used to "zoom in" on 1 of the 16-pad or ABCD buttons to provide more options for that specific button (for example: extra options for a single step in the sequencer)
+- Space     : (tbd)
+- Func      : This buttons is program-agnostic and provides overall operations (configuration / transport / midi / track & pattern selection, etc).
+
 ## programs
 
 Holding R. Shift enables the global menu. The keys will then do the following:
@@ -54,11 +63,11 @@ Can hold 16*16 = 256 patterns
 - 16-step sequencer
     - 16-pad = steps
         - Toggle on/off
-        - L.Shift = select note
-            - While holding L.Shift
-                - A: Half velocity
-                - Arrows: nudge left/right
-                - B: Change note
+        - Shift 1: Half velocity
+        - Shift 2: Select note
+            - While Shift 2:
+                - A/B: nudge left/right
+                - C/D: increase/decrease note
                 - C: Select pattern
                     - After this, select 1-16
                 - D: Select Sequence
