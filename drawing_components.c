@@ -89,7 +89,7 @@ void drawBasicGrid(int *selectedProgram, bool keyStates[SDL_NUM_SCANCODES]) {
     }
 
     char characters[] = {'A', 'B', 'C', 'D'};
-    char bottomButtonsDescriptions[4][3] = {"^1", "^2", "--", "FN"};
+    char bottomButtonsDescriptions[4][3] = {"^1", "^2", "^3", "FN"};
 
     // Bottom Pad
     for (int j = 0; j < 2; j++) {
@@ -102,7 +102,7 @@ void drawBasicGrid(int *selectedProgram, bool keyStates[SDL_NUM_SCANCODES]) {
             if (
                 (j == 0 && i == 0 && keyStates[BLIPR_KEY_SHIFT_1]) ||
                 (j == 0 && i == 1 && keyStates[BLIPR_KEY_SHIFT_2]) ||
-                (j == 0 && i == 2 && keyStates[BLIPR_KEY_SPACE]) ||
+                (j == 0 && i == 2 && keyStates[BLIPR_KEY_SHIFT_4]) ||
                 (j == 0 && i == 3 && keyStates[BLIPR_KEY_SHIFT_3]) ||
                 (j == 1 && i == 0 && keyStates[BLIPR_KEY_A]) ||
                 (j == 1 && i == 1 && keyStates[BLIPR_KEY_B]) ||

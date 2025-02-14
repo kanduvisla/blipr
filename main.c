@@ -262,7 +262,7 @@ int main(void)
             }
 
             // Test:
-            drawIcon(10, 10, BLIPR_ICON_UKNOWN, COLOR_WHITE);
+            drawIcon(9, 9, BLIPR_ICON_CONFIG, COLOR_WHITE);
 
             // Clear the renderer:
             SDL_SetRenderTarget(renderer, NULL);
