@@ -39,8 +39,9 @@ Basically the functionality for all programs is identical, with the following ma
 
 ## global functionality:
 
+- Func-1-16 : Select Track 1-16
 - Func-A    : Transport
-- Func-B    : (tbd)
+- Func-B    : Track Configuration?
 - Func-C    : (tbd)
 - Func-D    : Configuration
 

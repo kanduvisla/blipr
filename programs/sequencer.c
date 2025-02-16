@@ -45,109 +45,109 @@ void toggleVelocity(struct Step *step) {
 /**
  * Update the sequencer according to user input
  */
-void updateSequencer(struct Project *project, bool keyStates[SDL_NUM_SCANCODES], SDL_Scancode key) {
+void updateSequencer(struct Project *project, bool keyStates[SDL_NUM_SCANCODES], SDL_Scancode key, int selectedSequence, int selectedPatern, int selectedTrack) {
     if (keyStates[BLIPR_KEY_SHIFT_1]) {
         // Toggle velocity
         switch(key) {
             case BLIPR_KEY_1:
-                toggleVelocity(&project->sequences[0].patterns[0].tracks[0].steps[0]);
+                toggleVelocity(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[0]);
                 break;
             case BLIPR_KEY_2:
-                toggleVelocity(&project->sequences[0].patterns[0].tracks[0].steps[1]);
+                toggleVelocity(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[1]);
                 break;
             case BLIPR_KEY_3:
-                toggleVelocity(&project->sequences[0].patterns[0].tracks[0].steps[2]);
+                toggleVelocity(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[2]);
                 break;
             case BLIPR_KEY_4:
-                toggleVelocity(&project->sequences[0].patterns[0].tracks[0].steps[3]);
+                toggleVelocity(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[3]);
                 break;
             case BLIPR_KEY_5:
-                toggleVelocity(&project->sequences[0].patterns[0].tracks[0].steps[4]);
+                toggleVelocity(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[4]);
                 break;
             case BLIPR_KEY_6:
-                toggleVelocity(&project->sequences[0].patterns[0].tracks[0].steps[5]);
+                toggleVelocity(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[5]);
                 break;
             case BLIPR_KEY_7:
-                toggleVelocity(&project->sequences[0].patterns[0].tracks[0].steps[6]);
+                toggleVelocity(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[6]);
                 break;
             case BLIPR_KEY_8:
-                toggleVelocity(&project->sequences[0].patterns[0].tracks[0].steps[7]);
+                toggleVelocity(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[7]);
                 break;
             case BLIPR_KEY_9:
-                toggleVelocity(&project->sequences[0].patterns[0].tracks[0].steps[8]);
+                toggleVelocity(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[8]);
                 break;
             case BLIPR_KEY_10:
-                toggleVelocity(&project->sequences[0].patterns[0].tracks[0].steps[9]);
+                toggleVelocity(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[9]);
                 break;
             case BLIPR_KEY_11:
-                toggleVelocity(&project->sequences[0].patterns[0].tracks[0].steps[10]);
+                toggleVelocity(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[10]);
                 break;
             case BLIPR_KEY_12:
-                toggleVelocity(&project->sequences[0].patterns[0].tracks[0].steps[11]);
+                toggleVelocity(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[11]);
                 break;
             case BLIPR_KEY_13:
-                toggleVelocity(&project->sequences[0].patterns[0].tracks[0].steps[12]);
+                toggleVelocity(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[12]);
                 break;
             case BLIPR_KEY_14:
-                toggleVelocity(&project->sequences[0].patterns[0].tracks[0].steps[13]);
+                toggleVelocity(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[13]);
                 break;
             case BLIPR_KEY_15:
-                toggleVelocity(&project->sequences[0].patterns[0].tracks[0].steps[14]);
+                toggleVelocity(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[14]);
                 break;
             case BLIPR_KEY_16:
-                toggleVelocity(&project->sequences[0].patterns[0].tracks[0].steps[15]);
+                toggleVelocity(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[15]);
                 break;
         }
     } else {
         // Toggle key
         switch(key) {
             case BLIPR_KEY_1:
-                toggleStep(&project->sequences[0].patterns[0].tracks[0].steps[0]);
+                toggleStep(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[0]);
                 break;
             case BLIPR_KEY_2:
-                toggleStep(&project->sequences[0].patterns[0].tracks[0].steps[1]);
+                toggleStep(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[1]);
                 break;
             case BLIPR_KEY_3:
-                toggleStep(&project->sequences[0].patterns[0].tracks[0].steps[2]);
+                toggleStep(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[2]);
                 break;
             case BLIPR_KEY_4:
-                toggleStep(&project->sequences[0].patterns[0].tracks[0].steps[3]);
+                toggleStep(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[3]);
                 break;
             case BLIPR_KEY_5:
-                toggleStep(&project->sequences[0].patterns[0].tracks[0].steps[4]);
+                toggleStep(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[4]);
                 break;
             case BLIPR_KEY_6:
-                toggleStep(&project->sequences[0].patterns[0].tracks[0].steps[5]);
+                toggleStep(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[5]);
                 break;
             case BLIPR_KEY_7:
-                toggleStep(&project->sequences[0].patterns[0].tracks[0].steps[6]);
+                toggleStep(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[6]);
                 break;
             case BLIPR_KEY_8:
-                toggleStep(&project->sequences[0].patterns[0].tracks[0].steps[7]);
+                toggleStep(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[7]);
                 break;
             case BLIPR_KEY_9:
-                toggleStep(&project->sequences[0].patterns[0].tracks[0].steps[8]);
+                toggleStep(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[8]);
                 break;
             case BLIPR_KEY_10:
-                toggleStep(&project->sequences[0].patterns[0].tracks[0].steps[9]);
+                toggleStep(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[9]);
                 break;
             case BLIPR_KEY_11:
-                toggleStep(&project->sequences[0].patterns[0].tracks[0].steps[10]);
+                toggleStep(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[10]);
                 break;
             case BLIPR_KEY_12:
-                toggleStep(&project->sequences[0].patterns[0].tracks[0].steps[11]);
+                toggleStep(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[11]);
                 break;
             case BLIPR_KEY_13:
-                toggleStep(&project->sequences[0].patterns[0].tracks[0].steps[12]);
+                toggleStep(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[12]);
                 break;
             case BLIPR_KEY_14:
-                toggleStep(&project->sequences[0].patterns[0].tracks[0].steps[13]);
+                toggleStep(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[13]);
                 break;
             case BLIPR_KEY_15:
-                toggleStep(&project->sequences[0].patterns[0].tracks[0].steps[14]);
+                toggleStep(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[14]);
                 break;
             case BLIPR_KEY_16:
-                toggleStep(&project->sequences[0].patterns[0].tracks[0].steps[15]);
+                toggleStep(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[15]);
                 break;
         }
     }
@@ -156,14 +156,14 @@ void updateSequencer(struct Project *project, bool keyStates[SDL_NUM_SCANCODES],
 /**
  * Run the sequencer
  */
-void runSequencer(struct Project *project, int *ppqnCounter) {
+void runSequencer(struct Project *project, int *ppqnCounter, int selectedSequence, int selectedPatern) {
 
 }
 
 /**
  * Draw the sequencer
  */
-void drawSequencer(struct Project *project, int *noteCounter) {
+void drawSequencer(struct Project *project, int *noteCounter, int selectedSequence, int selectedPatern, int selectedTrack) {
     // Outline currently active step:
     int width = HEIGHT / 6;
     int height = width;
@@ -182,7 +182,7 @@ void drawSequencer(struct Project *project, int *noteCounter) {
     for (int j = 0; j < 4; j++) {
         int height = width;
         for (int i = 0; i < 4; i++) {
-            struct Step step = project->sequences[0].patterns[0].tracks[0].steps[i + (j * 4)];
+            struct Step step = project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[i + (j * 4)];
             if (step.note != 0) {
                 drawRect(
                     4 + i + (i * width),

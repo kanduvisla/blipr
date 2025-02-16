@@ -13,6 +13,7 @@
 #include "project.h"
 #include "file_handling.h"
 #include "programs/sequencer.h"
+#include "programs/track_selection.h"
 
 // Renderer:
 SDL_Renderer *renderer = NULL;
@@ -119,6 +120,7 @@ int main(void)
     // State:
     int selectedProgram = BLIPR_PROGRAM_SEQUENCER;
     bool isConfigurationModeActive = false;
+    bool isTrackSelectionActive = false;
     int selectedMidiInstrument = 1;
     int selectedMidiChannel = 1;
     int selectedTrack = 0;
@@ -149,23 +151,29 @@ int main(void)
                 quit = true;
             } else if (e.type == SDL_KEYDOWN) {
                 SDL_Scancode scanCode = e.key.keysym.scancode;
+                isRenderRequired = true;
                 if (!keyStates[scanCode]) {
                     keyStates[scanCode] = true;
                     
                     if (scanCode == BLIPR_KEY_SHIFT_3) {
-                        // Back button:
+                        // Shift 3 also doubles as back button Back button:
                         isConfigurationModeActive = false;
+                        // Display track selection:
+                        isTrackSelectionActive = true;
                     }
 
                     if (keyStates[BLIPR_KEY_SHIFT_3] && scanCode == BLIPR_KEY_D) {
                         // Active configuration mode:
                         isConfigurationModeActive = true;
+                        isTrackSelectionActive = false;
                     }
 
-                    // Update currently active program:
-                    if (selectedProgram == BLIPR_PROGRAM_SEQUENCER) {
+                    if (isTrackSelectionActive) {
+                        updateTrackSelection(&selectedTrack, scanCode);
+                        // Update currently active program:
+                    } else if (selectedProgram == BLIPR_PROGRAM_SEQUENCER) {
                         // Draw the sequencer:
-                        updateSequencer(project, keyStates, scanCode);
+                        updateSequencer(project, keyStates, scanCode, selectedSequence, selectedPattern, selectedTrack);
                     }
 
                     printf("Key pressed: %s\n", SDL_GetKeyName(e.key.keysym.sym));
@@ -175,7 +183,11 @@ int main(void)
                 }
             } else if (e.type == SDL_KEYUP) {
                 SDL_Scancode scanCode = e.key.keysym.scancode;
+                isRenderRequired = true;
                 keyStates[scanCode] = false;
+                if (scanCode == BLIPR_KEY_SHIFT_3) {
+                    isTrackSelectionActive = false;
+                }
                 printf("Key released: %s\n", SDL_GetKeyName(e.key.keysym.sym));
             }
         }
@@ -193,12 +205,12 @@ int main(void)
             // Do stuff on PPQN level
 
             // Run sequencer:
-            runSequencer(project, &ppqnCounter);
+            // runSequencer(project, &ppqnCounter, selectedSequence, selectedPattern);
 
             // End
             isPpqnTrigged = false;
             isClockResetRequired = true;
-            isRenderRequired = true;
+            // isRenderRequired = true;
             ppqnCounter += 1;
             if (ppqnCounter % PPQN == 0) {
                 ppqnCounter = 0;
@@ -212,7 +224,7 @@ int main(void)
 
             // End
             isNoteTrigged = false;
-            // isRenderRequired = true;
+            isRenderRequired = true;
             noteCounter += 1;
             if (noteCounter % LINES_PER_BAR == 0) {
                 isBeatTrigged = true;
@@ -247,22 +259,27 @@ int main(void)
             // BPM Blinker:
             drawBPMBlinker(noteCounter, ppqnCounter);
 
+            // Statisstics:
+            drawText(WIDTH - 48, 4, "S01.P01", 60, COLOR_GRAY);
+
             // Basic Grid:
-            drawBasicGrid(&selectedProgram, keyStates);
+            drawBasicGrid(keyStates);
 
             // Configuration mode:
-            if (isConfigurationModeActive) {
-
+            if (isTrackSelectionActive) {
+                drawTrackSelection(&selectedTrack);
+            } else if (isConfigurationModeActive) {
+                
             } else {
                 // Currently active program:
                 if (selectedProgram == BLIPR_PROGRAM_SEQUENCER) {
                     // Draw the sequencer:
-                    drawSequencer(project, &noteCounter);
+                    drawSequencer(project, &noteCounter, selectedSequence, selectedPattern, selectedTrack);
                 }
             }
 
             // Test:
-            drawIcon(9, 9, BLIPR_ICON_CONFIG, COLOR_WHITE);
+            // drawIcon(9, 9, BLIPR_ICON_CONFIG, COLOR_WHITE);
 
             // Clear the renderer:
             SDL_SetRenderTarget(renderer, NULL);

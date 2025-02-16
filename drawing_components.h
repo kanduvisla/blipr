@@ -13,6 +13,11 @@ void drawPageCounter(int pageCounter);
 /**
  * Draw a basic 4x6 grid
  */
-void drawBasicGrid(int *selectedProgram, bool keyStates[SDL_NUM_SCANCODES]);
+void drawBasicGrid(bool keyStates[SDL_NUM_SCANCODES]);
+
+/**
+ * Draw a hightlighted grid tile (zero-based index)
+ */
+void drawHighlightedGridTile(int tileIndex);
 
 #endif

@@ -71,7 +71,7 @@ void drawPageCounter(int pageCounter) {
 /**
  * Draw a basic 4x6 grid
  */
-void drawBasicGrid(int *selectedProgram, bool keyStates[SDL_NUM_SCANCODES]) {
+void drawBasicGrid(bool keyStates[SDL_NUM_SCANCODES]) {
     int width = HEIGHT / 6;
 
     // 16-Pad
@@ -124,4 +124,20 @@ void drawBasicGrid(int *selectedProgram, bool keyStates[SDL_NUM_SCANCODES]) {
             }
         }
     }
+}
+
+void drawHighlightedGridTile(int tileIndex) {
+    int width = HEIGHT / 6;
+    int height = width;
+
+    int x = tileIndex % 4;
+    int y = tileIndex / 4;
+
+    drawSingleLineRectOutline(
+        2 + x + (x * width),
+        2 + y + (y * height),
+        width,
+        height,
+        COLOR_WHITE
+    );
 }
