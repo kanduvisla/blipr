@@ -72,8 +72,9 @@ In configuration mode, the following can be configured:
 
 - 1-4 : Select Midi Device for 1, 2, 3 or 4
         When selected, a list of found Midi Devices is shown, selecting a device will save it to the configuration.
-- 15 : Enable / disable autosave
-- 16 : Quit (will prompt to save if autosave is disabled)
+- 5-8 : Setup Drumkit configuration 1, 2, 3 or 4
+- 15  : Enable / disable autosave
+- 16  : Quit (will prompt to save if autosave is disabled)
 
 ## track names + numbers
 
@@ -133,11 +134,42 @@ Can hold 16*16 = 256 patterns
 - ABCD  : Select page for playing (next in queue)
     - When holding multiple pages, a chain is created
     - Shift1    : Select page for editing (multiple taps for multipage setup)
-    - Shift2    : Select page size (16, 32, 48, 64) (default=16)
+    - Shift2    : Select page size (16, 32, 48, 64, 80, 96, 112, 128) (default=16) (note 1-8 is used for page information)
 
 ### Basic poly sequencer
 
-### SH4D-sequencer
+Same as "Basic 16 step sequencer, but pages are sacrified for polyphony. The following is different between the 2 sequencers:
+
+- Shift2-1-16   : When holding Shift-2, ABCD can be used to select voice:
+    - A : Voice 1/2
+    - B : Voice 3/4 (if applicable)
+    - C : Voice 5/6 (if applicable)
+    - D : Voice 7/8 (if applicable)
+- Shift2-ABCD   : Select page size / polyphony count
+    - 16 steps : 8 voices
+    - 32 steps : 4 voices
+    - 64 steps : 2 voices
+
+### SH4D-sequencer / Drumkit sequencer
+
+This sequencer can be used if there is a drumkit assigned to notes. It's basically the same as the basic poly sequencer, but instead of notes, the drum names are used. Drum names / note configurations can be configured in the configuration menu. Kits contain:
+
+- Kick
+- Snare
+- Clap
+- Rimshot
+- Closed Hat
+- Open Hat
+- Ride
+- Cymbal
+- L. Tom
+- M. Tom
+- H. Tom
+- Cowbell
+- ...
+- ...
+- ...
+- ...
 
 ### Cycles kick machine
 

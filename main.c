@@ -24,6 +24,9 @@ double bpm = 120.0;
 // Used for delay calculations:
 int64_t nanoSecondsPerPulse = 0;
 
+// Project file
+unsigned char * projectFile = "data.blipr";
+
 void calculateMicroSecondsPerPulse() {
     double beatsPerSecond = bpm / 60.0;
     double secondsPerBeat = 1.0 / beatsPerSecond;
@@ -121,14 +124,15 @@ int main(void)
     int selectedProgram = BLIPR_PROGRAM_SEQUENCER;
     bool isConfigurationModeActive = false;
     bool isTrackSelectionActive = false;
-    int selectedMidiInstrument = 1;
-    int selectedMidiChannel = 1;
+    int selectedMidiInstrument = 0;
+    int selectedMidiChannel = 0;
     int selectedTrack = 0;
     int selectedPattern = 0;
     int selectedSequence = 0;
 
     // Project file:
-    struct Project *project = readProjectFile("data.blipr");
+    printf("Loading project file: %s\n", projectFile);
+    struct Project *project = readProjectFile(projectFile);
     if (project == NULL) {
         printf("No project found, creating new project\n");
         project = malloc(sizeof(struct Project));
@@ -137,7 +141,7 @@ int main(void)
             return 1;  // or handle the error appropriately
         }
         *project = initializeProject();
-        writeProjectFile(project, "data.blipr");
+        writeProjectFile(project, projectFile);
     } else {
         printf("Loaded project: %s\n", project->name);
     }
@@ -172,7 +176,7 @@ int main(void)
                         updateTrackSelection(&selectedTrack, scanCode);
                         // Update currently active program:
                     } else if (selectedProgram == BLIPR_PROGRAM_SEQUENCER) {
-                        // Draw the sequencer:
+                        // Update the sequencer:
                         updateSequencer(project, keyStates, scanCode, selectedSequence, selectedPattern, selectedTrack);
                     }
 
@@ -247,7 +251,6 @@ int main(void)
             isBeatTrigged = false;
         }
 
-
         // Drawing magic:
         if (isRenderRequired) {
             // Set the render target to our texture
@@ -306,7 +309,7 @@ int main(void)
     SDL_DestroyWindow(win);
     SDL_Quit();
 
-    writeProjectFile(project, "data.blipr");
+    writeProjectFile(project, projectFile);
     free(project);
 
     return (0);
