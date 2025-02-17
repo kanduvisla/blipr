@@ -2,7 +2,9 @@
 #define PROJECT_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
+#define NOTE_BYTE_SIZE 8
 #define STEP_BYTE_SIZE 16
 #define TRACK_BYTE_SIZE (64 + (64 * STEP_BYTE_SIZE))        // 64 bytes header + 64 steps
 #define PATTERN_BYTE_SIZE (64 + (16 * TRACK_BYTE_SIZE))     // 64 bytes header + 16 tracks
@@ -10,7 +12,21 @@
 #define PROJECT_BYTE_SIZE (256 + (16 * SEQUENCE_BYTE_SIZE)) // 256 bytes header + 16 sequences
 
 /**
- * A step contains a note
+ * A Note
+ */
+struct Note {
+    bool enabled;               // If this note is enabled
+    unsigned char note;         // byte representation of note C-5, D#3, etc.
+    unsigned char velocity;     // 0-127
+    char nudge;                 // -63 - 63
+    unsigned char trigg;        // Trigg condition
+    unsigned char length;       // Length
+    unsigned char cc1Value;     // CC1 Value
+    unsigned char cc2Value;     // CC2 Value
+};
+
+/**
+ * A step can contains 8 notes
  */
 struct Step {
     unsigned char note;         // byte representation of note C-5, D#3, etc.
