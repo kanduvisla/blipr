@@ -259,8 +259,8 @@ int main(void)
             // BPM Blinker:
             drawBPMBlinker(noteCounter, ppqnCounter);
 
-            // Statisstics:
-            drawText(WIDTH - 48, 4, "S01.P01", 60, COLOR_GRAY);
+            // Sequence, pattern and track number (replace with real numbers):
+            drawText(WIDTH - 54, 4, "S00P00T00", 60, COLOR_GRAY);
 
             // Basic Grid:
             drawBasicGrid(keyStates);
