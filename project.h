@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 #define NOTE_BYTE_SIZE 8
-#define STEP_BYTE_SIZE 16
+#define STEP_BYTE_SIZE (8 * NOTE_BYTE_SIZE)                 // 8 notes in a step
 #define TRACK_BYTE_SIZE (64 + (64 * STEP_BYTE_SIZE))        // 64 bytes header + 64 steps
 #define PATTERN_BYTE_SIZE (64 + (16 * TRACK_BYTE_SIZE))     // 64 bytes header + 16 tracks
 #define SEQUENCE_BYTE_SIZE (64 + (16 * PATTERN_BYTE_SIZE))  // 64 bytes header + 16 patterns
@@ -25,13 +25,14 @@ struct Note {
     unsigned char cc2Value;     // CC2 Value
 };
 
+void noteToByteArray(const struct Note *note, unsigned char bytes[NOTE_BYTE_SIZE]);
+struct Note byteArrayToNote(const unsigned char bytes[NOTE_BYTE_SIZE]);
+
 /**
  * A step can contains 8 notes
  */
 struct Step {
-    unsigned char note;         // byte representation of note C-5, D#3, etc.
-    unsigned char velocity;     // 0-127
-    char nudge;                 // -63 - 63
+    struct Note notes[8];
 };
 
 void stepToByteArray(const struct Step *step, unsigned char bytes[STEP_BYTE_SIZE]);

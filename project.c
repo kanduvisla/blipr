@@ -2,6 +2,56 @@
 #include <string.h>
 #include "project.h"
 
+/*
+    bool enabled;               // If this note is enabled
+    unsigned char note;         // byte representation of note C-5, D#3, etc.
+    unsigned char velocity;     // 0-127
+    char nudge;                 // -63 - 63
+    unsigned char trigg;        // Trigg condition
+    unsigned char length;       // Length
+    unsigned char cc1Value;     // CC1 Value
+    unsigned char cc2Value;     // CC2 Value
+
+*/
+
+/**
+ * Convert Note to Byte Array
+ * Byte 1       : Enabled
+ * Byte 2       : Note
+ * Byte 3       : Velocity
+ * Byte 4       : Nudge
+ * Byte 5       : Trigg
+ * Byte 6       : Length
+ * Byte 7       : CC1 Value
+ * Byte 8       : CC2 Value
+ */
+void noteToByteArray(const struct Note *note, unsigned char bytes[NOTE_BYTE_SIZE]) {
+    bytes[0] = note->enabled;
+    bytes[1] = note->note;
+    bytes[2] = note->velocity;
+    bytes[3] = (unsigned char)(note->nudge + 63);
+    bytes[4] = note->trigg;
+    bytes[5] = note->length;
+    bytes[6] = note->cc1Value;
+    bytes[7] = note->cc2Value;
+}
+
+/**
+ * Convert Byte Array to Note
+ */
+struct Note byteArrayToNote(const unsigned char bytes[NOTE_BYTE_SIZE]) {
+    struct Note note;
+    note.enabled = bytes[0];
+    note.note = bytes[1];
+    note.velocity = bytes[2];
+    note.nudge = (char)bytes[3] - 63;
+    note.trigg = bytes[4];
+    note.length = bytes[5];
+    note.cc1Value = bytes[6];
+    note.cc2Value = bytes[7];
+    return note;
+}
+
 /**
  * Convert Step to Byte Array
  * Byte 1       : Note
@@ -10,10 +60,9 @@
  * Byte 4-...   : Spare
  */
 void stepToByteArray(const struct Step *step, unsigned char bytes[STEP_BYTE_SIZE]) {
-    bytes[0] = step->note;
-    bytes[1] = step->velocity;
-    bytes[2] = (unsigned char)(step->nudge + 63);
-    memset(bytes + 3, 0, STEP_BYTE_SIZE - 3);
+    for (int i = 0; i < 8; i++) {
+        noteToByteArray(&step->notes[i], bytes + (i * NOTE_BYTE_SIZE));
+    }
 }
 
 /**
@@ -21,9 +70,9 @@ void stepToByteArray(const struct Step *step, unsigned char bytes[STEP_BYTE_SIZE
  */
 struct Step byteArrayToStep(const unsigned char bytes[STEP_BYTE_SIZE]) {
     struct Step step;
-    step.note = bytes[0];
-    step.velocity = bytes[1];
-    step.nudge = (char)bytes[2] - 63;
+    for (int i = 0; i < 8; i++) {
+        step.notes[i] = byteArrayToNote(bytes + (i * NOTE_BYTE_SIZE));
+    }
     return step;
 }
 
@@ -60,7 +109,7 @@ struct Track byteArrayToTrack(const unsigned char bytes[TRACK_BYTE_SIZE]) {
     track.program = bytes[34];
     track.pageLength = bytes[35];
     for (int i = 0; i < 64; i++) {
-        unsigned char arr[16];
+        unsigned char arr[STEP_BYTE_SIZE];
         // Copy part of byte array into arr
         memcpy(arr, bytes + 64 + (i * STEP_BYTE_SIZE), STEP_BYTE_SIZE);
         track.steps[i] = byteArrayToStep(arr);
@@ -167,9 +216,12 @@ struct Project initializeProject() {
                 track.pageLength = 16;
                 for (int s = 0; s < 64; s++) {
                     struct Step step;
-                    step.note = 0;
-                    step.velocity = 0;
-                    step.nudge = 0;
+                    for (int n = 0; n < 8; n++) {
+                        struct Note note;
+                        note.note = 0;
+                        note.velocity = 0;
+                        step.notes[n] = note;
+                    }
                     track.steps[s] = step;
                 }
                 pattern.tracks[k] = track;
