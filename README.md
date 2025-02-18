@@ -34,7 +34,8 @@ Basically the functionality for all programs is identical, with the following ma
 - ABCD      : These are functional buttons, depending on the program
 - Shift 1   : This button can be used on the 16-pad, or ABCD pad to do 1 alternative action
 - Shift 2   : This button can be used to "zoom in" on 1 of the 16-pad or ABCD buttons to provide more options for that specific button (for example: extra options for a single step in the sequencer)
-- Shift 3   : Track Options + Utilities (copy / paste / etc)
+- Shift 1+2 : Utilities
+- Shift 3   : Track Options
 - Func      : This buttons is program-agnostic and provides overall operations (configuration / transport / midi / track & pattern selection, etc). It also doubles as a "back"-button when deeper in menu's
 
 ## global functionality:
@@ -48,12 +49,14 @@ Basically the functionality for all programs is identical, with the following ma
     - 3-4       : Increase / decrease track speed (default=0 / default speed)
     - 5-6       : Increase / decrease track velocity modifier (default=64)
     - 7-8       : Increase / decrease pattern step count before transitioning (default=16, max=256)
-    - 9-10      : Increase / decrease track "name" (default="Track")
-    - 11-12     : Increase / decrease track "name number" (default="1")
+    - 9         : Change track play mode (continuous or by page)
+    - 10        : _(tbd)_
+    - 11        : _(tbd)_
+    - 12        : _(tbd)_
     - 13-14     : Increase / decrease CC1 mapping (default=0)
     - 15-16     : Increase / decrease CC2 mapping (default=0)
-    - A         : Select Progr**A**m
-    - B         : _(tbd)_
+    - A         : Change Track n**a**me
+    - B         : Select Program
     - C         : Set Midi **C**hannel for Track
     - D         : Set Midi **D**evice for Track
 - Shift1+2  : Track Operations
@@ -123,7 +126,7 @@ Basically your workflow is the following:
 
 ### 1: Basic 16-step sequencer
 
-Can hold 16*16 = 256 patterns
+Each pattern has 64 steps, divided in 4 pages. Each step can have up to 8 notes. Since this sequencer is monophonic, note 1-8 are used for extra page size. This makes it possible for a total track to have 512 steps. Track length is used to determine how many pages are possible: (<= 128 steps = 4 pages, 129-256 = 2 pages, 257-512 = 1 page)
 
 - 16-pad    : Steps
     - Toggle on/off
@@ -140,9 +143,18 @@ Can hold 16*16 = 256 patterns
 - ABCD  : Select page for playing (next in queue)
     - When holding multiple pages, a chain is created
     - Shift1    : Select page for editing (multiple taps for multipage setup)
-    - Shift2    : Select page size (16, 32, 48, 64, 80, 96, 112, 128) (default=16) (note 1-8 is used for page information)
+    - Shift2    : Select page size (1-512) (default=16) (note 1-8 is used for page information)
 
 ### Basic poly sequencer
+
+Each pattern has 64 steps, divided in 4 pages. Each step can have up to 8 notes.
+
+Track length determins how many pages / polyphony is possible:
+
+- with 8-voice polyphony, you can have max. 64 steps.
+- with 4-voice polyphony, you can have max. 128 steps.
+- with 2-voice polyphony, you can have max. 256 steps.
+- with monophony, you can have 512 steps.
 
 Same as "Basic 16 step sequencer, but pages are sacrified for polyphony. The following is different between the 2 sequencers:
 
@@ -205,3 +217,10 @@ Includes effects on tracks and mute groups toggling, for example, reverse playba
 - B : Select pattern (if no pattern is selected in 4 beats, default back to A)
 - C : Select sequence (if no sequence is selected in 4 beats, default back to A)
 - D : FX mode
+
+## Dependencies
+
+When you want to build and compile yourself, make sure you have the following dependencies installed on your system:
+
+- SDL2
+- Portmidi

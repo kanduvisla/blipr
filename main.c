@@ -16,6 +16,8 @@
 #include "programs/track_selection.h"
 #include "programs/pattern_selection.h"
 #include "programs/sequence_selection.h"
+#include <portmidi.h>
+#include <porttime.h>
 
 // Renderer:
 SDL_Renderer *renderer = NULL;
@@ -28,6 +30,12 @@ int64_t nanoSecondsPerPulse = 0;
 
 // Project file
 char *projectFile = "data.blipr";
+
+#define INPUT_BUFFER_SIZE 100
+#define OUTPUT_BUFFER_SIZE 100
+
+PmStream *input_stream;
+PmStream *output_stream;
 
 void calculateMicroSecondsPerPulse() {
     double beatsPerSecond = bpm / 60.0;
@@ -49,11 +57,23 @@ int64_t getTimespecDiffInNanoSeconds(struct timespec *start, struct timespec *en
     return temp.tv_sec * 1000000000LL + temp.tv_nsec;
 }
 
+void listMidiDevices() {
+    int num_devices = Pm_CountDevices();
+    printf("Found %d MIDI devices\n", num_devices);
+    printf("Available MIDI devices:\n");
+    for (int i = 0; i < num_devices; i++) {
+        const PmDeviceInfo *info = Pm_GetDeviceInfo(i);
+        printf("%d: %s, %s\n", i, info->name, info->input ? "Input" : "Output");
+    }
+}
+
 /**
  * Main loop
  */
 int main(void)
 {
+    listMidiDevices();
+
     SDL_Window      *win = NULL;
     SDL_Texture     *renderTarget = NULL;
 
@@ -262,6 +282,8 @@ int main(void)
             // End
             isBeatTrigged = false;
         }
+
+        isRenderRequired = false;
 
         // Drawing magic:
         if (isRenderRequired) {
