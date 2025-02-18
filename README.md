@@ -52,14 +52,15 @@ Basically the functionality for all programs is identical, with the following ma
     - 11-12     : Increase / decrease track "name number" (default="1")
     - 13-14     : Increase / decrease CC1 mapping (default=0)
     - 15-16     : Increase / decrease CC2 mapping (default=0)
+    - A         : Select Progr**A**m
+    - B         : _(tbd)_
+    - C         : Set Midi **C**hannel for Track
+    - D         : Set Midi **D**evice for Track
+- Shift1+2  : Track Operations
     - A         : Copy Track
     - B         : Paste Track
     - C         : Cut / Clear Track
     - D         : (tbd)
-- Shift3-A  : Select Progr**A**m
-- Shift3-B  : _(tbd)_
-- Shift3-C  : Set Midi **C**hannel for Track
-- Shift3-D  : Set Midi **D**evice for Track
 - Func-1-16 : Select Track 1-16
 - Func-A    : Pattern Selector (while still holding Func down, select 1-16)
 - Func-B    : Sequence Selector (while still holding Func down, select 1-16)
@@ -78,11 +79,16 @@ In configuration mode, the following can be configured:
 
 ## track names + numbers
 
-To make it easier to name tracks, you cannot choose a track name, but rather pick from a pre-defined list of names:
+When entering a name, the 16-pad can be used to enter characters. 
 
-```
-arp, bass, beat, bell, bleep, bloop, brass, buzz, chime, chord, clap, click, crash, crunch, cymbal, djembe, drone, drop, drum, echo, fade, flute, fm, fx, glitch, glock, groan, growl, guitar, harmonica, harp, hihat, horn, hum, kick, keys, lead, loop, mallet, marimba, melody, moog, mute, noise, organ, pad, perc, piano, ping, pluck, pulse, rattle, reed, reverb, ride, riff, rimshot, rise, roll, sax, scratch, shaker, sine, siren, slap, slide, snap, snare, soundfx, spark, stab, steel, strum, sweep, synth, tamb, tap, thump, tom, trill, twang, vibe, vibraphone, viola, violin, vocal, voice, wah, warble, wave, whine, whisper, whistle, wind, wobble, wurly, xylo, zap, zither
-```
+- 13-16  : [left], [right], [space], [backspace]
+- ABCD   : Select page
+- A      : ABCD EFGH IJKL
+- B      : MNOP QRST UVWX
+- C      : YZ01 2345 6789
+- D      : .!?- ~/:_ ()[]
+- Func   : Ok (close and set)
+- Shift3 : Cancel 
 
 ## track speed
 

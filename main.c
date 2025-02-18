@@ -14,6 +14,8 @@
 #include "file_handling.h"
 #include "programs/sequencer.h"
 #include "programs/track_selection.h"
+#include "programs/pattern_selection.h"
+#include "programs/sequence_selection.h"
 
 // Renderer:
 SDL_Renderer *renderer = NULL;
@@ -25,7 +27,7 @@ double bpm = 120.0;
 int64_t nanoSecondsPerPulse = 0;
 
 // Project file
-unsigned char * projectFile = "data.blipr";
+char *projectFile = "data.blipr";
 
 void calculateMicroSecondsPerPulse() {
     double beatsPerSecond = bpm / 60.0;
@@ -117,13 +119,12 @@ int main(void)
     // Array to keep track of key states
     bool keyStates[SDL_NUM_SCANCODES] = {false};
     
-    // Array to keep track of key triggs (this trig only 1 frame, they're triggers to do 1 action on keydown)
-    bool keyTrigs[SDL_NUM_SCANCODES] = {false};
-
     // State:
     int selectedProgram = BLIPR_PROGRAM_SEQUENCER;
     bool isConfigurationModeActive = false;
     bool isTrackSelectionActive = false;
+    bool isPatternSelectionActive = false;
+    bool isSequenceSelectionActive = false;
     int selectedMidiInstrument = 0;
     int selectedMidiChannel = 0;
     int selectedTrack = 0;
@@ -159,21 +160,30 @@ int main(void)
                 if (!keyStates[scanCode]) {
                     keyStates[scanCode] = true;
                     
-                    if (scanCode == BLIPR_KEY_SHIFT_3) {
+                    if (scanCode == BLIPR_KEY_FUNC) {
                         // Shift 3 also doubles as back button Back button:
                         isConfigurationModeActive = false;
                         // Display track selection:
                         isTrackSelectionActive = true;
                     }
 
-                    if (keyStates[BLIPR_KEY_SHIFT_3] && scanCode == BLIPR_KEY_D) {
-                        // Active configuration mode:
-                        isConfigurationModeActive = true;
-                        isTrackSelectionActive = false;
+                    // Check if this is one of the global Func-options:
+                    if (keyStates[BLIPR_KEY_FUNC]) {
+                        if (scanCode == BLIPR_KEY_A) {
+                            isPatternSelectionActive = true;
+                        } else if (scanCode == BLIPR_KEY_B) {
+                            isSequenceSelectionActive = true;
+                        } else if (scanCode == BLIPR_KEY_D) {
+                            isConfigurationModeActive = true;
+                        }
                     }
 
                     if (isTrackSelectionActive) {
                         updateTrackSelection(&selectedTrack, scanCode);
+                    } else if (isPatternSelectionActive) {
+                        updateTrackSelection(&selectedPattern, scanCode);
+                    } else if (isSequenceSelectionActive) {
+                        updateSequenceSelection(&selectedSequence, scanCode);
                         // Update currently active program:
                     } else if (selectedProgram == BLIPR_PROGRAM_SEQUENCER) {
                         // Update the sequencer:
@@ -189,8 +199,10 @@ int main(void)
                 SDL_Scancode scanCode = e.key.keysym.scancode;
                 isRenderRequired = true;
                 keyStates[scanCode] = false;
-                if (scanCode == BLIPR_KEY_SHIFT_3) {
+                if (scanCode == BLIPR_KEY_FUNC) {
                     isTrackSelectionActive = false;
+                    isPatternSelectionActive = false;
+                    isSequenceSelectionActive = false;
                 }
                 printf("Key released: %s\n", SDL_GetKeyName(e.key.keysym.sym));
             }
@@ -271,8 +283,12 @@ int main(void)
             // Configuration mode:
             if (isTrackSelectionActive) {
                 drawTrackSelection(&selectedTrack);
+            } else if (isPatternSelectionActive) {
+                drawPatternSelection(&selectedPattern);
+            } else if (isSequenceSelectionActive) {
+                drawSequenceSelection(&selectedPattern);
             } else if (isConfigurationModeActive) {
-                
+                // TODO: Draw configuration
             } else {
                 // Currently active program:
                 if (selectedProgram == BLIPR_PROGRAM_SEQUENCER) {

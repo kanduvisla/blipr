@@ -1,9 +1,4 @@
 #include <SDL.h>
-#include <stdbool.h>
-#include "../project.h"
-#include "../constants.h"
-#include "../colors.h"
-#include "../drawing.h"
 #include "../drawing_components.h"
 #include "../utils.h"
 

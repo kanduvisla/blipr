@@ -1,9 +1,7 @@
-#ifndef CONFIGURATION_H
-#define CONFIGURATION_H
+#ifndef TRACK_SELECTION_H
+#define TRACK_SELECTION_H
 
 #include <SDL.h>
-#include <stdbool.h>
-#include "../project.h"
 
 /**
  * Update the track selection according to user input
