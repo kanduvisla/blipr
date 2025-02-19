@@ -28,13 +28,13 @@ void listMidiDevices() {
 
 void openMidiInput(int device_id) {
     PmError error = Pm_OpenInput(&input_stream, device_id, NULL, INPUT_BUFFER_SIZE, NULL, NULL);
-    handle_error(error);
+    handleMidiError(error);
     printf("Opened input device %d\n", device_id);
 }
 
 void openMidiOutput(int device_id) {
     PmError error = Pm_OpenOutput(&output_stream, device_id, NULL, OUTPUT_BUFFER_SIZE, NULL, NULL, 0);
-    handle_error(error);
+    handleMidiError(error);
     printf("Opened output device %d\n", device_id);
 }
 
@@ -42,7 +42,7 @@ void sendMidiMessage(int status, int data1, int data2) {
     PmEvent event = {0};
     event.message = Pm_Message(status, data1, data2);
     PmError error = Pm_Write(output_stream, &event, 1);
-    handle_error(error);
+    handleMidiError(error);
 }
 
 void processMidiInput() {

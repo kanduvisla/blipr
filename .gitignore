@@ -4,3 +4,6 @@ build/
 
 # ignore save files
 *.blipr
+
+#ignore backup files
+*.bak

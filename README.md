@@ -6,6 +6,12 @@ blipr is a sequencer.
 blipr is a generator.  
 blipr is an inspirator.
 
+---
+
+## Disclaimer
+
+This project is still very beta and WIP. Things are subject to change.
+
 ## layout
 
 This program is made to be operated with a 24-key keypad:

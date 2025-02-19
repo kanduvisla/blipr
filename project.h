@@ -81,6 +81,10 @@ struct Sequence byteArrayToSequence(const unsigned char bytes[SEQUENCE_BYTE_SIZE
  */
 struct Project {
     char name[32];
+    char midiDevice1Name[32];
+    char midiDevice2Name[32];
+    char midiDevice3Name[32];
+    char midiDevice4Name[32];
     struct Sequence sequences[16];
 };
 

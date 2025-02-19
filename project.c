@@ -172,12 +172,20 @@ struct Sequence byteArrayToSequence(const unsigned char bytes[SEQUENCE_BYTE_SIZE
 /**
  * Convert Project to Byte Array
  * byte 1-32    : Name
- * byte 33-256  : Spare
+ * byte 33-64   : Midi Device #1 name
+ * byte 65-96   : Midi Device #2 name
+ * byte 97-128  : Midi Device #3 name
+ * byte 129-160 : Midi Device #4 name
+ * byte 33-256  : Spare 
  * byte 257-... : Sequence Data
  */
 void projectToByteArray(const struct Project *project, unsigned char bytes[PROJECT_BYTE_SIZE]) {
     memcpy(bytes, project->name, 32);
-    memset(bytes + 32, 0, 256 - 32);
+    memcpy(bytes + 32, project->midiDevice1Name, 32);
+    memcpy(bytes + 64, project->midiDevice2Name, 32);
+    memcpy(bytes + 96, project->midiDevice3Name, 32);
+    memcpy(bytes + 128, project->midiDevice4Name, 32);
+    memset(bytes + 160, 0, 256 - 160);
     for (int i = 0; i < 16; i++) {
         sequenceToByteArray(&project->sequences[i], bytes + 256 + (i * SEQUENCE_BYTE_SIZE));
     }
@@ -189,6 +197,10 @@ void projectToByteArray(const struct Project *project, unsigned char bytes[PROJE
 struct Project byteArrayToProject(const unsigned char bytes[PROJECT_BYTE_SIZE]) {
     struct Project project;
     memcpy(project.name, bytes, 32);
+    memcpy(project.midiDevice1Name, bytes + 32, 32);
+    memcpy(project.midiDevice2Name, bytes + 64, 32);
+    memcpy(project.midiDevice3Name, bytes + 96, 32);
+    memcpy(project.midiDevice4Name, bytes + 128, 32);
     for (int i = 0; i < 16; i++) {
         project.sequences[i] = byteArrayToSequence(bytes + 256  + (i  * SEQUENCE_BYTE_SIZE));
     }

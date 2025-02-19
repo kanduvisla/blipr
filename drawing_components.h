@@ -20,4 +20,9 @@ void drawBasicGrid(bool keyStates[SDL_NUM_SCANCODES]);
  */
 void drawHighlightedGridTile(int tileIndex);
 
+/**
+ * Draw the numbers 1-16
+ */
+void drawBasicNumbers();
+
 #endif

@@ -141,3 +141,26 @@ void drawHighlightedGridTile(int tileIndex) {
         COLOR_WHITE
     );
 }
+
+void drawBasicNumbers() {
+    // Draw numbers 1-16:
+    int width = HEIGHT / 6;
+
+    // 16-Pad
+    for (int j = 0; j < 4; j++) {
+        int height = width;
+        for (int i = 0; i < 4; i++) {
+            char str[3];
+            int result = (j * 4) + i;
+            sprintf(str, "%d", result);
+
+            drawText(
+                (result < 10 ? 15 : 11) + i + (i * width),
+                14 + j + (j * height),
+                str,
+                11,
+                COLOR_WHITE
+            );
+        }
+    }
+}

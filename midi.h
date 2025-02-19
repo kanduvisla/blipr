@@ -4,16 +4,20 @@
 #include <portmidi.h>
 #include <porttime.h>
 
+
+void handleMidiError(PmError error);
+
 /**
  * Print a list of MIDI devices to the shell
  */
 void listMidiDevices();
 
-void handleMidiError(PmError error) {
-    if (error != pmNoError) {
-        printf("PortMidi error: %s\n", Pm_GetErrorText(error));
-        exit(1);
-    }
-}
+void openMidiInput(int device_id);
+
+void openMidiOutput(int device_id);
+
+void sendMidiMessage(int status, int data1, int data2);
+
+void processMidiInput();
 
 #endif

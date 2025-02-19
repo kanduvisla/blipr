@@ -1,6 +1,9 @@
 #include <SDL.h>
 #include "../drawing_components.h"
 #include "../utils.h"
+#include "../constants.h"
+#include "../drawing_text.h"
+#include "../colors.h"
 
 void updateTrackSelection(int *selectedTrack, SDL_Scancode key) {
     int index = scancodeToStep(key);
@@ -12,8 +15,9 @@ void updateTrackSelection(int *selectedTrack, SDL_Scancode key) {
 }
 
 void drawTrackSelection(int *selectedTrack) {
+    drawBasicNumbers();
     drawHighlightedGridTile(*selectedTrack);
 
-    // Draw numbers 1-16:
-
+    // Title:
+    drawText(29, 133, "SELECT TRACK", 100, COLOR_WHITE);
 }

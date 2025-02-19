@@ -16,8 +16,7 @@
 #include "programs/track_selection.h"
 #include "programs/pattern_selection.h"
 #include "programs/sequence_selection.h"
-#include <portmidi.h>
-#include <porttime.h>
+#include "midi.h"
 
 // Renderer:
 SDL_Renderer *renderer = NULL;
@@ -57,21 +56,10 @@ int64_t getTimespecDiffInNanoSeconds(struct timespec *start, struct timespec *en
     return temp.tv_sec * 1000000000LL + temp.tv_nsec;
 }
 
-void listMidiDevices() {
-    int num_devices = Pm_CountDevices();
-    printf("Found %d MIDI devices\n", num_devices);
-    printf("Available MIDI devices:\n");
-    for (int i = 0; i < num_devices; i++) {
-        const PmDeviceInfo *info = Pm_GetDeviceInfo(i);
-        printf("%d: %s, %s\n", i, info->name, info->input ? "Input" : "Output");
-    }
-}
-
 /**
  * Main loop
  */
-int main(void)
-{
+int main(int argc, char *argv[]) {
     listMidiDevices();
 
     SDL_Window      *win = NULL;
@@ -153,6 +141,7 @@ int main(void)
 
     // Project file:
     printf("Loading project file: %s\n", projectFile);
+    // exit(1);
     struct Project *project = readProjectFile(projectFile);
     if (project == NULL) {
         printf("No project found, creating new project\n");
@@ -182,7 +171,7 @@ int main(void)
                     
                     if (scanCode == BLIPR_KEY_FUNC) {
                         // Shift 3 also doubles as back button Back button:
-                        isConfigurationModeActive = false;
+                        // isConfigurationModeActive = false;
                         // Display track selection:
                         isTrackSelectionActive = true;
                     }
@@ -190,24 +179,30 @@ int main(void)
                     // Check if this is one of the global Func-options:
                     if (keyStates[BLIPR_KEY_FUNC]) {
                         if (scanCode == BLIPR_KEY_A) {
+                            isTrackSelectionActive = false;
                             isPatternSelectionActive = true;
                         } else if (scanCode == BLIPR_KEY_B) {
+                            isTrackSelectionActive = false;
                             isSequenceSelectionActive = true;
                         } else if (scanCode == BLIPR_KEY_D) {
+                            isTrackSelectionActive = false;
                             isConfigurationModeActive = true;
-                        }
-                    }
+                        } 
 
-                    if (isTrackSelectionActive) {
-                        updateTrackSelection(&selectedTrack, scanCode);
-                    } else if (isPatternSelectionActive) {
-                        updateTrackSelection(&selectedPattern, scanCode);
-                    } else if (isSequenceSelectionActive) {
-                        updateSequenceSelection(&selectedSequence, scanCode);
-                        // Update currently active program:
-                    } else if (selectedProgram == BLIPR_PROGRAM_SEQUENCER) {
-                        // Update the sequencer:
-                        updateSequencer(project, keyStates, scanCode, selectedSequence, selectedPattern, selectedTrack);
+                        // Actions while the Func-key is down:
+                        if (isTrackSelectionActive) {
+                            updateTrackSelection(&selectedTrack, scanCode);
+                        } else if (isPatternSelectionActive) {
+                            updateTrackSelection(&selectedPattern, scanCode);
+                        } else if (isSequenceSelectionActive) {
+                            updateSequenceSelection(&selectedSequence, scanCode);
+                        }    
+                    } else {
+                        // Func-key is not down, so current program should be shown:
+                        if (selectedProgram == BLIPR_PROGRAM_SEQUENCER) {
+                            // Update the sequencer:
+                            updateSequencer(project, keyStates, scanCode, selectedSequence, selectedPattern, selectedTrack);
+                        }
                     }
 
                     printf("Key pressed: %s\n", SDL_GetKeyName(e.key.keysym.sym));
@@ -219,10 +214,12 @@ int main(void)
                 SDL_Scancode scanCode = e.key.keysym.scancode;
                 isRenderRequired = true;
                 keyStates[scanCode] = false;
+                // Func-keyup always closes the entire func-menu
                 if (scanCode == BLIPR_KEY_FUNC) {
                     isTrackSelectionActive = false;
                     isPatternSelectionActive = false;
                     isSequenceSelectionActive = false;
+                    isConfigurationModeActive = false;
                 }
                 printf("Key released: %s\n", SDL_GetKeyName(e.key.keysym.sym));
             }
@@ -282,8 +279,6 @@ int main(void)
             // End
             isBeatTrigged = false;
         }
-
-        isRenderRequired = false;
 
         // Drawing magic:
         if (isRenderRequired) {
