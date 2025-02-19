@@ -17,6 +17,7 @@
 #include "programs/track_selection.h"
 #include "programs/pattern_selection.h"
 #include "programs/sequence_selection.h"
+#include "programs/config_selection.h"
 #include "midi.h"
 
 // Renderer:
@@ -215,7 +216,9 @@ int main(int argc, char *argv[]) {
                             updateTrackSelection(&selectedPattern, scanCode);
                         } else if (isSequenceSelectionActive) {
                             updateSequenceSelection(&selectedSequence, scanCode);
-                        }    
+                        } else if (isConfigurationModeActive) {
+                            updateConfiguration(scanCode);
+                        }
                     } else {
                         // Func-key is not down, so current program should be shown:
                         if (selectedProgram == BLIPR_PROGRAM_SEQUENCER) {
@@ -239,6 +242,7 @@ int main(int argc, char *argv[]) {
                     isPatternSelectionActive = false;
                     isSequenceSelectionActive = false;
                     isConfigurationModeActive = false;
+                    resetConfigurationScreen();
                 }
                 printf("Key released: %s\n", SDL_GetKeyName(e.key.keysym.sym));
             }
@@ -324,7 +328,7 @@ int main(int argc, char *argv[]) {
             } else if (isSequenceSelectionActive) {
                 drawSequenceSelection(&selectedPattern);
             } else if (isConfigurationModeActive) {
-                // TODO: Draw configuration
+                drawConfigSelection();
             } else {
                 // Currently active program:
                 if (selectedProgram == BLIPR_PROGRAM_SEQUENCER) {

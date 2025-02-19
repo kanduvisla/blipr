@@ -164,3 +164,23 @@ void drawBasicNumbers() {
         }
     }
 }
+
+void drawSingleNumber(int index) {
+    int width = HEIGHT / 6;
+    int height = width;
+
+    int x = index % 4;
+    int y = index / 4;
+
+    char str[3];
+    int result = (y * 4) + x;
+    sprintf(str, "%d", result);
+
+    drawText(
+        (result < 10 ? 15 : 11) + x + (x * width),
+        14 + y + (y * height),
+        str,
+        11,
+        COLOR_WHITE
+    );
+}

@@ -9,6 +9,10 @@
 #define SCALE_FACTOR 4              // Scale ratio, 4=180x180px
 #define WIDTH (WINDOW_WIDTH / SCALE_FACTOR)
 #define HEIGHT (WINDOW_HEIGHT / SCALE_FACTOR)
+#define BUTTON_WIDTH (WIDTH / 6)
+#define BUTTON_HEIGHT (HEIGHT / 6)
+#define SMALL_BUTTON_HEIGHT (BUTTON_HEIGHT / 2)
+#define TITLE_WIDTH ((BUTTON_WIDTH * 4) + 3)
 #define GRID_UNIT 1
 
 // Pulse per quarter note

@@ -1,6 +1,8 @@
 #include <SDL.h>
 #include "drawing_text.h"
 #include "drawing.h"
+#include "constants.h"
+#include "colors.h"
 
 // Define the size of each character
 #define CHAR_WIDTH 5
@@ -365,21 +367,6 @@ void drawText(int startX, int startY, const char* text, int maxWidth, SDL_Color 
                 }
             }
         } else {
-            // Calculate the remaining width of the current word
-            // int wordWidth = 0;
-            // const char* wordEnd = wordStart;
-            // while (*wordEnd && *wordEnd != ' ') {
-            //     wordWidth += (CHAR_WIDTH + CHAR_SPACING);
-            //     wordEnd++;
-            // }
-
-            // Check if the word fits on the current line
-            // if (currentX + wordWidth > startX + maxWidth && currentX > startX) {
-            //     // Start a new line
-            //     currentX = startX;
-            //     currentY += (CHAR_HEIGHT + LINE_SPACING);
-            // }
-
             // Draw the character
             drawCharacter(currentX, currentY, *text, color);
             currentX += (CHAR_WIDTH + CHAR_SPACING);
@@ -387,4 +374,16 @@ void drawText(int startX, int startY, const char* text, int maxWidth, SDL_Color 
 
         text++;
     }
+}
+
+void drawCenteredLine(int startX, int startY, const char* text, int totalWidth, SDL_Color color) {
+    int textWidth = (strlen(text) * (CHAR_WIDTH + CHAR_SPACING));
+
+    drawText(
+        startX + (totalWidth - textWidth) / 2,
+        startY, 
+        text, 
+        totalWidth, 
+        color
+    );
 }

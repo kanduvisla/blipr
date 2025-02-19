@@ -19,5 +19,5 @@ void drawTrackSelection(int *selectedTrack) {
     drawHighlightedGridTile(*selectedTrack);
 
     // Title:
-    drawText(29, 133, "SELECT TRACK", 100, COLOR_WHITE);
+    drawCenteredLine(2, 133, "SELECT TRACK", TITLE_WIDTH, COLOR_WHITE);
 }

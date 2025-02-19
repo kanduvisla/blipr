@@ -1,6 +1,9 @@
 #include <SDL.h>
 #include "../drawing_components.h"
 #include "../utils.h"
+#include "../constants.h"
+#include "../drawing_text.h"
+#include "../colors.h"
 
 /**
  * Update the sequence selection according to user input
@@ -18,8 +21,9 @@ void updateSequenceSelection(int *selectedSequence, SDL_Scancode key) {
  * Draw the sequence selection
  */
 void drawSequenceSelection(int *selectedSequence) {
+    drawBasicNumbers();
     drawHighlightedGridTile(*selectedSequence);
 
-    // Draw numbers 1-16:
-
+    // Title:
+    drawCenteredLine(19, 133, "SELECT SEQUENCE", TITLE_WIDTH, COLOR_WHITE);
 }

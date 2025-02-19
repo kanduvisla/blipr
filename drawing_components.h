@@ -25,4 +25,9 @@ void drawHighlightedGridTile(int tileIndex);
  */
 void drawBasicNumbers();
 
+/**
+ * Draw a single number
+ */
+void drawSingleNumber(int index);
+
 #endif
