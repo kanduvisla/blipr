@@ -14,11 +14,12 @@ void writeProjectFile(struct Project *project, const char *fileName) {
         return;
     }
 
-    unsigned char arr[PROJECT_BYTE_SIZE];
+    unsigned char *arr = malloc(PROJECT_BYTE_SIZE);
     projectToByteArray(project, arr);
 
     printf("Saving project \"%s\"...\n", project->name);
     fwrite(arr, PROJECT_BYTE_SIZE, 1, file);
+    free(arr);
     fclose(file);
     printf("Saved project file.\n");
 }
@@ -36,7 +37,7 @@ struct Project* readProjectFile(const char *fileName) {
         return NULL;
     }
 
-    unsigned char arr[PROJECT_BYTE_SIZE];
+    unsigned char *arr = malloc(PROJECT_BYTE_SIZE);
     size_t bytesRead = fread(arr, 1, PROJECT_BYTE_SIZE, file);
     fclose(file);
 
@@ -45,12 +46,12 @@ struct Project* readProjectFile(const char *fileName) {
         return NULL;
     }
 
-    struct Project* project = malloc(sizeof(struct Project));
+    struct Project* project = byteArrayToProject(arr);
+    free(arr);
     if (project == NULL) {
-        printf("Memory allocation failed\n");
-        return NULL;
+        printf("Failed to create project from byte array\n");
+        exit(1);
     }
 
-    *project = byteArrayToProject(arr);
     return project;
 }

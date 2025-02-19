@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <time.h>
+#include <sys/resource.h>
 #include "globals.h"
 #include "colors.h"
 #include "drawing_components.h"
@@ -60,6 +61,20 @@ int64_t getTimespecDiffInNanoSeconds(struct timespec *start, struct timespec *en
  * Main loop
  */
 int main(int argc, char *argv[]) {
+    /* DEBUG INFO */
+    printf("note byte size: %d / %d\n", sizeof(struct Note), NOTE_BYTE_SIZE);
+    printf("step byte size: %d / %d\n", sizeof(struct Step), STEP_BYTE_SIZE);
+    printf("track byte size: %d / %d\n", sizeof(struct Track), TRACK_BYTE_SIZE);
+    printf("pattern byte size: %d / %d\n", sizeof(struct Pattern), PATTERN_BYTE_SIZE);
+    printf("sequence byte size: %d / %d\n", sizeof(struct Sequence), SEQUENCE_BYTE_SIZE);
+    printf("project byte size: %d / %d\n", sizeof(struct Project), PROJECT_BYTE_SIZE);
+    
+    struct rlimit rlim;
+    getrlimit(RLIMIT_STACK, &rlim);
+    printf("stack size: %llu\n", rlim.rlim_cur);
+
+    /* END DEBUG INFO */
+
     listMidiDevices();
 
     SDL_Window      *win = NULL;
@@ -145,13 +160,17 @@ int main(int argc, char *argv[]) {
     struct Project *project = readProjectFile(projectFile);
     if (project == NULL) {
         printf("No project found, creating new project\n");
-        project = malloc(sizeof(struct Project));
+        project = malloc(PROJECT_BYTE_SIZE);
         if (project == NULL) {
             printf("Memory allocation failed\n");
             return 1;  // or handle the error appropriately
-        }
-        *project = initializeProject();
+        } else {
+            printf("Memory allocated succesfully\n");
+        }        
+        initializeProject(project);
+        printf("Project initialized\n");
         writeProjectFile(project, projectFile);
+        printf("Project saved\n");
     } else {
         printf("Loaded project: %s\n", project->name);
     }

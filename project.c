@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "project.h"
 
@@ -60,7 +61,7 @@ struct Note byteArrayToNote(const unsigned char bytes[NOTE_BYTE_SIZE]) {
  * Byte 4-...   : Spare
  */
 void stepToByteArray(const struct Step *step, unsigned char bytes[STEP_BYTE_SIZE]) {
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < NOTES_IN_STEP; i++) {
         noteToByteArray(&step->notes[i], bytes + (i * NOTE_BYTE_SIZE));
     }
 }
@@ -70,7 +71,7 @@ void stepToByteArray(const struct Step *step, unsigned char bytes[STEP_BYTE_SIZE
  */
 struct Step byteArrayToStep(const unsigned char bytes[STEP_BYTE_SIZE]) {
     struct Step step;
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < NOTES_IN_STEP; i++) {
         step.notes[i] = byteArrayToNote(bytes + (i * NOTE_BYTE_SIZE));
     }
     return step;
@@ -101,18 +102,23 @@ void trackToByteArray(const struct Track *track, unsigned char bytes[TRACK_BYTE_
 /**
  * Convert Byte Array to Track
  */
-struct Track byteArrayToTrack(const unsigned char bytes[TRACK_BYTE_SIZE]) {
-    struct Track track;
-    memcpy(track.name, bytes, 32);
-    track.midiDevice = bytes[32];
-    track.midiChannel = bytes[33];
-    track.program = bytes[34];
-    track.pageLength = bytes[35];
+struct Track* byteArrayToTrack(const unsigned char bytes[TRACK_BYTE_SIZE]) {
+    struct Track* track = malloc(TRACK_BYTE_SIZE);
+    if (track == NULL) {
+        printf("Error: cannot allocate memory for track\n");
+        exit(1);
+    }
+
+    memcpy(track->name, bytes, 32);
+    track->midiDevice = bytes[32];
+    track->midiChannel = bytes[33];
+    track->program = bytes[34];
+    track->pageLength = bytes[35];
     for (int i = 0; i < 64; i++) {
         unsigned char arr[STEP_BYTE_SIZE];
         // Copy part of byte array into arr
         memcpy(arr, bytes + 64 + (i * STEP_BYTE_SIZE), STEP_BYTE_SIZE);
-        track.steps[i] = byteArrayToStep(arr);
+        track->steps[i] = byteArrayToStep(arr);
     }
     return track;
 }
@@ -134,11 +140,16 @@ void patternToByteArray(const struct Pattern *pattern, unsigned char bytes[PATTE
 /**
  * Convert byte array to pattern
  */
-struct Pattern byteArrayToPattern(const unsigned char bytes[PATTERN_BYTE_SIZE]) {
-    struct Pattern pattern;
-    memcpy(pattern.name, bytes, 32);
+struct Pattern* byteArrayToPattern(const unsigned char bytes[PATTERN_BYTE_SIZE]) {
+    struct Pattern* pattern = malloc(PATTERN_BYTE_SIZE);
+    if (pattern == NULL) {
+        printf("Error: cannot allocate memory for pattern\n");
+        exit(1);
+    }
+
+    memcpy(pattern->name, bytes, 32);
     for (int i = 0; i < 16; i++) {
-        pattern.tracks[i] = byteArrayToTrack(bytes + 64 + (i * TRACK_BYTE_SIZE));
+        pattern->tracks[i] = *byteArrayToTrack(bytes + 64 + (i * TRACK_BYTE_SIZE));
     }
     return pattern;
 }
@@ -160,11 +171,16 @@ void sequenceToByteArray(const struct Sequence *sequence, unsigned char bytes[SE
 /**
  * Convert Byte Array to Sequence
  */
-struct Sequence byteArrayToSequence(const unsigned char bytes[SEQUENCE_BYTE_SIZE]) {
-    struct Sequence sequence;
-    memcpy(sequence.name, bytes, 32);
+struct Sequence* byteArrayToSequence(const unsigned char bytes[SEQUENCE_BYTE_SIZE]) {
+    struct Sequence* sequence = malloc(SEQUENCE_BYTE_SIZE);
+    if (sequence == NULL) {
+        printf("Error: cannot allocate memory for sequence\n");
+        exit(1);
+    }
+
+    memcpy(sequence->name, bytes, 32);
     for (int i = 0; i < 16; i++) {
-        sequence.patterns[i] = byteArrayToPattern(bytes + 64 + (i * PATTERN_BYTE_SIZE));
+        sequence->patterns[i] = *byteArrayToPattern(bytes + 64 + (i * PATTERN_BYTE_SIZE));
     }
     return sequence;
 }
@@ -194,15 +210,20 @@ void projectToByteArray(const struct Project *project, unsigned char bytes[PROJE
 /**
  * Convert Byte Array to Project
  */
-struct Project byteArrayToProject(const unsigned char bytes[PROJECT_BYTE_SIZE]) {
-    struct Project project;
-    memcpy(project.name, bytes, 32);
-    memcpy(project.midiDevice1Name, bytes + 32, 32);
-    memcpy(project.midiDevice2Name, bytes + 64, 32);
-    memcpy(project.midiDevice3Name, bytes + 96, 32);
-    memcpy(project.midiDevice4Name, bytes + 128, 32);
+struct Project* byteArrayToProject(const unsigned char bytes[PROJECT_BYTE_SIZE]) {
+    struct Project* project = malloc(PROJECT_BYTE_SIZE);
+    if (project == NULL) {
+        printf("Error: cannot allocate memory for project\n");
+        exit(1);
+    }
+
+    memcpy(project->name, bytes, 32);
+    memcpy(project->midiDevice1Name, bytes + 32, 32);
+    memcpy(project->midiDevice2Name, bytes + 64, 32);
+    memcpy(project->midiDevice3Name, bytes + 96, 32);
+    memcpy(project->midiDevice4Name, bytes + 128, 32);
     for (int i = 0; i < 16; i++) {
-        project.sequences[i] = byteArrayToSequence(bytes + 256  + (i  * SEQUENCE_BYTE_SIZE));
+        project->sequences[i] = *byteArrayToSequence(bytes + 256  + (i  * SEQUENCE_BYTE_SIZE));
     }
     return project;
 }
@@ -210,9 +231,8 @@ struct Project byteArrayToProject(const unsigned char bytes[PROJECT_BYTE_SIZE]) 
 /**
  * Initialize a new project
  */
-struct Project initializeProject() {
-    struct Project project;
-    strcpy(project.name, "New Project");
+void initializeProject(struct Project* project) {
+    strcpy(project->name, "New Project");
     for (int i = 0; i < 16; i++) {
         struct Sequence sequence;
         snprintf(sequence.name, sizeof(sequence.name), "Sequence %d", i + 1);
@@ -228,7 +248,7 @@ struct Project initializeProject() {
                 track.pageLength = 16;
                 for (int s = 0; s < 64; s++) {
                     struct Step step;
-                    for (int n = 0; n < 8; n++) {
+                    for (int n = 0; n < NOTES_IN_STEP; n++) {
                         struct Note note;
                         note.note = 0;
                         note.velocity = 0;
@@ -240,8 +260,6 @@ struct Project initializeProject() {
             }
             sequence.patterns[j] = pattern;
         }
-        project.sequences[i] = sequence;
+        project->sequences[i] = sequence;
     }
-
-    return project;
 }
