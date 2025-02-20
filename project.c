@@ -93,7 +93,8 @@ void trackToByteArray(const struct Track *track, unsigned char bytes[TRACK_BYTE_
     bytes[33] = track->midiChannel;
     bytes[34] = track->program;
     bytes[35] = track->pageLength;
-    memset(bytes + 36, 0, TRACK_BYTE_SIZE - 36);
+    memcpy(bytes + 36, &(track->trackLength), 2);
+    memset(bytes + 38, 0, TRACK_BYTE_SIZE - 38);
     for (int i = 0; i < 64; i++) {
         stepToByteArray(&track->steps[i], bytes + 64 + (i * STEP_BYTE_SIZE));
     }
@@ -114,6 +115,7 @@ struct Track* byteArrayToTrack(const unsigned char bytes[TRACK_BYTE_SIZE]) {
     track->midiChannel = bytes[33];
     track->program = bytes[34];
     track->pageLength = bytes[35];
+    memcpy(&(track->trackLength), bytes + 36, 2);
     for (int i = 0; i < 64; i++) {
         unsigned char arr[STEP_BYTE_SIZE];
         // Copy part of byte array into arr
@@ -246,6 +248,7 @@ void initializeProject(struct Project* project) {
                 track.midiChannel = 0;
                 track.program = 0;
                 track.pageLength = 16;
+                track.trackLength = 64;
                 for (int s = 0; s < 64; s++) {
                     struct Step step;
                     for (int n = 0; n < NOTES_IN_STEP; n++) {

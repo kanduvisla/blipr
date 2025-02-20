@@ -17,8 +17,7 @@
 
 // Pulse per quarter note
 #define PPQN 24
-#define LINES_PER_BAR 4             // Assuming we're always in 4/4
-#define PATTERN_LENGTH 16
+#define MAX_PULSES (PPQN * 512)       // Max amount of steps in a track can be 512
 
 // MAX/MIN Macro
 #define MAX(a,b) ((a) > (b) ? (a) : (b))

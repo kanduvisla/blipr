@@ -4,6 +4,7 @@
 #include "../constants.h"
 #include "../colors.h"
 #include "../drawing.h"
+#include "../drawing_components.h"
 #include "../utils.h"
 
 // TODO: These should be the global things I guess?
@@ -12,6 +13,7 @@ int selectedNote = 0;
 int defaultNote = 80;
 int defaultVelocity = 100;
 int halfVelocity = 50;
+int totalPpqnCounter = 0;
 
 /**
  * Toggle a step
@@ -21,6 +23,7 @@ void toggleStep(struct Step *step) {
     // Set default values:
     if (step->notes[selectedNote].enabled) {
         step->notes[selectedNote].velocity = defaultVelocity;
+        step->notes[selectedNote].note = defaultNote;
     }
 }
 
@@ -42,31 +45,67 @@ void toggleVelocity(struct Step *step) {
 }
 
 /**
+ * Set selected page
+ */
+void setSelectedPage(int index) {
+    printf("Set selected page to %d\n", index);
+    selectedPage = index;
+}
+
+/**
  * Update the sequencer according to user input
  */
-void updateSequencer(struct Project *project, bool keyStates[SDL_NUM_SCANCODES], SDL_Scancode key, int selectedSequence, int selectedPattern, int selectedTrack) {
+void updateSequencer(
+    struct Project *project, 
+    bool keyStates[SDL_NUM_SCANCODES], 
+    SDL_Scancode key, 
+    int selectedSequence, 
+    int selectedPattern, 
+    int selectedTrack
+) {
     int index = scancodeToStep(key);
-    if (index == -1) {
-        return;
-    }
-
     if (keyStates[BLIPR_KEY_SHIFT_1]) {
-        // Toggle velocity
-        toggleVelocity(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[index]);
+        if (index >= 0) {
+            // Toggle velocity
+            toggleVelocity(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[index]);
+        }
     } else if(keyStates[BLIPR_KEY_SHIFT_2]) {
         // Update selected note or page:
-
+    } else if(key == BLIPR_KEY_A) {
+        setSelectedPage(0);
+    } else if(key == BLIPR_KEY_B) {
+        setSelectedPage(1);
+    } else if(key == BLIPR_KEY_C) {
+        setSelectedPage(2);
+    } else if(key == BLIPR_KEY_D) {
+        setSelectedPage(3);
     } else {
-        // Toggle key
-        toggleStep(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[index]);
+        if (index >= 0) {
+            // Toggle key
+            toggleStep(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[index]);
+        }
     }
 }
 
 /**
  * Run the sequencer
  */
-void runSequencer(struct Project *project, int *ppqnCounter, int selectedSequence, int selectedPattern) {
+void runSequencer(
+    struct Project *project, 
+    int *ppqnCounter, 
+    int selectedSequence, 
+    int selectedPattern
+    // TODO: also needs selectedTrack? Since each track can have a different program?
+) {
+    totalPpqnCounter++;
+    if (totalPpqnCounter >= MAX_PULSES) {
+        totalPpqnCounter = 0;
+    }
 
+    int totalSteps = totalPpqnCounter / PPQN;
+    short int trackLength = project->sequences[selectedSequence].patterns[selectedPattern].tracks[0].trackLength;
+    // printf("Track length: %d\n", trackLength);
+    
 }
 
 /**
@@ -86,6 +125,9 @@ void drawSequencer(struct Project *project, int *noteCounter, int selectedSequen
         height,
         COLOR_WHITE
     );
+
+    // Outline current page:
+    drawHighlightedGridTile(selectedPage + 16);
 
     // Highlight non-empty steps:
     for (int j = 0; j < 4; j++) {

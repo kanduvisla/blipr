@@ -188,11 +188,6 @@ int main(int argc, char *argv[]) {
                 isRenderRequired = true;
                 if (!keyStates[scanCode]) {
                     keyStates[scanCode] = true;
-                    
-                    // if (scanCode == BLIPR_KEY_FUNC) {
-                    //     // Display track selection:
-                    //     isTrackSelectionActive = true;
-                    // }
 
                     // Check if this is one of the global Func-options:
                     if (keyStates[BLIPR_KEY_FUNC]) {
@@ -236,7 +231,7 @@ int main(int argc, char *argv[]) {
                         }
                     }
 
-                    printf("Key pressed: %s\n", SDL_GetKeyName(e.key.keysym.sym));
+                    // printf("Key pressed: %s\n", SDL_GetKeyName(e.key.keysym.sym));
                     if (e.key.keysym.sym == SDLK_ESCAPE) {
                         quit = true;
                     }
@@ -253,7 +248,7 @@ int main(int argc, char *argv[]) {
                     isConfigurationModeActive = false;
                     resetConfigurationScreen();
                 }
-                printf("Key released: %s\n", SDL_GetKeyName(e.key.keysym.sym));
+                // printf("Key released: %s\n", SDL_GetKeyName(e.key.keysym.sym));
             }
         }
 
@@ -270,7 +265,7 @@ int main(int argc, char *argv[]) {
             // Do stuff on PPQN level
 
             // Run sequencer:
-            // runSequencer(project, &ppqnCounter, selectedSequence, selectedPattern);
+            runSequencer(project, &ppqnCounter, selectedSequence, selectedPattern);
 
             // End
             isPpqnTrigged = false;

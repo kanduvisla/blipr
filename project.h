@@ -44,10 +44,11 @@ struct Step byteArrayToStep(const unsigned char bytes[STEP_BYTE_SIZE]);
  */
 struct Track {
     char name[32]; // "Track 0" - "Track 15"
-    uint8_t midiDevice;
-    uint8_t midiChannel;
-    uint8_t program;
-    uint8_t pageLength;
+    unsigned char midiDevice;
+    unsigned char midiChannel;
+    unsigned char program;
+    unsigned char pageLength;
+    short int trackLength;   // 2 bytes, since track length can be up to 512
     // Steps are only used for the "Sequencer"-program
     struct Step steps[64];
 };
