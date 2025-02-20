@@ -50,17 +50,31 @@ Basically the functionality for all programs is identical, with the following ma
 - ABCD      : _(depends on program)_
 - Shift1    : _(depends on program)_
 - Shift2    : _(depends on program)_
-- Shift3    : Track Options
-    - 1-2       : Increase / decrease track length (default=16)
-    - 3-4       : Increase / decrease track speed (default=0 / default speed)
-    - 5-6       : Increase / decrease track velocity modifier (default=64)
-    - 7-8       : Increase / decrease pattern step count before transitioning (default=16, max=256)
-    - 9         : Change track play mode (continuous or by page)
-    - 10        : _(tbd)_
-    - 11        : _(tbd)_
-    - 12        : _(tbd)_
-    - 13-14     : Increase / decrease CC1 mapping (default=0)
-    - 15-16     : Increase / decrease CC2 mapping (default=0)
+- Shift3    : Track Options / Pattern Options / Sequence Options / Utilities
+    - When holding Shift3, ABCD is for different options:
+        - A     : Track Options
+            - 1-4   : Increase / decrease track length (default=16) (1-4 = by 16, 2-3 = by 1)
+            - 5-6   : Increase / decrease track speed (default=0 / default speed)
+            - 7     : Set Midi Device
+            - 8     : Set Midi Channel
+            - 9     : Change track play mode (continuous or by page)
+            - 10    : Change track polyphony (8, 4, 2, 1)
+            - 11    : Change page repeat (how many times repeat a page before the transition happens?)
+            - 12    : Change track name
+            - 13-14 : Increase / decrease CC1 mapping (default=0)
+            - 15-16 : Increase / decrease CC2 mapping (default=0)
+        - B     : Pattern Options
+            - 12    : Change pattern name
+            - 13-14 : Increase / decrease Midi Program Bank (default=0)
+            - 15-16 : Increase / decrease Midi Program Pattern (default=0)
+        - C     : Sequence Options
+        - D     : Utilities
+            - 1     : Copy
+            - 2     : Paste
+            - 3     : Cut
+            - 4     : Clear
+            - 5-6   : Nudge
+            - 7-8   : Transpose
     - A         : Change Track n**a**me
     - B         : Select Program
     - C         : Set Midi **C**hannel for Track
@@ -75,6 +89,9 @@ Basically the functionality for all programs is identical, with the following ma
 - Func-B    : Sequence Selector (while still holding Func down, select 1-16)
 - Func-C    : Transport (Start / Stop / BPM / Clock Settings)
 - Func-D    : Configuration
+    - 1         : Midi Configuration
+        - ABCD  : Select Midi Device Slot A, B, C or D
+        - 1-16  : Select Midi Device
 
 ## configuration
 
@@ -150,6 +167,22 @@ Each pattern has 64 steps, divided in 4 pages. Each step can have up to 8 notes.
     - When holding multiple pages, a chain is created
     - Shift1    : Select page for editing (multiple taps for multipage setup)
     - Shift2    : Select page size (1-512) (default=16) (note 1-8 is used for page information)
+
+#### Steps / Pages / Notes / Polyphony
+
+Here is a bit of explanation how to think of steps, pages and notes.
+
+- The sequencer is polyphonic, but you can sacrifice polyphony to have more steps in your track.
+    - 8 note polyphony: max. 64 steps
+    - 4 note polyphony: max. 128 steps
+    - 2 note polyphony: max. 256 steps
+    - 1 note polyphony: max. 512 steps
+- Polyphony (and thus max steps) is determined per track
+- Pages are sets of max. 16 steps (a page can be configured to have fewer steps), so then the ABCD buttons are:
+    - 64 Steps:     A:1,        B:2,        C:3,        D:4
+    - 128 Steps:    A:1,5       B:2,6       C:3,7       D:4,8
+    - 256 Steps:    A:1,5,9     B:2,6,10    C:3,7,11    D:4,8,12
+    - 512 Steps:    A:1,5,9,13  B:2,6,10,14 C:3,7,11,15 D:4,8,12,16
 
 ### Basic poly sequencer
 

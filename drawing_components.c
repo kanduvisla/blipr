@@ -133,13 +133,25 @@ void drawHighlightedGridTile(int tileIndex) {
     int x = tileIndex % 4;
     int y = tileIndex / 4;
 
-    drawSingleLineRectOutline(
-        2 + x + (x * width),
-        2 + y + (y * height),
-        width,
-        height,
-        COLOR_WHITE
-    );
+    if (tileIndex < 16) {
+        drawSingleLineRectOutline(
+            2 + x + (x * width),
+            2 + y + (y * height),
+            width,
+            height,
+            COLOR_WHITE
+        );
+    } else {
+        // Bottom buttons:
+        height = width / 2;
+        drawSingleLineRectOutline(
+            2 + x + (x * width),
+            (HEIGHT - 7 - (height * 2)) + y + ((y-4) * height),
+            width,
+            height,
+            COLOR_WHITE
+        );
+    }
 }
 
 void drawBasicNumbers() {

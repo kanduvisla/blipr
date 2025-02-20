@@ -189,25 +189,34 @@ int main(int argc, char *argv[]) {
                 if (!keyStates[scanCode]) {
                     keyStates[scanCode] = true;
                     
-                    if (scanCode == BLIPR_KEY_FUNC) {
-                        // Shift 3 also doubles as back button Back button:
-                        // isConfigurationModeActive = false;
-                        // Display track selection:
-                        isTrackSelectionActive = true;
-                    }
+                    // if (scanCode == BLIPR_KEY_FUNC) {
+                    //     // Display track selection:
+                    //     isTrackSelectionActive = true;
+                    // }
 
                     // Check if this is one of the global Func-options:
                     if (keyStates[BLIPR_KEY_FUNC]) {
-                        if (scanCode == BLIPR_KEY_A) {
-                            isTrackSelectionActive = false;
-                            isPatternSelectionActive = true;
-                        } else if (scanCode == BLIPR_KEY_B) {
-                            isTrackSelectionActive = false;
-                            isSequenceSelectionActive = true;
-                        } else if (scanCode == BLIPR_KEY_D) {
-                            isTrackSelectionActive = false;
-                            isConfigurationModeActive = true;
-                        } 
+                        // Only enable track selection on the Main Configuration screen:
+                        if (!isPatternSelectionActive && 
+                            !isSequenceSelectionActive && 
+                            !isConfigurationModeActive
+                        ) {
+                            isTrackSelectionActive = true;
+                        }
+
+                        if (isTrackSelectionActive) {
+                            // If in the main configuration screen ABCD are pressed, open sub-screen:
+                            if (scanCode == BLIPR_KEY_A) {
+                                isTrackSelectionActive = false;
+                                isPatternSelectionActive = true;
+                            } else if (scanCode == BLIPR_KEY_B) {
+                                isTrackSelectionActive = false;
+                                isSequenceSelectionActive = true;
+                            } else if (scanCode == BLIPR_KEY_D) {
+                                isTrackSelectionActive = false;
+                                isConfigurationModeActive = true;
+                            }
+                        }
 
                         // Actions while the Func-key is down:
                         if (isTrackSelectionActive) {
@@ -217,7 +226,7 @@ int main(int argc, char *argv[]) {
                         } else if (isSequenceSelectionActive) {
                             updateSequenceSelection(&selectedSequence, scanCode);
                         } else if (isConfigurationModeActive) {
-                            updateConfiguration(scanCode);
+                            updateConfiguration(project, scanCode);
                         }
                     } else {
                         // Func-key is not down, so current program should be shown:

@@ -25,5 +25,5 @@ void drawSequenceSelection(int *selectedSequence) {
     drawHighlightedGridTile(*selectedSequence);
 
     // Title:
-    drawCenteredLine(19, 133, "SELECT SEQUENCE", TITLE_WIDTH, COLOR_WHITE);
+    drawCenteredLine(2, 133, "SELECT SEQUENCE", TITLE_WIDTH, COLOR_WHITE);
 }
