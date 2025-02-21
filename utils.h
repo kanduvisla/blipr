@@ -8,4 +8,9 @@
  */
 int scancodeToStep(SDL_Scancode key);
 
+/**
+ * Uppercase a string
+ */
+void upperCase(char *str);
+
 #endif

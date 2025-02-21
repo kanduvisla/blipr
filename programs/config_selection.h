@@ -7,7 +7,7 @@
 /**
  * Draw the config selection
  */
-void drawConfigSelection();
+void drawConfigSelection(struct Project *project);
 
 /**
  * Process a key during configuration mode

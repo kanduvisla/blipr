@@ -32,8 +32,8 @@ void drawSequencerButton(int x, int y, int width, int height, bool isActive) {
 /**
  * Draw the BPM Blinker
  */
-void drawBPMBlinker(int noteCounter, int ppqnCounter) {
-    float p = (float)((noteCounter % 4) * PPQN + ppqnCounter) / (float)(PPQN * 4);
+void drawBPMBlinker(int *ppqnCounter) {
+    float p = (float)(*ppqnCounter % (PPQN * 4)) / (float)(PPQN * 4);
     int r = 255 * (1-p);
 
     SDL_Color colorBlinker = {r, 0, 0, 255};
@@ -45,13 +45,15 @@ void drawBPMBlinker(int noteCounter, int ppqnCounter) {
  */
 void drawNoteCounter(int noteCounter) {
     // 16 dots on the bottom for the steps:
+    /*
     for (int i = 0; i < PATTERN_LENGTH; ++i) {
         drawPixel(
             2 + (i * 2),
             HEIGHT - (GRID_UNIT * 3),
             noteCounter == i ? COLOR_RED : COLOR_GRAY
         );
-    }            
+    } 
+    */           
 }
 
 /**

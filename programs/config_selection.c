@@ -7,6 +7,7 @@
 #include "../drawing_components.h"
 #include "../constants.h"
 #include "../project.h"
+#include "../utils.h"
 #include <portmidi.h>
 #include <porttime.h>
 
@@ -22,7 +23,7 @@ void resetConfigurationScreen() {
     selectedMidiDevice = BLIPR_MIDI_DEVICE_A;
 }
 
-void drawConfigSelection() {
+void drawConfigSelection(struct Project *project) {
     if (isMainScreen()) {
         drawIcon(9, 9, BLIPR_ICON_MIDI, COLOR_WHITE);
         drawCenteredLine(2, 133, "CONFIGURATION", TITLE_WIDTH, COLOR_WHITE);      
@@ -39,9 +40,26 @@ void drawConfigSelection() {
             for (int i = 0; i < num_devices; i++) {
                 const PmDeviceInfo *info = Pm_GetDeviceInfo(i);
                 if (info->input) {
-                    char* line = "";
-                    snprintf(line, 32, "%d: %s", y + 1, info->name);
-                    drawText(4, 14 + (y * 6), line, TITLE_WIDTH, COLOR_WHITE);
+                    char line[32];
+                    char name[32];
+                    memcpy(name, info->name, 32);
+                    upperCase(name);
+                    bool isSelected = false;
+                    if (selectedMidiDevice == BLIPR_MIDI_DEVICE_A) { 
+                        isSelected =  strcmp(project->midiDeviceAName, info->name) == 0;
+                    } else if (selectedMidiDevice == BLIPR_MIDI_DEVICE_B) { 
+                        isSelected =  strcmp(project->midiDeviceBName, info->name) == 0;
+                    } else if (selectedMidiDevice == BLIPR_MIDI_DEVICE_C) { 
+                        isSelected =  strcmp(project->midiDeviceCName, info->name) == 0;
+                    } else if (selectedMidiDevice == BLIPR_MIDI_DEVICE_D) { 
+                        isSelected =  strcmp(project->midiDeviceDName, info->name) == 0;
+                    }
+                    int result = snprintf(line, sizeof(line), "%d:%s%s", y + 1, isSelected? "*" : " ", name);
+                    if (result < 0 || result >= sizeof(line)) {
+                        // Handle error: string was truncated or an error occurred
+                        snprintf(line, sizeof(line), "%d:(ERROR)", y + 1);
+                    }
+                    drawText(4, 4 + (y * 6), line, WIDTH, COLOR_WHITE);
                     y ++;
                 }
             }
@@ -59,6 +77,7 @@ void setMidiDeviceName(struct Project *project, int indexInList, int deviceOnPro
         const PmDeviceInfo *info = Pm_GetDeviceInfo(i);
         if (info->input) {
             if (j == indexInList) {
+                printf("Setting Midi Device %d to %s\n", deviceOnProject, info->name);
                 if (deviceOnProject == BLIPR_MIDI_DEVICE_A) { 
                     memcpy(project->midiDeviceAName, info->name, 32); 
                 }

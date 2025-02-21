@@ -113,11 +113,23 @@ void updateSequencer(struct Project *project, bool keyStates[SDL_NUM_SCANCODES],
 /**
  * Run the sequencer
  */
-void runSequencer(struct Project *project, int *ppqnCounter, int selectedSequence, int selectedPatern);
+void runSequencer(
+    struct Project *project, 
+    int *ppqnCounter, 
+    int selectedSequence, 
+    int selectedPatern,
+    struct Track *selectedTrack
+);
 
 /**
  * Draw the sequencer
  */
-void drawSequencer(struct Project *project, int *noteCounter, int selectedSequence, int selectedPatern, int selectedTrack);
+void drawSequencer(
+    struct Project *project, 
+    int *ppqnCounter, 
+    int selectedSequence, 
+    int selectedPatern, 
+    int selectedTrack
+);
 
 #endif

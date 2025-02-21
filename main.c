@@ -42,7 +42,7 @@ void calculateMicroSecondsPerPulse() {
     double beatsPerSecond = bpm / 60.0;
     double secondsPerBeat = 1.0 / beatsPerSecond;
     int64_t nanoSecondsPerBeat = secondsPerBeat * NANOS_PER_SEC;
-    int64_t nanoSecondsPerNote = nanoSecondsPerBeat / LINES_PER_BAR;
+    int64_t nanoSecondsPerNote = nanoSecondsPerBeat / 4;
     nanoSecondsPerPulse = nanoSecondsPerNote / PPQN;
 }
 
@@ -62,20 +62,6 @@ int64_t getTimespecDiffInNanoSeconds(struct timespec *start, struct timespec *en
  * Main loop
  */
 int main(int argc, char *argv[]) {
-    /* DEBUG INFO */
-    printf("note byte size: %d / %d\n", sizeof(struct Note), NOTE_BYTE_SIZE);
-    printf("step byte size: %d / %d\n", sizeof(struct Step), STEP_BYTE_SIZE);
-    printf("track byte size: %d / %d\n", sizeof(struct Track), TRACK_BYTE_SIZE);
-    printf("pattern byte size: %d / %d\n", sizeof(struct Pattern), PATTERN_BYTE_SIZE);
-    printf("sequence byte size: %d / %d\n", sizeof(struct Sequence), SEQUENCE_BYTE_SIZE);
-    printf("project byte size: %d / %d\n", sizeof(struct Project), PROJECT_BYTE_SIZE);
-    
-    struct rlimit rlim;
-    getrlimit(RLIMIT_STACK, &rlim);
-    printf("stack size: %llu\n", rlim.rlim_cur);
-
-    /* END DEBUG INFO */
-
     listMidiDevices();
 
     SDL_Window      *win = NULL;
@@ -129,16 +115,16 @@ int main(int argc, char *argv[]) {
     SDL_Event e;
 
     // Triggs:
-    bool isPpqnTrigged = false;
-    bool isNoteTrigged = false;
-    bool isBeatTrigged = false;
+    // bool isPpqnTrigged = false;
+    // bool isNoteTrigged = false;
+    // bool isBeatTrigged = false;
     bool isClockResetRequired = false;
     bool isRenderRequired = false;
 
     // Counters:
-    int ppqnCounter = -1;
-    int noteCounter = -1;
-    int pageCounter = 0;
+    int ppqnCounter = 0;
+    // int noteCounter = -1;
+    // int pageCounter = 0;
 
     // Array to keep track of key states
     bool keyStates[SDL_NUM_SCANCODES] = {false};
@@ -256,56 +242,75 @@ int main(int argc, char *argv[]) {
         clock_gettime(CLOCK_MONOTONIC, &nowTime);
         int64_t elapsedNs = getTimespecDiffInNanoSeconds(&prevTime, &nowTime);
 
-        if (elapsedNs > nanoSecondsPerPulse) {
-            isPpqnTrigged = true;
-        }
+        // printf("%d\n", elapsedNs);
 
         // Check if ppqn is trigged:
-        if (isPpqnTrigged) {
+        if (elapsedNs > nanoSecondsPerPulse) {
+            // isPpqnTrigged = true;
+            // printf(".\n");
+        // }
+
+        // if (isPpqnTrigged) {
             // Do stuff on PPQN level
 
-            // Run sequencer:
-            runSequencer(project, &ppqnCounter, selectedSequence, selectedPattern);
+            // Iterate over all tracks
+            for (int i=0; i<16; i++) {
+                struct Track* track = &project->sequences[selectedSequence].patterns[selectedPattern].tracks[i];
+                // Run the program:
+                switch (track->program) {
+                    case BLIPR_PROGRAM_SEQUENCER:
+                        // Run sequencer:
+                        runSequencer(project, &ppqnCounter, selectedSequence, selectedPattern, track);
+                        break;
+                }
+            }
 
-            // End
-            isPpqnTrigged = false;
+            // isPpqnTrigged = false;
             isClockResetRequired = true;
             // isRenderRequired = true;
             ppqnCounter += 1;
+//             printf(".");
             if (ppqnCounter % PPQN == 0) {
-                ppqnCounter = 0;
-                isNoteTrigged = true;
+                // printf(".\n");
+                // ppqnCounter = 0;
+                if (ppqnCounter >= MAX_PULSES) {
+                    ppqnCounter = 0;
+                }
+                isRenderRequired = true;
+                // isNoteTrigged = true;
             }
         }
 
         // Check if note change is trigged:
-        if (isNoteTrigged) {
-            // Do stuff on Note level
+        // if (isNoteTrigged) {
+        //     // Do stuff on Note level
 
-            // End
-            isNoteTrigged = false;
-            isRenderRequired = true;
-            noteCounter += 1;
-            if (noteCounter % LINES_PER_BAR == 0) {
-                isBeatTrigged = true;
-                isNoteTrigged = false;
-                if (noteCounter == PATTERN_LENGTH) {
-                    noteCounter = 0;
-                    pageCounter += 1;
-                    if (pageCounter == 4) {
-                        pageCounter = 0;
-                    }
-                }
-            }
-        }
+        //     // End
+        //     isNoteTrigged = false;
+            
+        //     noteCounter += 1;
+        //     /*
+        //     if (noteCounter % LINES_PER_BAR == 0) {
+        //         isBeatTrigged = true;
+        //         isNoteTrigged = false;
+        //         if (noteCounter == PATTERN_LENGTH) {
+        //             noteCounter = 0;
+        //             pageCounter += 1;
+        //             if (pageCounter == 4) {
+        //                 pageCounter = 0;
+        //             }
+        //         }
+        //     }
+        //     */
+        // }
 
         // Check if Bar (set of lines, the "B" in BPM) is trigged:
-        if (isBeatTrigged) {
-            // Do stuff on Beat level
+        // if (isBeatTrigged) {
+        //     // Do stuff on Beat level
 
-            // End
-            isBeatTrigged = false;
-        }
+        //     // End
+        //     isBeatTrigged = false;
+        // }
 
         // Drawing magic:
         if (isRenderRequired) {
@@ -316,7 +321,7 @@ int main(int argc, char *argv[]) {
             SDL_RenderClear(renderer);
 
             // BPM Blinker:
-            drawBPMBlinker(noteCounter, ppqnCounter);
+            drawBPMBlinker(&ppqnCounter);
 
             // Sequence, pattern and track number (replace with real numbers):
             drawText(WIDTH - 54, 4, "S00P00T00", 60, COLOR_GRAY);
@@ -332,12 +337,12 @@ int main(int argc, char *argv[]) {
             } else if (isSequenceSelectionActive) {
                 drawSequenceSelection(&selectedPattern);
             } else if (isConfigurationModeActive) {
-                drawConfigSelection();
+                drawConfigSelection(project);
             } else {
                 // Currently active program:
                 if (selectedProgram == BLIPR_PROGRAM_SEQUENCER) {
                     // Draw the sequencer:
-                    drawSequencer(project, &noteCounter, selectedSequence, selectedPattern, selectedTrack);
+                    drawSequencer(project, &ppqnCounter, selectedSequence, selectedPattern, selectedTrack);
                 }
             }
 

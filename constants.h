@@ -58,6 +58,7 @@
 #define BLIPR_MIDI_DEVICE_D 3
 
 // blipr programs
+#define BLIPR_PROGRAM_NONE 0
 #define BLIPR_PROGRAM_SEQUENCER 1
 
 #endif // CONSTANTS_H

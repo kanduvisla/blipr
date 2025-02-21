@@ -94,9 +94,10 @@ void runSequencer(
     struct Project *project, 
     int *ppqnCounter, 
     int selectedSequence, 
-    int selectedPattern
-    // TODO: also needs selectedTrack? Since each track can have a different program?
+    int selectedPattern,
+    struct Track *selectedTrack
 ) {
+    /*
     totalPpqnCounter++;
     if (totalPpqnCounter >= MAX_PULSES) {
         totalPpqnCounter = 0;
@@ -104,19 +105,24 @@ void runSequencer(
 
     int totalSteps = totalPpqnCounter / PPQN;
     short int trackLength = project->sequences[selectedSequence].patterns[selectedPattern].tracks[0].trackLength;
-    // printf("Track length: %d\n", trackLength);
-    
+    */
 }
 
 /**
  * Draw the sequencer
  */
-void drawSequencer(struct Project *project, int *noteCounter, int selectedSequence, int selectedPattern, int selectedTrack) {
+void drawSequencer(
+    struct Project *project, 
+    int *ppqnCounter, 
+    int selectedSequence, 
+    int selectedPattern, 
+    int selectedTrack
+) {
     // Outline currently active step:
     int width = HEIGHT / 6;
     int height = width;
-    int x = *noteCounter % 4;
-    int y = *noteCounter / 4;
+    int x = (*ppqnCounter / (PPQN)) % 4;
+    int y = ((*ppqnCounter / (PPQN)) / 4) % 4;
 
     drawSingleLineRectOutline(
         2 + x + (x * width),

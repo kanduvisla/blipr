@@ -2,18 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "project.h"
-
-/*
-    bool enabled;               // If this note is enabled
-    unsigned char note;         // byte representation of note C-5, D#3, etc.
-    unsigned char velocity;     // 0-127
-    char nudge;                 // -63 - 63
-    unsigned char trigg;        // Trigg condition
-    unsigned char length;       // Length
-    unsigned char cc1Value;     // CC1 Value
-    unsigned char cc2Value;     // CC2 Value
-
-*/
+#include "constants.h"
 
 /**
  * Convert Note to Byte Array
@@ -246,7 +235,7 @@ void initializeProject(struct Project* project) {
                 snprintf(track.name, sizeof(track.name), "Track %d", k + 1);
                 track.midiDevice = 0;
                 track.midiChannel = 0;
-                track.program = 0;
+                track.program = BLIPR_PROGRAM_NONE;
                 track.pageLength = 16;
                 track.trackLength = 64;
                 for (int s = 0; s < 64; s++) {
