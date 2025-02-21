@@ -49,6 +49,9 @@ struct Track {
     unsigned char program;
     unsigned char pageLength;
     short int trackLength;   // 2 bytes, since track length can be up to 512
+    unsigned char cc1Assignment;
+    unsigned char cc2Assignment;
+    unsigned char polyCount; // 1, 2, 4 or 8
     // Steps are only used for the "Sequencer"-program
     struct Step steps[64];
 };

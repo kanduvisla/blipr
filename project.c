@@ -83,7 +83,9 @@ void trackToByteArray(const struct Track *track, unsigned char bytes[TRACK_BYTE_
     bytes[34] = track->program;
     bytes[35] = track->pageLength;
     memcpy(bytes + 36, &(track->trackLength), 2);
-    memset(bytes + 38, 0, TRACK_BYTE_SIZE - 38);
+    bytes[38] = track->cc1Assignment;
+    bytes[39] = track->cc2Assignment;
+    memset(bytes + 40, 0, TRACK_BYTE_SIZE - 40);
     for (int i = 0; i < 64; i++) {
         stepToByteArray(&track->steps[i], bytes + 64 + (i * STEP_BYTE_SIZE));
     }
@@ -105,6 +107,8 @@ struct Track* byteArrayToTrack(const unsigned char bytes[TRACK_BYTE_SIZE]) {
     track->program = bytes[34];
     track->pageLength = bytes[35];
     memcpy(&(track->trackLength), bytes + 36, 2);
+    track->cc1Assignment = bytes[38];
+    track->cc2Assignment = bytes[39];
     for (int i = 0; i < 64; i++) {
         unsigned char arr[STEP_BYTE_SIZE];
         // Copy part of byte array into arr
@@ -238,6 +242,7 @@ void initializeProject(struct Project* project) {
                 track.program = BLIPR_PROGRAM_NONE;
                 track.pageLength = 16;
                 track.trackLength = 64;
+                track.polyCount = 8;
                 for (int s = 0; s < 64; s++) {
                     struct Step step;
                     for (int n = 0; n < NOTES_IN_STEP; n++) {

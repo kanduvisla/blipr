@@ -9,7 +9,8 @@ SRCS = main.c midi.c utils.c drawing.c drawing_utils.c drawing_components.c draw
 	programs/pattern_selection.c \
 	programs/sequence_selection.c \
 	programs/config_selection.c \
-	programs/program_selection.c
+	programs/program_selection.c \
+	programs/track_options.c
 OBJS = $(SRCS:.c=.o)
 
 TEST_TARGET = build/test_blipr

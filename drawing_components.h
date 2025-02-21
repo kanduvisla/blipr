@@ -30,4 +30,9 @@ void drawBasicNumbers();
  */
 void drawSingleNumber(int index);
 
+/**
+ * Draw text on a button
+ */
+void drawTextOnButton(int index, char* text);
+
 #endif

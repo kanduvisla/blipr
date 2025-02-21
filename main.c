@@ -19,6 +19,7 @@
 #include "programs/sequence_selection.h"
 #include "programs/config_selection.h"
 #include "programs/program_selection.h"
+#include "programs/track_options.h"
 #include "midi.h"
 
 // Renderer:
@@ -126,11 +127,18 @@ int main(int argc, char *argv[]) {
     bool keyStates[SDL_NUM_SCANCODES] = {false};
     
     // State:
+    // [SHIFT3]
+    bool isTrackOptionsActive = false;
+    bool isProgramSelectionActive = false;
+    bool isPatternAndSequenceOptionsActive = false;
+    bool isUtilitiesActive = false;
+    // [FUNC]
     bool isConfigurationModeActive = false;
+    bool isTransportSelectionActive = false;
     bool isTrackSelectionActive = false;
     bool isPatternSelectionActive = false;
     bool isSequenceSelectionActive = false;
-    bool isProgramSelectionActive = false;
+    
     int selectedMidiInstrument = 0;
     int selectedMidiChannel = 0;
     int selectedTrack = 0;
@@ -175,12 +183,12 @@ int main(int argc, char *argv[]) {
                 isRenderRequired = true;
                 if (!keyStates[scanCode]) {
                     keyStates[scanCode] = true;
-
                     // Check if this is one of the global Func-options:
                     if (keyStates[BLIPR_KEY_FUNC]) {
                         // Only enable track selection on the Main Configuration screen:
                         if (!isPatternSelectionActive && 
                             !isSequenceSelectionActive && 
+                            !isTransportSelectionActive &&
                             !isConfigurationModeActive
                         ) {
                             isTrackSelectionActive = true;
@@ -212,8 +220,41 @@ int main(int argc, char *argv[]) {
                             updateConfiguration(project, scanCode);
                         }
                     } else if (keyStates[BLIPR_KEY_SHIFT_3]) {
-                        isProgramSelectionActive = true;
-                        updateProgram(track, scanCode);
+                        // Only enable track options on the Main screen:
+                        if (!isProgramSelectionActive &&
+                            !isPatternAndSequenceOptionsActive &&
+                            !isUtilitiesActive
+                        ) { 
+                            isTrackOptionsActive = true;
+                        }
+
+                        if (scanCode == BLIPR_KEY_A) {
+                            isTrackOptionsActive = true;
+                            isProgramSelectionActive = false;
+                            isPatternAndSequenceOptionsActive = false;
+                            isUtilitiesActive = false;
+                        } else if (scanCode == BLIPR_KEY_B) {
+                            isTrackOptionsActive = false;
+                            isProgramSelectionActive = true;
+                            isPatternAndSequenceOptionsActive = false;
+                            isUtilitiesActive = false;
+                        } else if (scanCode == BLIPR_KEY_C) {
+                            isTrackOptionsActive = false;
+                            isProgramSelectionActive = false;
+                            isPatternAndSequenceOptionsActive = true;
+                            isUtilitiesActive = false;
+                        } else if (scanCode == BLIPR_KEY_D) {
+                            isTrackOptionsActive = false;
+                            isProgramSelectionActive = false;
+                            isPatternAndSequenceOptionsActive = false;
+                            isUtilitiesActive = true;
+                        }
+
+                        if (isTrackOptionsActive) {
+                            updateTrackOptions(track, scanCode);
+                        } else if (isProgramSelectionActive) {
+                            updateProgram(track, scanCode);
+                        }
                     } else {
                         // Func-key is not down, so program of current track should be shown:
                         switch (track->program) {
@@ -239,6 +280,9 @@ int main(int argc, char *argv[]) {
                     isSequenceSelectionActive = false;
                     isConfigurationModeActive = false;
                     isProgramSelectionActive = false;
+                    isTrackOptionsActive = false;
+                    isPatternAndSequenceOptionsActive = false;
+                    isUtilitiesActive = false;
                     resetConfigurationScreen();
                 }
                 // printf("Key released: %s\n", SDL_GetKeyName(e.key.keysym.sym));
@@ -299,8 +343,15 @@ int main(int argc, char *argv[]) {
                 drawSequenceSelection(&selectedPattern);
             } else if (isConfigurationModeActive) {
                 drawConfigSelection(project);
+            } else if (isTrackOptionsActive) {
+                // drawCenteredLine(2, 61, "(TRACK OPTIONS)", TITLE_WIDTH, COLOR_WHITE);      
+                drawTrackOptions(track);
             } else if (isProgramSelectionActive) {
                 drawProgramSelection(track);
+            } else if (isPatternAndSequenceOptionsActive) {
+                drawCenteredLine(2, 61, "(PAT&SEQ OPTIONS)", TITLE_WIDTH, COLOR_WHITE);      
+            } else if (isUtilitiesActive) {
+                drawCenteredLine(2, 61, "(UTILITIES)", TITLE_WIDTH, COLOR_WHITE);      
             } else {
                 // Draw the program associated with this Track:
                 switch (track->program) {

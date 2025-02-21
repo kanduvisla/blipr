@@ -198,3 +198,19 @@ void drawSingleNumber(int index) {
         COLOR_WHITE
     );
 }
+
+void drawTextOnButton(int index, char* text) {
+    int width = HEIGHT / 6;
+    int height = width;
+
+    int x = index % 4;
+    int y = index / 4;
+
+    drawText(
+        15 + x + (x * width) - ((strlen(text) / 2) * 5),
+        14 + y + (y * height),
+        text,
+        11,
+        COLOR_WHITE
+    );
+}

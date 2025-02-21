@@ -63,11 +63,11 @@ Basically the functionality for all programs is identical, with the following ma
             - 12    : Change track name
             - 13-14 : Increase / decrease CC1 mapping (default=0)
             - 15-16 : Increase / decrease CC2 mapping (default=0)
-        - B     : Pattern Options & Sequence Options
+        - B     : Program Selector for this Track
+        - C     : Pattern Options & Sequence Options
             - 12    : Change pattern name
             - 13-14 : Increase / decrease Midi Program Bank (default=0)
             - 15-16 : Increase / decrease Midi Program Pattern (default=0)
-        - C     : Program Selector for this Track
         - D     : Utilities
             - 1     : Copy
             - 2     : Paste
