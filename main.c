@@ -115,22 +115,17 @@ int main(int argc, char *argv[]) {
     SDL_Event e;
 
     // Triggs:
-    // bool isPpqnTrigged = false;
-    // bool isNoteTrigged = false;
-    // bool isBeatTrigged = false;
     bool isClockResetRequired = false;
     bool isRenderRequired = false;
 
     // Counters:
     int ppqnCounter = 0;
-    // int noteCounter = -1;
-    // int pageCounter = 0;
 
     // Array to keep track of key states
     bool keyStates[SDL_NUM_SCANCODES] = {false};
     
     // State:
-    int selectedProgram = BLIPR_PROGRAM_SEQUENCER;
+    // int selectedProgram = BLIPR_PROGRAM_NONE;
     bool isConfigurationModeActive = false;
     bool isTrackSelectionActive = false;
     bool isPatternSelectionActive = false;
@@ -161,6 +156,9 @@ int main(int argc, char *argv[]) {
     } else {
         printf("Loaded project: %s\n", project->name);
     }
+
+    // Setup Midi:
+
 
     // While application is running
     while(!quit) {
@@ -210,10 +208,14 @@ int main(int argc, char *argv[]) {
                             updateConfiguration(project, scanCode);
                         }
                     } else {
-                        // Func-key is not down, so current program should be shown:
-                        if (selectedProgram == BLIPR_PROGRAM_SEQUENCER) {
-                            // Update the sequencer:
-                            updateSequencer(project, keyStates, scanCode, selectedSequence, selectedPattern, selectedTrack);
+                        // Func-key is not down, so program of current track should be shown:
+                        struct Track* track = &project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack];
+                        switch (track->program) {
+                            case BLIPR_PROGRAM_NONE:
+                                break;
+                            case BLIPR_PROGRAM_SEQUENCER:
+                                updateSequencer(project, keyStates, scanCode, selectedSequence, selectedPattern, selectedTrack);
+                            break;
                         }
                     }
 
@@ -242,17 +244,8 @@ int main(int argc, char *argv[]) {
         clock_gettime(CLOCK_MONOTONIC, &nowTime);
         int64_t elapsedNs = getTimespecDiffInNanoSeconds(&prevTime, &nowTime);
 
-        // printf("%d\n", elapsedNs);
-
         // Check if ppqn is trigged:
         if (elapsedNs > nanoSecondsPerPulse) {
-            // isPpqnTrigged = true;
-            // printf(".\n");
-        // }
-
-        // if (isPpqnTrigged) {
-            // Do stuff on PPQN level
-
             // Iterate over all tracks
             for (int i=0; i<16; i++) {
                 struct Track* track = &project->sequences[selectedSequence].patterns[selectedPattern].tracks[i];
@@ -265,52 +258,15 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            // isPpqnTrigged = false;
             isClockResetRequired = true;
-            // isRenderRequired = true;
             ppqnCounter += 1;
-//             printf(".");
             if (ppqnCounter % PPQN == 0) {
-                // printf(".\n");
-                // ppqnCounter = 0;
                 if (ppqnCounter >= MAX_PULSES) {
                     ppqnCounter = 0;
                 }
                 isRenderRequired = true;
-                // isNoteTrigged = true;
             }
         }
-
-        // Check if note change is trigged:
-        // if (isNoteTrigged) {
-        //     // Do stuff on Note level
-
-        //     // End
-        //     isNoteTrigged = false;
-            
-        //     noteCounter += 1;
-        //     /*
-        //     if (noteCounter % LINES_PER_BAR == 0) {
-        //         isBeatTrigged = true;
-        //         isNoteTrigged = false;
-        //         if (noteCounter == PATTERN_LENGTH) {
-        //             noteCounter = 0;
-        //             pageCounter += 1;
-        //             if (pageCounter == 4) {
-        //                 pageCounter = 0;
-        //             }
-        //         }
-        //     }
-        //     */
-        // }
-
-        // Check if Bar (set of lines, the "B" in BPM) is trigged:
-        // if (isBeatTrigged) {
-        //     // Do stuff on Beat level
-
-        //     // End
-        //     isBeatTrigged = false;
-        // }
 
         // Drawing magic:
         if (isRenderRequired) {
@@ -339,15 +295,26 @@ int main(int argc, char *argv[]) {
             } else if (isConfigurationModeActive) {
                 drawConfigSelection(project);
             } else {
-                // Currently active program:
+                // Currently active track:
+                struct Track* track = &project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack];
+                // Draw the program associated with this Track:
+                switch (track->program) {
+                    case BLIPR_PROGRAM_NONE:
+                        drawCenteredLine(2, 61, "(NO PROGRAM)", TITLE_WIDTH, COLOR_WHITE);      
+                        break;
+                    case BLIPR_PROGRAM_SEQUENCER:
+                        // Draw the sequencer:
+                        drawSequencer(project, &ppqnCounter, selectedSequence, selectedPattern, selectedTrack);    
+                        break;
+                }
+
+                /*
                 if (selectedProgram == BLIPR_PROGRAM_SEQUENCER) {
                     // Draw the sequencer:
                     drawSequencer(project, &ppqnCounter, selectedSequence, selectedPattern, selectedTrack);
                 }
+                */
             }
-
-            // Test:
-            // drawIcon(9, 9, BLIPR_ICON_CONFIG, COLOR_WHITE);
 
             // Clear the renderer:
             SDL_SetRenderTarget(renderer, NULL);
