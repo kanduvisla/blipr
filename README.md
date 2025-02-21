@@ -164,8 +164,9 @@ Each pattern has 64 steps, divided in 4 pages. Each step can have up to 8 notes.
         - 13-14 : Increase / decrease CC1 value
         - 15-16 : Increase / decrease CC2 value
 - ABCD  : Select page for playing (next in queue)
+    - When pages are playing after each other (play mode), this button selects
     - When holding multiple pages, a chain is created
-    - Shift1    : Select page for editing (multiple taps for multipage setup)
+    - Shift1    : Select page bank 
     - Shift2    : Select page size (1-512) (default=16) (note 1-8 is used for page information)
 
 #### Steps / Pages / Notes / Polyphony

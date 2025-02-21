@@ -6,6 +6,21 @@
 #include "../drawing_text.h"
 #include "../colors.h"
 
+char midiDeviceToCharacter(int midiDevice) {
+    switch (midiDevice) {
+        case BLIPR_MIDI_DEVICE_A:
+           return 'A';
+        case BLIPR_MIDI_DEVICE_B:
+           return 'B';
+        case BLIPR_MIDI_DEVICE_C:
+           return 'C';
+        case BLIPR_MIDI_DEVICE_D:
+           return 'D';
+    }
+
+    return ' ';
+}
+
 void drawTrackOptions(struct Track* track) {
     // Title:
     drawCenteredLine(2, 133, "TRACK OPTIONS", TITLE_WIDTH, COLOR_WHITE);
@@ -18,6 +33,16 @@ void drawTrackOptions(struct Track* track) {
     drawTextOnButton(1, "<");
     drawTextOnButton(2, ">");
     drawTextOnButton(3, ">>");
+
+    // Midi Device + Channel
+    char deviceChar[2] = {
+        midiDeviceToCharacter(track->midiDevice),
+        '\0'
+    };
+    drawTextOnButton(4, deviceChar);
+    char channelChar[3];
+    snprintf(channelChar, sizeof(channelChar), "%d", track->midiChannel + 1);
+    drawTextOnButton(5, channelChar);
 }
 
 void updateTrackOptions(struct Track* track, SDL_Scancode key) {
@@ -37,6 +62,18 @@ void updateTrackOptions(struct Track* track, SDL_Scancode key) {
             break;
         case BLIPR_KEY_4:
             track->trackLength = MIN(maxLength - 1, track->trackLength + 16);
+            break;
+        case BLIPR_KEY_5:
+            track->midiDevice = track->midiDevice + 1;
+            if (track->midiDevice > BLIPR_MIDI_DEVICE_D) {
+                track->midiDevice = BLIPR_MIDI_DEVICE_A;
+            }
+            break;
+        case BLIPR_KEY_6:
+            track->midiChannel = track->midiChannel + 1;
+            if (track->midiChannel >= 16) {
+                track->midiChannel = 0;
+            }
             break;
     }
 }
