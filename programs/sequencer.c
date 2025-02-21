@@ -112,11 +112,8 @@ void runSequencer(
  * Draw the sequencer
  */
 void drawSequencer(
-    struct Project *project, 
     int *ppqnCounter, 
-    int selectedSequence, 
-    int selectedPattern, 
-    struct Track *selectedTrack
+    struct Track *track
 ) {
     // Outline currently active step:
     int width = HEIGHT / 6;
@@ -139,7 +136,7 @@ void drawSequencer(
     for (int j = 0; j < 4; j++) {
         int height = width;
         for (int i = 0; i < 4; i++) {
-            struct Step step = selectedTrack->steps[i + (j * 4)];
+            struct Step step = track->steps[i + (j * 4)];
             if (step.notes[selectedNote].enabled) {
                 drawRect(
                     4 + i + (i * width),

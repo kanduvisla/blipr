@@ -125,11 +125,8 @@ void runSequencer(
  * Draw the sequencer
  */
 void drawSequencer(
-    struct Project *project, 
     int *ppqnCounter, 
-    int selectedSequence, 
-    int selectedPatern, 
-    int selectedTrack
+    struct Track *track
 );
 
 #endif

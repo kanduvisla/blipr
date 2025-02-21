@@ -18,6 +18,7 @@
 #include "programs/pattern_selection.h"
 #include "programs/sequence_selection.h"
 #include "programs/config_selection.h"
+#include "programs/program_selection.h"
 #include "midi.h"
 
 // Renderer:
@@ -125,11 +126,11 @@ int main(int argc, char *argv[]) {
     bool keyStates[SDL_NUM_SCANCODES] = {false};
     
     // State:
-    // int selectedProgram = BLIPR_PROGRAM_NONE;
     bool isConfigurationModeActive = false;
     bool isTrackSelectionActive = false;
     bool isPatternSelectionActive = false;
     bool isSequenceSelectionActive = false;
+    bool isProgramSelectionActive = false;
     int selectedMidiInstrument = 0;
     int selectedMidiChannel = 0;
     int selectedTrack = 0;
@@ -138,7 +139,6 @@ int main(int argc, char *argv[]) {
 
     // Project file:
     printf("Loading project file: %s\n", projectFile);
-    // exit(1);
     struct Project *project = readProjectFile(projectFile);
     if (project == NULL) {
         printf("No project found, creating new project\n");
@@ -156,6 +156,9 @@ int main(int argc, char *argv[]) {
     } else {
         printf("Loaded project: %s\n", project->name);
     }
+
+    // Currently active track:
+    struct Track* track = &project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack];
 
     // Setup Midi:
 
@@ -200,6 +203,7 @@ int main(int argc, char *argv[]) {
                         // Actions while the Func-key is down:
                         if (isTrackSelectionActive) {
                             updateTrackSelection(&selectedTrack, scanCode);
+                            track = &project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack];
                         } else if (isPatternSelectionActive) {
                             updateTrackSelection(&selectedPattern, scanCode);
                         } else if (isSequenceSelectionActive) {
@@ -207,15 +211,15 @@ int main(int argc, char *argv[]) {
                         } else if (isConfigurationModeActive) {
                             updateConfiguration(project, scanCode);
                         }
+                    } else if (keyStates[BLIPR_KEY_SHIFT_3]) {
+                        isProgramSelectionActive = true;
+                        updateProgram(track, scanCode);
                     } else {
                         // Func-key is not down, so program of current track should be shown:
-                        struct Track* track = &project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack];
                         switch (track->program) {
-                            case BLIPR_PROGRAM_NONE:
-                                break;
                             case BLIPR_PROGRAM_SEQUENCER:
                                 updateSequencer(project, keyStates, scanCode, selectedSequence, selectedPattern, selectedTrack);
-                            break;
+                                break;
                         }
                     }
 
@@ -228,12 +232,13 @@ int main(int argc, char *argv[]) {
                 SDL_Scancode scanCode = e.key.keysym.scancode;
                 isRenderRequired = true;
                 keyStates[scanCode] = false;
-                // Func-keyup always closes the entire func-menu
-                if (scanCode == BLIPR_KEY_FUNC) {
+                // Func-keyup always closes the entire program selection & func-menu
+                if (scanCode == BLIPR_KEY_FUNC || scanCode == BLIPR_KEY_SHIFT_3) {
                     isTrackSelectionActive = false;
                     isPatternSelectionActive = false;
                     isSequenceSelectionActive = false;
                     isConfigurationModeActive = false;
+                    isProgramSelectionActive = false;
                     resetConfigurationScreen();
                 }
                 // printf("Key released: %s\n", SDL_GetKeyName(e.key.keysym.sym));
@@ -248,12 +253,12 @@ int main(int argc, char *argv[]) {
         if (elapsedNs > nanoSecondsPerPulse) {
             // Iterate over all tracks
             for (int i=0; i<16; i++) {
-                struct Track* track = &project->sequences[selectedSequence].patterns[selectedPattern].tracks[i];
+                struct Track* iTrack = &project->sequences[selectedSequence].patterns[selectedPattern].tracks[i];
                 // Run the program:
-                switch (track->program) {
+                switch (iTrack->program) {
                     case BLIPR_PROGRAM_SEQUENCER:
                         // Run sequencer:
-                        runSequencer(project, &ppqnCounter, selectedSequence, selectedPattern, track);
+                        runSequencer(project, &ppqnCounter, selectedSequence, selectedPattern, iTrack);
                         break;
                 }
             }
@@ -294,9 +299,9 @@ int main(int argc, char *argv[]) {
                 drawSequenceSelection(&selectedPattern);
             } else if (isConfigurationModeActive) {
                 drawConfigSelection(project);
+            } else if (isProgramSelectionActive) {
+                drawProgramSelection(track);
             } else {
-                // Currently active track:
-                struct Track* track = &project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack];
                 // Draw the program associated with this Track:
                 switch (track->program) {
                     case BLIPR_PROGRAM_NONE:
@@ -304,16 +309,9 @@ int main(int argc, char *argv[]) {
                         break;
                     case BLIPR_PROGRAM_SEQUENCER:
                         // Draw the sequencer:
-                        drawSequencer(project, &ppqnCounter, selectedSequence, selectedPattern, selectedTrack);    
+                        drawSequencer(&ppqnCounter, track);
                         break;
                 }
-
-                /*
-                if (selectedProgram == BLIPR_PROGRAM_SEQUENCER) {
-                    // Draw the sequencer:
-                    drawSequencer(project, &ppqnCounter, selectedSequence, selectedPattern, selectedTrack);
-                }
-                */
             }
 
             // Clear the renderer:
