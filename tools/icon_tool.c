@@ -186,7 +186,11 @@ int main(int argc, char* args[]) {
                 } else if (SDL_GetModState() & KMOD_LGUI) {
                     pasteSelection(gridX, gridY);
                 } else {
-                    setCell(gridX, gridY, currentColor);
+                    if (e.button.button == SDL_BUTTON_LEFT) {
+                        setCell(gridX, gridY, currentColor);
+                    } else if (e.button.button == SDL_BUTTON_RIGHT) {
+                        setCell(gridX, gridY, 0);
+                    }
                 }
             } else if (e.type == SDL_MOUSEBUTTONUP) {
                 if (isSelecting) {

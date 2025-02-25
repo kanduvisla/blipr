@@ -21,9 +21,10 @@
 #define PPQN_MULTIPLIED (PPQN * PPQN_MULTIPLIER)
 #define MAX_PULSES (PPQN_MULTIPLIED * 512)          // Max amount of steps in a track can be 512
 
-// MAX/MIN Macro
+// Macros
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define ARRAY_LENGTH(x) (sizeof(x) / sizeof((x)[0]))
 
 // blipr key mapping
 #define BLIPR_KEY_1 SDL_SCANCODE_1
@@ -51,7 +52,7 @@
 #define BLIPR_KEY_SHIFT_1 SDL_SCANCODE_LSHIFT
 #define BLIPR_KEY_SHIFT_2 SDL_SCANCODE_LCTRL
 #define BLIPR_KEY_FUNC SDL_SCANCODE_RSHIFT
-#define BLIPR_KEY_SHIFT_3 SDL_SCANCODE_RALT // SDL_SCANCODE_RCTRL
+#define BLIPR_KEY_SHIFT_3 SDL_SCANCODE_RCTRL
 
 // Midi devices
 #define BLIPR_MIDI_DEVICE_A 0

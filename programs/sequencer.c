@@ -115,7 +115,6 @@ void drawSequencer(
     int *ppqnCounter, 
     struct Track *track
 ) {
-    printf("PPQN: %d\n", *ppqnCounter);
     // Outline currently active step:
     int width = HEIGHT / 6;
     int height = width;

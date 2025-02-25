@@ -1,6 +1,7 @@
 #include <SDL.h>
 #include "../drawing_components.h"
 #include "../drawing_text.h"
+#include "../drawing_icons.h"
 #include "../utils.h"
 #include "../project.h"
 #include "../constants.h"
@@ -10,7 +11,9 @@
  * Draw the program selection
  */
 void drawProgramSelection(struct Track *track) {
-    drawBasicNumbers();
+    drawIconOnIndex(BLIPR_PROGRAM_NONE, BLIPR_ICON_CROSS);
+    drawIconOnIndex(BLIPR_PROGRAM_SEQUENCER, BLIPR_ICON_SEQUENCER);
+    drawIconOnIndex(BLIPR_PROGRAM_FOUR_ON_THE_FLOOR, BLIPR_ICON_FOOT_DOWN);
     drawHighlightedGridTile(track->program);
 
     // Title:

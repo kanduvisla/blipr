@@ -25,7 +25,7 @@ void resetConfigurationScreen() {
 
 void drawConfigSelection(struct Project *project) {
     if (isMainScreen()) {
-        drawIcon(9, 9, BLIPR_ICON_MIDI, COLOR_WHITE);
+        drawIconOnIndex(0, BLIPR_ICON_MIDI);
         drawCenteredLine(2, 133, "CONFIGURATION", TITLE_WIDTH, COLOR_WHITE);      
     } else {
         if (isMidiConfigActive) {
