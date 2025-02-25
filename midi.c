@@ -44,11 +44,19 @@ void openMidiOutput(int deviceId, PmStream **outputStream) {
     printf("Opened output device %d\n", deviceId);
 }
 
-void sendMidiMessage(PmStream *outputStream, int channel, int status, int data1, int data2) {
+void sendMidiMessage(PmStream *outputStream, int status, int data1, int data2) {
     PmEvent event = {0};
     event.message = Pm_Message(status, data1, data2);
     PmError error = Pm_Write(outputStream, &event, 1);
     handleMidiError(error);
+}
+
+void sendMidiNoteOn(PmStream *outputStream, int channel, int noteNumber, int velocity) {
+    sendMidiMessage(outputStream, channel | 0x90, noteNumber, velocity);
+}
+
+void sendMidiNoteOff(PmStream *outputStream, int channel, int noteNumber) {
+    sendMidiMessage(outputStream, channel | 0x80, noteNumber, 0);
 }
 
 void processMidiInput(PmStream *inputStream) {

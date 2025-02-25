@@ -24,7 +24,17 @@ void openMidiOutput(int deviceId, PmStream *outputStream);
 /**
  * Send midi message
  */
-void sendMidiMessage(PmStream *outputStream, int channel, int status, int data1, int data2);
+void sendMidiMessage(PmStream *outputStream, int status, int data1, int data2);
+
+/**
+ * Send Midi Note On
+ */
+void sendMidiNoteOn(PmStream *outputStream, int channel, int noteNumber, int velocity);
+
+/**
+ * Send Midi Note Off
+ */
+void sendMidiNoteOff(PmStream *outputStream, int channel, int noteNumber);
 
 /**
  * Process midi input
