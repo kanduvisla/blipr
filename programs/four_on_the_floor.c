@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <portmidi.h>
 #include "../constants.h"
+#include "../drawing_icons.h"
 #include "../project.h"
 
 /**
@@ -28,8 +29,10 @@ void drawFourOnTheFloor(
     int *ppqnCounter, 
     struct Track *track
 ) {
-    // TODO, draw foot, stomping on the floor
-    if (*ppqnCounter % (PPQN_MULTIPLIED * 4) == 0) {
-        
-    }
+    // Draw foot, stomping on the floor
+    drawIcon(
+        55, 
+        55, 
+        *ppqnCounter % (PPQN_MULTIPLIED) == 0 ? BLIPR_ICON_FOOT_DOWN : BLIPR_ICON_FOOT_UP
+    );
 }

@@ -20,6 +20,7 @@
 #include "programs/config_selection.h"
 #include "programs/program_selection.h"
 #include "programs/track_options.h"
+#include "programs/four_on_the_floor.h"
 #include "midi.h"
 
 // Renderer:
@@ -312,7 +313,8 @@ int main(int argc, char *argv[]) {
         // Check if ppqn is trigged:
         if (elapsedNs > nanoSecondsPerPulse) {
             // Send Midi Clock:
-            if (&outputStreamA != NULL) { 
+            if (&outputStreamA != NULL) {
+                // Calculate back using the multiplier, otherwise the clock is too fast:
                 if (ppqnCounter % PPQN_MULTIPLIER == 0) {
                     //sendMidiClock(outputStreamA);
                 } 
@@ -326,6 +328,8 @@ int main(int argc, char *argv[]) {
                     case BLIPR_PROGRAM_SEQUENCER:
                         // Run sequencer:
                         runSequencer(project, &ppqnCounter, selectedSequence, selectedPattern, iTrack);
+                        break;
+                    case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
                         break;
                 }
             }
@@ -382,8 +386,10 @@ int main(int argc, char *argv[]) {
                         drawCenteredLine(2, 61, "(NO PROGRAM)", TITLE_WIDTH, COLOR_WHITE);      
                         break;
                     case BLIPR_PROGRAM_SEQUENCER:
-                        // Draw the sequencer:
                         drawSequencer(&ppqnCounter, track);
+                        break;
+                    case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
+                        drawFourOnTheFloor(&ppqnCounter, track);
                         break;
                 }
             }
