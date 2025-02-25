@@ -336,7 +336,7 @@ int main(int argc, char *argv[]) {
                 // Run the program:
                 switch (iTrack->program) {
                     case BLIPR_PROGRAM_SEQUENCER:
-                        runSequencer(project, &ppqnCounter, selectedSequence, selectedPattern, iTrack);
+                        runSequencer(outputStreamA, &ppqnCounter, iTrack);
                         break;
                     case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
                         // Todo: select proper stream:
@@ -345,6 +345,9 @@ int main(int argc, char *argv[]) {
                         break;
                 }
             }
+
+            // Update Note Offs:
+            updateNotesAndSendOffs();
 
             isClockResetRequired = true;
             ppqnCounter += 1;

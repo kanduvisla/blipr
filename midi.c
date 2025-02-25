@@ -1,12 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <portmidi.h>
 #include <porttime.h>
+#include "project.h"
+#include "constants.h"
 
 #define INPUT_BUFFER_SIZE 100
 #define OUTPUT_BUFFER_SIZE 100
 #define MIDI_CLOCK 0xF8
+#define MAX_NOTES 512
 
 void handleMidiError(PmError error) {
     if (error != pmNoError) {
@@ -88,4 +92,59 @@ int getOutputDeviceIdByDeviceName(char* deviceName) {
         }
     }
     return -1;
+}
+
+/**
+ * Tracker to keep track of note off calls
+ */
+typedef struct {
+    const struct Note* note;  // Pointer to the original note
+    PmStream* outputStream;   // The MIDI output stream
+    int midiChannel;          // The MIDI channel
+    int counter;              // Counter for pulses
+    bool active;              // Whether this slot is in use
+} NoteTracker;
+
+NoteTracker activeNotes[MAX_NOTES];
+
+void initializeNoteTracker() {
+    for (int i = 0; i < MAX_NOTES; i++) {
+        activeNotes[i].note = NULL;
+        activeNotes[i].outputStream = NULL;
+        activeNotes[i].midiChannel = 0;
+        activeNotes[i].counter = 0;
+        activeNotes[i].active = false;
+    }
+}
+
+void addNoteToTracker(PmStream* outputStream, int midiChannel, const struct Note* note) {
+    for (int i = 0; i < MAX_NOTES; i++) {
+        if (!activeNotes[i].active) {
+            activeNotes[i].note = note;
+            activeNotes[i].outputStream = outputStream;
+            activeNotes[i].midiChannel = midiChannel;
+            activeNotes[i].counter = MAX(1, note->length) * 6;  // TODO: Make a proper calculation for length here.
+            activeNotes[i].active = true;
+            // printf("set counter: %d\n", activeNotes[i].counter);
+            break;
+        }
+    }
+}
+
+void updateNotesAndSendOffs() {
+    for (int i = 0; i < MAX_NOTES; i++) {
+        if (activeNotes[i].active) {
+            activeNotes[i].counter--;
+            // printf("counter: %d\n", activeNotes[i].counter);
+            if (activeNotes[i].counter <= 0) {
+                // printf("Send note off on channel %d\n", activeNotes[i].midiChannel);
+                sendMidiNoteOff(activeNotes[i].outputStream, 
+                                activeNotes[i].midiChannel, 
+                                activeNotes[i].note->note);
+                activeNotes[i].active = false;
+                activeNotes[i].note = NULL;
+                activeNotes[i].outputStream = NULL;
+            }
+        }
+    }
 }

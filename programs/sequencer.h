@@ -3,6 +3,7 @@
 
 #include <SDL.h>
 #include <stdbool.h>
+#include <portmidi.h>
 #include "../project.h"
 
 // Speed conditions:
@@ -87,16 +88,21 @@
 /**
  * Update the sequencer according to user input
  */
-void updateSequencer(struct Project *project, bool keyStates[SDL_NUM_SCANCODES], SDL_Scancode key, int selectedSequence, int selectedPatern, int selectedTrack);
+void updateSequencer(
+    struct Project *project, 
+    bool keyStates[SDL_NUM_SCANCODES], 
+    SDL_Scancode key, 
+    int selectedSequence, 
+    int selectedPatern, 
+    int selectedTrack
+);
 
 /**
  * Run the sequencer
  */
 void runSequencer(
-    struct Project *project, 
+    PmStream *outputStream,
     int *ppqnCounter, 
-    int selectedSequence, 
-    int selectedPatern,
     struct Track *selectedTrack
 );
 

@@ -1,11 +1,13 @@
 #include <SDL.h>
 #include <stdbool.h>
+#include <portmidi.h>
 #include "../project.h"
 #include "../constants.h"
 #include "../colors.h"
 #include "../drawing.h"
 #include "../drawing_components.h"
 #include "../utils.h"
+#include "../midi.h"
 
 // TODO: These should be the global things I guess?
 int selectedPage = 0;
@@ -91,21 +93,35 @@ void updateSequencer(
  * Run the sequencer
  */
 void runSequencer(
-    struct Project *project, 
+    PmStream *outputStream,
     int *ppqnCounter, 
-    int selectedSequence, 
-    int selectedPattern,
     struct Track *selectedTrack
 ) {
-    /*
-    totalPpqnCounter++;
-    if (totalPpqnCounter >= MAX_PULSES) {
-        totalPpqnCounter = 0;
+    // We always divide by 4, because there are four 16th notes in one quarter note:
+    // TODO: Change this when resolution is increased:
+    if (*ppqnCounter % (PPQN_MULTIPLIED / 4) == 0) {
+        int pp16 = *ppqnCounter / 4;        // pulses per 16th note (6 pulses idealy)
+        int stepIndex = (pp16 / 6) % 16;    // TODO: Replace with track length
+        // printf("step index: %d\n", stepIndex);
+
+        struct Step *step = &selectedTrack->steps[stepIndex];
+        struct Note *note = &step->notes[selectedNote];
+        // printf("Address: stepIndex=%d, step=%p, note=%p\n", stepIndex, (void*)step, (void*)note);
+        // printf("Address: stepIndex=%d, selectedNote=%d, step=%p, note=%p, diff=%ld\n", 
+        //     stepIndex, selectedNote, (void*)step, (void*)note, (long)((char*)note - (char*)step));
+        // printf("note: %d\n", note);
+        // printf("enabled: %s\n", &step->notes[selectedNote].enabled ? "true" : "false");
+        if (note->enabled) {
+            // Midi action:
+            // printf("step %d triggered\n", stepIndex);
+            // printf("velocity: %d\n", note->velocity);
+            sendMidiNoteOn(outputStream, selectedTrack->midiChannel, note->note, note->velocity);
+            addNoteToTracker(outputStream, selectedTrack->midiChannel, note);
+        }
     }
 
-    int totalSteps = totalPpqnCounter / PPQN;
-    short int trackLength = project->sequences[selectedSequence].patterns[selectedPattern].tracks[0].trackLength;
-    */
+    // Decrease note-off counters:
+    updateNotesAndSendOffs(outputStream, selectedTrack->midiChannel);
 }
 
 /**

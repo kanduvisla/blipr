@@ -31,7 +31,7 @@ void noteToByteArray(const struct Note *note, unsigned char bytes[NOTE_BYTE_SIZE
  */
 struct Note byteArrayToNote(const unsigned char bytes[NOTE_BYTE_SIZE]) {
     struct Note note;
-    note.enabled = bytes[0];
+    note.enabled = (bool)bytes[0];
     note.note = bytes[1];
     note.velocity = bytes[2];
     note.nudge = (char)bytes[3] - 63;
@@ -247,6 +247,7 @@ void initializeProject(struct Project* project) {
                     struct Step step;
                     for (int n = 0; n < NOTES_IN_STEP; n++) {
                         struct Note note;
+                        note.enabled = false;
                         note.note = 0;
                         note.velocity = 0;
                         step.notes[n] = note;

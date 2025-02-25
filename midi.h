@@ -51,4 +51,8 @@ int getOutputDeviceIdByDeviceName(char* deviceName);
  */
 void sendMidiClock(PortMidiStream *stream);
 
+void initializeNoteTracker();
+void addNoteToTracker(PmStream* outputStream, int midiChannel, const struct Note* note);
+void updateNotesAndSendOffs();
+
 #endif
