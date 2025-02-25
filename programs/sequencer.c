@@ -11,6 +11,7 @@
 
 // TODO: These should be the global things I guess?
 int selectedPage = 0;
+int queuedPage = 0;
 int selectedNote = 0;
 int defaultNote = 80;
 int defaultVelocity = 100;
@@ -50,7 +51,6 @@ void toggleVelocity(struct Step *step) {
  * Set selected page
  */
 void setSelectedPage(int index) {
-    printf("Set selected page to %d\n", index);
     selectedPage = index;
 }
 
@@ -101,7 +101,15 @@ void runSequencer(
     // TODO: Change this when resolution is increased:
     if (*ppqnCounter % (PPQN_MULTIPLIED / 4) == 0) {
         int pp16 = *ppqnCounter / 4;        // pulses per 16th note (6 pulses idealy)
-        int stepIndex = (pp16 / 6) % (selectedTrack->trackLength + 1);
+        int stepIndex;
+
+        if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
+            stepIndex = (pp16 / 6) % (selectedTrack->trackLength + 1);
+        } else {
+            // TODO: Repeat current page:
+            stepIndex = (pp16 / 6) % (selectedTrack->trackLength + 1);
+            // stepIndex = ((selectedPage * 16) + (pp16 / 6)) % 16;
+        }
 
         struct Step *step = &selectedTrack->steps[stepIndex];
         struct Note *note = &step->notes[selectedNote];
@@ -129,7 +137,12 @@ void drawSequencer(
     // Step indicator:
     int pp16 = *ppqnCounter / 4;        // pulses per 16th note (6 pulses idealy)
     int stepIndex = (pp16 / 6) % (track->trackLength + 1);
-    int playingPage = stepIndex / 16;
+    int playingPage;
+    if (track->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
+        playingPage = stepIndex / 16;
+    } else {
+        playingPage = selectedPage;
+    }
 
     if (playingPage >= selectedPage && playingPage < selectedPage + 1) {
             int x = stepIndex % 4;

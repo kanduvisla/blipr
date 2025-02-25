@@ -14,6 +14,9 @@
 #define SEQUENCE_BYTE_SIZE (SMALL_HEADER_BYTE_SIZE + (16 * PATTERN_BYTE_SIZE))  // header + 16 patterns
 #define PROJECT_BYTE_SIZE (LARGE_HEADER_BYTE_SIZE + (16 * SEQUENCE_BYTE_SIZE))  // header + 16 sequences
 
+#define PAGE_PLAY_MODE_CONTINUOUS 0 // Play the track pages after each other
+#define PAGE_PLAY_MODE_REPEAT 1     // Loop the currently selected track
+
 /**
  * A Note
  */
@@ -54,6 +57,7 @@ struct Track {
     unsigned char cc1Assignment;
     unsigned char cc2Assignment;
     unsigned char polyCount; // 1, 2, 4 or 8
+    unsigned char pagePlayMode;
     // Steps are only used for the "Sequencer"-program
     struct Step steps[64];
 };

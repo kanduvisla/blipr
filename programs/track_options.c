@@ -47,6 +47,10 @@ void drawTrackOptions(struct Track* track) {
     snprintf(channelChar, sizeof(channelChar), "%d", track->midiChannel + 1);
     drawCenteredLine(32, 37, "MC", BUTTON_WIDTH, COLOR_WHITE);
     drawTextOnButton(5, channelChar);
+
+    // Page play mode:
+    drawCenteredLine(62, 37, "PPM", BUTTON_WIDTH, COLOR_WHITE);
+    drawTextOnButton(6, track->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS ? "C" : "R");
 }
 
 void updateTrackOptions(struct Track* track, SDL_Scancode key) {
@@ -79,5 +83,7 @@ void updateTrackOptions(struct Track* track, SDL_Scancode key) {
                 track->midiChannel = 0;
             }
             break;
+        case BLIPR_KEY_7:
+            track->pagePlayMode = track->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS ? PAGE_PLAY_MODE_REPEAT : PAGE_PLAY_MODE_CONTINUOUS;
     }
 }

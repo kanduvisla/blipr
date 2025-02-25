@@ -85,7 +85,8 @@ void trackToByteArray(const struct Track *track, unsigned char bytes[TRACK_BYTE_
     memcpy(bytes + 36, &(track->trackLength), 2);
     bytes[38] = track->cc1Assignment;
     bytes[39] = track->cc2Assignment;
-    memset(bytes + 40, 0, TRACK_BYTE_SIZE - 40);
+    bytes[40] = track->pagePlayMode;
+    memset(bytes + 41, 0, TRACK_BYTE_SIZE - 41);
     for (int i = 0; i < 64; i++) {
         stepToByteArray(&track->steps[i], bytes + 64 + (i * STEP_BYTE_SIZE));
     }
@@ -109,6 +110,7 @@ struct Track* byteArrayToTrack(const unsigned char bytes[TRACK_BYTE_SIZE]) {
     memcpy(&(track->trackLength), bytes + 36, 2);
     track->cc1Assignment = bytes[38];
     track->cc2Assignment = bytes[39];
+    track->pagePlayMode = bytes[40];
     for (int i = 0; i < 64; i++) {
         unsigned char arr[STEP_BYTE_SIZE];
         // Copy part of byte array into arr
