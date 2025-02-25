@@ -89,12 +89,9 @@
  * Update the sequencer according to user input
  */
 void updateSequencer(
-    struct Project *project, 
+    struct Track *selectedTrack,
     bool keyStates[SDL_NUM_SCANCODES], 
-    SDL_Scancode key, 
-    int selectedSequence, 
-    int selectedPatern, 
-    int selectedTrack
+    SDL_Scancode key
 );
 
 /**

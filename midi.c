@@ -15,7 +15,7 @@
 void handleMidiError(PmError error) {
     if (error != pmNoError) {
         printf("PortMidi error: %s\n", Pm_GetErrorText(error));
-        exit(1);
+        // exit(1);
     }
 }
 

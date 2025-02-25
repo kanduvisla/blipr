@@ -50,41 +50,45 @@ void toggleVelocity(struct Step *step) {
 /**
  * Set selected page
  */
-void setSelectedPage(int index) {
-    selectedPage = index;
+void setSelectedPage(
+    struct Track *selectedTrack,
+    int index
+) {
+    if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
+        selectedPage = index;
+    } else {
+        queuedPage = index;
+    }
 }
 
 /**
  * Update the sequencer according to user input
  */
 void updateSequencer(
-    struct Project *project, 
+    struct Track *selectedTrack,
     bool keyStates[SDL_NUM_SCANCODES], 
-    SDL_Scancode key, 
-    int selectedSequence, 
-    int selectedPattern, 
-    int selectedTrack
+    SDL_Scancode key
 ) {
     int index = scancodeToStep(key) + (selectedPage * 16);
     if (keyStates[BLIPR_KEY_SHIFT_1]) {
         if (index >= 0) {
             // Toggle velocity
-            toggleVelocity(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[index]);
+            toggleVelocity(&selectedTrack->steps[index]);
         }
     } else if(keyStates[BLIPR_KEY_SHIFT_2]) {
         // Update selected note or page:
     } else if(key == BLIPR_KEY_A) {
-        setSelectedPage(0);
+        setSelectedPage(selectedTrack, 0);
     } else if(key == BLIPR_KEY_B) {
-        setSelectedPage(1);
+        setSelectedPage(selectedTrack, 1);
     } else if(key == BLIPR_KEY_C) {
-        setSelectedPage(2);
+        setSelectedPage(selectedTrack, 2);
     } else if(key == BLIPR_KEY_D) {
-        setSelectedPage(3);
+        setSelectedPage(selectedTrack, 3);
     } else {
         if (index >= 0) {
             // Toggle key
-            toggleStep(&project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack].steps[index]);
+            toggleStep(&selectedTrack->steps[index]);
         }
     }
 }
@@ -101,16 +105,35 @@ void runSequencer(
     // TODO: Change this when resolution is increased:
     if (*ppqnCounter % (PPQN_MULTIPLIED / 4) == 0) {
         int pp16 = *ppqnCounter / 4;        // pulses per 16th note (6 pulses idealy)
-        int stepIndex;
+        int stepIndex = 0;
+        int stepCounter = pp16 / 6;
 
         if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
-            stepIndex = (pp16 / 6) % (selectedTrack->trackLength + 1);
+            stepIndex = stepCounter % (selectedTrack->trackLength + 1);
         } else {
-            // TODO: Repeat current page:
-            stepIndex = (pp16 / 6) % (selectedTrack->trackLength + 1);
+            // Check for queued page:
+            if (stepCounter % 16 == 0 && selectedPage != queuedPage) {
+                selectedPage = queuedPage;
+            }
+            // Repeat current page:
+            // stepIndex = (pp16 / 6) % (selectedTrack->trackLength + 1);
             // stepIndex = ((selectedPage * 16) + (pp16 / 6)) % 16;
+            // stepIndex = (selectedPage * 16);
+            // for 44 steps:
+            // page 1: (0 * 16) + (0 % 44) % 16
+            // page 2: (1 * 16) + (0 % 28) % 16
+            // page 3: (2 * 16) + (0 % 12) % 16
+            int remainingLength = (selectedTrack->trackLength + 1) - (selectedPage * 16);
+            if (remainingLength > 16) {
+                stepIndex = (selectedPage * 16) + (stepCounter % 16);
+            } else {
+                stepIndex = (selectedPage * 16) + (stepCounter % remainingLength);
+            }
+            // stepIndex = (selectedPage * 16) + ((stepCounter % remainingLength) % 16);
+            // stepIndex = (pp16 / 6) % ((selectedTrack->trackLength + 1) - (selectedPage * 16));
+            // printf("selected page: %d / queued page: %d / step index: %d / step counter: %d\n", selectedPage, queuedPage, stepIndex, stepCounter);
         }
-
+        
         struct Step *step = &selectedTrack->steps[stepIndex];
         struct Note *note = &step->notes[selectedNote];
         if (note->enabled) {
@@ -135,13 +158,28 @@ void drawSequencer(
     int height = width;
 
     // Step indicator:
-    int pp16 = *ppqnCounter / 4;        // pulses per 16th note (6 pulses idealy)
-    int stepIndex = (pp16 / 6) % (track->trackLength + 1);
-    int playingPage;
+    int pp16 = *ppqnCounter / 4;                            // pulses per 16th note (6 pulses idealy)
+    int stepCounter = pp16 / 6;
+    int stepIndex = 0;
+    int playingPage = 0;
     if (track->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
+        stepIndex = stepCounter % (track->trackLength + 1);
         playingPage = stepIndex / 16;
+        printf("playing page: %d\n", playingPage);
+        // Outline current page:
+        drawHighlightedGridTile(selectedPage + 16);
     } else {
+        int remainingLength = (track->trackLength + 1) - (selectedPage * 16);
+        if (remainingLength > 16) {
+            stepIndex = (selectedPage * 16) + (stepCounter % 16);
+        } else {
+            stepIndex = (selectedPage * 16) + (stepCounter % remainingLength);
+        }
         playingPage = selectedPage;
+
+        // stepIndex = stepCounter % (track->trackLength + 1) % 16;
+        // printf("step index: %d\n", stepIndex);
+        drawHighlightedGridTile(queuedPage + 16);
     }
 
     if (playingPage >= selectedPage && playingPage < selectedPage + 1) {
@@ -155,10 +193,7 @@ void drawSequencer(
             COLOR_WHITE
         );
     }
-
-    // Outline current page:
-    drawHighlightedGridTile(selectedPage + 16);
-    
+   
     // Highlight playing page:
     drawLine(
         2 + playingPage + (playingPage * BUTTON_WIDTH),

@@ -280,7 +280,7 @@ int main(int argc, char *argv[]) {
                         // Func-key is not down, so program of current track should be shown:
                         switch (track->program) {
                             case BLIPR_PROGRAM_SEQUENCER:
-                                updateSequencer(project, keyStates, scanCode, selectedSequence, selectedPattern, selectedTrack);
+                                updateSequencer(track, keyStates, scanCode);
                                 break;
                         }
                     }
