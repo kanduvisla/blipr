@@ -37,15 +37,18 @@ char *projectFile = "data.blipr";
 #define INPUT_BUFFER_SIZE 100
 #define OUTPUT_BUFFER_SIZE 100
 
+// For Midi:
 PmStream *input_stream;
-PmStream *output_stream;
+PmStream *outputStreamA;
+PmStream *outputStreamB;
+PmStream *outputStreamC;
+PmStream *outputStreamD;
 
 void calculateMicroSecondsPerPulse() {
     double beatsPerSecond = bpm / 60.0;
-    double secondsPerBeat = 1.0 / beatsPerSecond;
-    int64_t nanoSecondsPerBeat = secondsPerBeat * NANOS_PER_SEC;
-    int64_t nanoSecondsPerNote = nanoSecondsPerBeat / 4;
-    nanoSecondsPerPulse = nanoSecondsPerNote / PPQN;
+    double secondsPerQuarterNote = 1.0 / beatsPerSecond;
+    int64_t nanoSecondsPerQuarterNote = secondsPerQuarterNote * NANOS_PER_SEC;
+    nanoSecondsPerPulse = nanoSecondsPerQuarterNote / PPQN_MULTIPLIED;
 }
 
 int64_t getTimespecDiffInNanoSeconds(struct timespec *start, struct timespec *end) {
@@ -169,7 +172,20 @@ int main(int argc, char *argv[]) {
     struct Track* track = &project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack];
 
     // Setup Midi:
+    int midiDeviceIdA = getOutputDeviceIdByDeviceName(project->midiDeviceAName);
+    if (midiDeviceIdA != -1) {
+        printf("Midi output device A: %d\n", midiDeviceIdA);
+        openMidiOutput(midiDeviceIdA, &outputStreamA);
+    } else {
+        
+    }
 
+    int midiDeviceIdB = getOutputDeviceIdByDeviceName(project->midiDeviceBName);
+    printf("midi output device B: %d\n", midiDeviceIdB);
+    int midiDeviceIdC = getOutputDeviceIdByDeviceName(project->midiDeviceCName);
+    printf("midi output device C: %d\n", midiDeviceIdC);
+    int midiDeviceIdD = getOutputDeviceIdByDeviceName(project->midiDeviceDName);
+    printf("midi output device D: %d\n", midiDeviceIdD);
 
     // While application is running
     while(!quit) {
@@ -295,6 +311,13 @@ int main(int argc, char *argv[]) {
 
         // Check if ppqn is trigged:
         if (elapsedNs > nanoSecondsPerPulse) {
+            // Send Midi Clock:
+            if (&outputStreamA != NULL) { 
+                if (ppqnCounter % PPQN_MULTIPLIER == 0) {
+                    //sendMidiClock(outputStreamA);
+                } 
+            }
+
             // Iterate over all tracks
             for (int i=0; i<16; i++) {
                 struct Track* iTrack = &project->sequences[selectedSequence].patterns[selectedPattern].tracks[i];
@@ -322,7 +345,7 @@ int main(int argc, char *argv[]) {
             // Set the render target to our texture
             SDL_SetRenderTarget(renderer, renderTarget);
             // Clear the render target
-            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+            SDL_SetRenderDrawColor(renderer, COLOR_BLACK.r, COLOR_BLACK.g, COLOR_BLACK.b, 255);
             SDL_RenderClear(renderer);
 
             // BPM Blinker:
@@ -392,6 +415,12 @@ int main(int argc, char *argv[]) {
 
     writeProjectFile(project, projectFile);
     free(project);
+
+    Pm_Close(outputStreamA);
+    Pm_Close(outputStreamB);
+    Pm_Close(outputStreamC);
+    Pm_Close(outputStreamD);
+    Pm_Terminate();
 
     return (0);
 }

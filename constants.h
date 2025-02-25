@@ -17,7 +17,9 @@
 
 // Pulse per quarter note
 #define PPQN 24
-#define MAX_PULSES (PPQN * 512)       // Max amount of steps in a track can be 512
+#define PPQN_MULTIPLIER 4                           // Multiplier for PPQN, so the in-app pulse counter can have more steps
+#define PPQN_MULTIPLIED (PPQN * PPQN_MULTIPLIER)
+#define MAX_PULSES (PPQN_MULTIPLIED * 512)          // Max amount of steps in a track can be 512
 
 // MAX/MIN Macro
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -56,9 +58,11 @@
 #define BLIPR_MIDI_DEVICE_B 1
 #define BLIPR_MIDI_DEVICE_C 2
 #define BLIPR_MIDI_DEVICE_D 3
+#define BLIPR_MIDI_BUFFER_SIZE 256
 
 // blipr programs
 #define BLIPR_PROGRAM_NONE 0
 #define BLIPR_PROGRAM_SEQUENCER 1
+#define BLIPR_PROGRAM_FOUR_ON_THE_FLOOR 2
 
 #endif // CONSTANTS_H

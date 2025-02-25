@@ -14,21 +14,31 @@ void listMidiDevices();
 /**
  * Open device for midi input
  */
-void openMidiInput(int device_id);
+void openMidiInput(int deviceId, PmStream *inputStream);
 
 /**
  * Open device for midi output
  */
-void openMidiOutput(int device_id);
+void openMidiOutput(int deviceId, PmStream *outputStream);
 
 /**
  * Send midi message
  */
-void sendMidiMessage(int status, int data1, int data2);
+void sendMidiMessage(PmStream *outputStream, int status, int data1, int data2);
 
 /**
  * Process midi input
  */
-void processMidiInput();
+void processMidiInput(PmStream *inputStream);
+
+/**
+ * Returns -1 if not device is found with the given name
+ */
+int getOutputDeviceIdByDeviceName(char* deviceName);
+
+/**
+ * Send Midi Clock
+ */
+void sendMidiClock(PortMidiStream *stream);
 
 #endif

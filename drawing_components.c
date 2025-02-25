@@ -33,7 +33,7 @@ void drawSequencerButton(int x, int y, int width, int height, bool isActive) {
  * Draw the BPM Blinker
  */
 void drawBPMBlinker(int *ppqnCounter) {
-    float p = (float)(*ppqnCounter % (PPQN * 4)) / (float)(PPQN * 4);
+    float p = (float)(*ppqnCounter % (PPQN_MULTIPLIED)) / (float)(PPQN_MULTIPLIED);
     int r = 255 * (1-p);
 
     SDL_Color colorBlinker = {r, 0, 0, 255};
