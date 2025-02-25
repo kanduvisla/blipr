@@ -65,7 +65,7 @@ void updateSequencer(
     int selectedPattern, 
     int selectedTrack
 ) {
-    int index = scancodeToStep(key);
+    int index = scancodeToStep(key) + (selectedPage * 16);
     if (keyStates[BLIPR_KEY_SHIFT_1]) {
         if (index >= 0) {
             // Toggle velocity
@@ -101,20 +101,11 @@ void runSequencer(
     // TODO: Change this when resolution is increased:
     if (*ppqnCounter % (PPQN_MULTIPLIED / 4) == 0) {
         int pp16 = *ppqnCounter / 4;        // pulses per 16th note (6 pulses idealy)
-        int stepIndex = (pp16 / 6) % 16;    // TODO: Replace with track length
-        // printf("step index: %d\n", stepIndex);
+        int stepIndex = (pp16 / 6) % (selectedTrack->trackLength + 1);
 
         struct Step *step = &selectedTrack->steps[stepIndex];
         struct Note *note = &step->notes[selectedNote];
-        // printf("Address: stepIndex=%d, step=%p, note=%p\n", stepIndex, (void*)step, (void*)note);
-        // printf("Address: stepIndex=%d, selectedNote=%d, step=%p, note=%p, diff=%ld\n", 
-        //     stepIndex, selectedNote, (void*)step, (void*)note, (long)((char*)note - (char*)step));
-        // printf("note: %d\n", note);
-        // printf("enabled: %s\n", &step->notes[selectedNote].enabled ? "true" : "false");
         if (note->enabled) {
-            // Midi action:
-            // printf("step %d triggered\n", stepIndex);
-            // printf("velocity: %d\n", note->velocity);
             sendMidiNoteOn(outputStream, selectedTrack->midiChannel, note->note, note->velocity);
             addNoteToTracker(outputStream, selectedTrack->midiChannel, note);
         }
@@ -134,33 +125,60 @@ void drawSequencer(
     // Outline currently active step:
     int width = HEIGHT / 6;
     int height = width;
-    int x = (*ppqnCounter / (PPQN_MULTIPLIED / 4)) % 4;
-    int y = ((*ppqnCounter / (PPQN_MULTIPLIED / 4)) / 4) % 4;
 
-    drawSingleLineRectOutline(
-        2 + x + (x * width),
-        2 + y + (y * height),
-        width,
-        height,
-        COLOR_WHITE
-    );
+    // Step indicator:
+    int pp16 = *ppqnCounter / 4;        // pulses per 16th note (6 pulses idealy)
+    int stepIndex = (pp16 / 6) % (track->trackLength + 1);
+    int playingPage = stepIndex / 16;
+
+    if (playingPage >= selectedPage && playingPage < selectedPage + 1) {
+            int x = stepIndex % 4;
+            int y = (stepIndex / 4) % 4;
+            drawSingleLineRectOutline(
+            2 + x + (x * width),
+            2 + y + (y * height),
+            width,
+            height,
+            COLOR_WHITE
+        );
+    }
 
     // Outline current page:
     drawHighlightedGridTile(selectedPage + 16);
+    
+    // Highlight playing page:
+    drawLine(
+        2 + playingPage + (playingPage * BUTTON_WIDTH),
+        HEIGHT - BUTTON_HEIGHT - 5,
+        2 + playingPage + ((playingPage + 1) * BUTTON_WIDTH) - 1,
+        HEIGHT - BUTTON_HEIGHT - 5,
+        COLOR_RED
+    );
 
     // Highlight non-empty steps:
     for (int j = 0; j < 4; j++) {
         int height = width;
         for (int i = 0; i < 4; i++) {
-            struct Step step = track->steps[i + (j * 4)];
-            if (step.notes[selectedNote].enabled) {
+            struct Step step = track->steps[(i + (j * 4)) + (selectedPage * 16)];
+            // Check if this is within the track length:
+            if ((selectedPage * 16) + i + (j * 4) > track->trackLength) {
                 drawRect(
                     4 + i + (i * width),
                     4 + j + (j * height),
                     width - 4,
                     height - 4,
-                    step.notes[selectedNote].velocity >= defaultVelocity ? COLOR_RED : COLOR_DARK_RED
+                    COLOR_GRAY
                 );
+            } else {
+                if (step.notes[selectedNote].enabled) {
+                    drawRect(
+                        4 + i + (i * width),
+                        4 + j + (j * height),
+                        width - 4,
+                        height - 4,
+                        step.notes[selectedNote].velocity >= defaultVelocity ? COLOR_RED : COLOR_DARK_RED
+                    );
+                }
             }
         }
     }   
