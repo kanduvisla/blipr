@@ -68,6 +68,10 @@ int64_t getTimespecDiffInNanoSeconds(struct timespec *start, struct timespec *en
  * Main loop
  */
 int main(int argc, char *argv[]) {
+    #ifdef DEBUG
+    printf("--- DEBUG BUILD ---\n");
+    #endif
+
     listMidiDevices();
 
     SDL_Window      *win = NULL;
@@ -281,7 +285,10 @@ int main(int argc, char *argv[]) {
                         }
                     }
 
-                    // printf("Key pressed: %s\n", SDL_GetKeyName(e.key.keysym.sym));
+                    #ifdef DEBUG
+                    printf("Key pressed: %s\n", SDL_GetKeyName(e.key.keysym.sym));
+                    #endif
+
                     if (e.key.keysym.sym == SDLK_ESCAPE) {
                         quit = true;
                     }
@@ -302,7 +309,10 @@ int main(int argc, char *argv[]) {
                     isUtilitiesActive = false;
                     resetConfigurationScreen();
                 }
-                // printf("Key released: %s\n", SDL_GetKeyName(e.key.keysym.sym));
+
+                #ifdef DEBUG
+                printf("Key released: %s (%d)\n", SDL_GetKeyName(e.key.keysym.sym), scanCode);
+                #endif
             }
         }
 
@@ -313,23 +323,25 @@ int main(int argc, char *argv[]) {
         // Check if ppqn is trigged:
         if (elapsedNs > nanoSecondsPerPulse) {
             // Send Midi Clock:
-            if (&outputStreamA != NULL) {
+            if (midiDeviceIdA != -1) {
                 // Calculate back using the multiplier, otherwise the clock is too fast:
                 if (ppqnCounter % PPQN_MULTIPLIER == 0) {
-                    //sendMidiClock(outputStreamA);
+                    sendMidiClock(outputStreamA);
                 } 
             }
 
-            // Iterate over all tracks
+            // Iterate over all tracks, and send proper midi signals
             for (int i=0; i<16; i++) {
                 struct Track* iTrack = &project->sequences[selectedSequence].patterns[selectedPattern].tracks[i];
                 // Run the program:
                 switch (iTrack->program) {
                     case BLIPR_PROGRAM_SEQUENCER:
-                        // Run sequencer:
                         runSequencer(project, &ppqnCounter, selectedSequence, selectedPattern, iTrack);
                         break;
                     case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
+                        // Todo: select proper stream:
+                        // printf("memory address of track: %d\n", &iTrack);
+                        runFourOnTheFloor(outputStreamA, &ppqnCounter, iTrack);
                         break;
                 }
             }
@@ -371,7 +383,6 @@ int main(int argc, char *argv[]) {
             } else if (isConfigurationModeActive) {
                 drawConfigSelection(project);
             } else if (isTrackOptionsActive) {
-                // drawCenteredLine(2, 61, "(TRACK OPTIONS)", TITLE_WIDTH, COLOR_WHITE);      
                 drawTrackOptions(track);
             } else if (isProgramSelectionActive) {
                 drawProgramSelection(track);

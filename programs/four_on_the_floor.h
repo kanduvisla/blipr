@@ -23,10 +23,7 @@
  */
 void runFourOnTheFloor(
     PmStream *outputStream,
-    struct Project *project, 
     int *ppqnCounter, 
-    int selectedSequence, 
-    int selectedPatern,
     struct Track *selectedTrack
 );
 

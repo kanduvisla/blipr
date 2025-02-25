@@ -34,14 +34,18 @@ void drawTrackOptions(struct Track* track) {
     drawTextOnButton(2, ">");
     drawTextOnButton(3, ">>");
 
-    // Midi Device + Channel
+    // Midi Device: 
     char deviceChar[2] = {
         midiDeviceToCharacter(track->midiDevice),
         '\0'
     };
+    drawCenteredLine(2, 37, "MD", BUTTON_WIDTH, COLOR_WHITE);
     drawTextOnButton(4, deviceChar);
+    
+    // Midi Channel:
     char channelChar[3];
     snprintf(channelChar, sizeof(channelChar), "%d", track->midiChannel + 1);
+    drawCenteredLine(32, 37, "MC", BUTTON_WIDTH, COLOR_WHITE);
     drawTextOnButton(5, channelChar);
 }
 

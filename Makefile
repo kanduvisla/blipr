@@ -18,6 +18,12 @@ TEST_TARGET = build/test_blipr
 TEST_SRCS = tests/main_test.c project.c
 TEST_OBJS = $(TEST_SRCS:.c=.o)
 
+# Debug build settings
+DEBUG ?= 0
+ifeq ($(DEBUG), 1)
+	CFLAGS += -g -DDEBUG
+endif
+
 # Main build target
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS) $(LIBS)
@@ -30,8 +36,13 @@ $(TEST_TARGET): $(TEST_OBJS)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Run
+# Make & Run target
 run: $(TARGET)
+	./$(TARGET)
+
+# Make & Run debug target
+debug: DEBUG=1
+debug: $(TARGET)
 	./$(TARGET)
 
 # Test target
