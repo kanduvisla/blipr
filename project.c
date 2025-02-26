@@ -113,6 +113,8 @@ struct Track* byteArrayToTrack(const unsigned char bytes[TRACK_BYTE_SIZE]) {
     track->cc2Assignment = bytes[39];
     track->pagePlayMode = bytes[40];
     track->speed = bytes[41];
+    track->selectedPage = 0;
+    track->queuedPage = 0;
     for (int i = 0; i < 64; i++) {
         unsigned char arr[STEP_BYTE_SIZE];
         // Copy part of byte array into arr
@@ -247,6 +249,8 @@ void initializeProject(struct Project* project) {
                 track.pageLength = 15;
                 track.trackLength = 63;
                 track.polyCount = 7;
+                track.selectedPage = 0;
+                track.queuedPage = 0;
                 for (int s = 0; s < 64; s++) {
                     struct Step step;
                     for (int n = 0; n < NOTES_IN_STEP; n++) {

@@ -35,7 +35,7 @@ void drawTrackOptions(struct Track* track) {
     drawTextOnButton(3, ">>");
 
     // Track Speed (TODO):
-    drawCenteredLine(2, 37, "TS", BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawCenteredLine(2, 37, "SPEED", BUTTON_WIDTH * 2, COLOR_WHITE);
     drawTextOnButton(4, "<");
     drawTextOnButton(5, ">");
 

@@ -53,19 +53,20 @@ Basically the functionality for all programs is identical, with the following ma
 - Shift3    : Track Options / Pattern Options / Sequence Options / Utilities
     - When holding Shift3, ABCD is for different options:
         - A     : Track Options
-            - 1-4   : Increase / decrease track length (default=16) (1-4 = by 16, 2-3 = by 1)
+            - 1-4   : ✅ Increase / decrease track length (default=16) (1-4 = by 16, 2-3 = by 1)
             - 5-6   : Increase / decrease track speed (default=0 / default speed)
-            - 7-8   : Set page size (1-16)
-            - 9     : Set Midi Device
-            - 10    : Set Midi Channel
-            - 11    : Change track play mode (continuous or by page)
+            - 7-8   : ✅ Set page size (1-16)
+            - 9     : ✅ Set Midi Device
+            - 10    : ✅ Set Midi Channel
+            - 11    : ✅ Change track play mode (continuous or by page)
             - 12    : Change track polyphony (8, 4, 2, 1)
             - 11    : Change page repeat (how many times repeat a page before the transition happens?)
             - 12    : Change track name
             - 13-14 : Increase / decrease CC1 mapping (default=0)
             - 15-16 : Increase / decrease CC2 mapping (default=0)
-        - B     : Program Selector for this Track
+        - B     : ✅ Program Selector for this Track
         - C     : Pattern Options & Sequence Options
+            - 1     : Sync pages (when switching pages with repeat page mode, do all tracks play the same page (true), or are the pages individually configured?)
             - 12    : Change pattern name
             - 13-14 : Increase / decrease Midi Program Bank (default=0)
             - 15-16 : Increase / decrease Midi Program Pattern (default=0)
@@ -76,23 +77,14 @@ Basically the functionality for all programs is identical, with the following ma
             - 4     : Clear
             - 5-6   : Nudge
             - 7-8   : Transpose
-    - A         : Change Track n**a**me
-    - B         : Select Program
-    - C         : Set Midi **C**hannel for Track
-    - D         : Set Midi **D**evice for Track
-- Shift1+2  : Track Operations
-    - A         : Copy Track
-    - B         : Paste Track
-    - C         : Cut / Clear Track
-    - D         : (tbd)
-- Func-1-16 : Select Track 1-16
-- Func-A    : Pattern Selector (while still holding Func down, select 1-16)
-- Func-B    : Sequence Selector (while still holding Func down, select 1-16)
+- Func-1-16 : ✅ Select Track 1-16
+- Func-A    : ✅ Pattern Selector (while still holding Func down, select 1-16)
+- Func-B    : ✅ Sequence Selector (while still holding Func down, select 1-16)
 - Func-C    : Transport (Start / Stop / BPM / Clock Settings)
 - Func-D    : Configuration
-    - 1         : Midi Configuration
-        - ABCD  : Select Midi Device Slot A, B, C or D
-        - 1-16  : Select Midi Device
+    - 1         : ✅ Midi Configuration
+        - ABCD  : ✅ Select Midi Device Slot A, B, C or D
+        - 1-16  : ✅ Select Midi Device
 
 ## configuration
 
@@ -153,21 +145,21 @@ Basically your workflow is the following:
 Each pattern has 64 steps, divided in 4 pages. Each step can have up to 8 notes. Since this sequencer is monophonic, note 1-8 are used for extra page size. This makes it possible for a total track to have 512 steps. Track length is used to determine how many pages are possible: (<= 128 steps = 4 pages, 129-256 = 2 pages, 257-512 = 1 page)
 
 - 16-pad    : Steps
-    - Toggle on/off
-    - Shift1: Half velocity
+    - ✅ Toggle on/off
+    - ✅ Shift1: Half velocity
     - Shift2: Select note
-        - 1-2   : Transpose -12 / +12
-        - 3-4   : Transpose -1 / +1
-        - 5-6   : Increase / decrease velocity
-        - 7-8   : Increase / decrease length
+        - 1-4   : ✅ Transpose -12 / -1 / +1 / +12
+        - 5-6   : ✅ Increase / decrease velocity
+        - 7-8   : ✅ Increase / decrease length
         - 9-10  : Increase / decrease nudge
         - 11-12 : Increase / decrease trig condition
         - 13-14 : Increase / decrease CC1 value
         - 15-16 : Increase / decrease CC2 value
-- ABCD  : Select page for playing (next in queue)
-    - When pages are playing after each other (play mode), this button selects
+- ABCD  : ✅ Select page for playing (or next in queue, depending on page play mode)
+    - ✅ When pages are playing after each other (play mode), this button selects which page to edit
+    - ✅ When page play mode is repeat page, this button queues the next page
     - When holding multiple pages, a chain is created
-    - Shift1    : Select page bank 
+    - Shift1    : Select page bank
     - Shift2    : Select page size (1-512) (default=16) (note 1-8 is used for page information)
 
 #### Steps / Pages / Notes / Polyphony

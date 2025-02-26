@@ -15,7 +15,8 @@
 #define PROJECT_BYTE_SIZE (LARGE_HEADER_BYTE_SIZE + (16 * SEQUENCE_BYTE_SIZE))  // header + 16 sequences
 
 #define PAGE_PLAY_MODE_CONTINUOUS 0 // Play the track pages after each other
-#define PAGE_PLAY_MODE_REPEAT 1     // Loop the currently selected track
+#define PAGE_PLAY_MODE_REPEAT 1     // Loop the currently selected track, individually
+#define PAGE_PLAY_MODE_SYNCED 1     // Loop the currently selected track, synced globally with other tracks
 #define TRACK_SPEED_NORMAL 4
 #define TRACK_SPEED_TIMES_TWO 5
 #define TRACK_SPEED_TIMES_FOUR 6
@@ -66,6 +67,9 @@ struct Track {
     unsigned char polyCount; // 1, 2, 4 or 8
     unsigned char pagePlayMode;
     unsigned char speed;
+    // Not saved, used internally:
+    unsigned char selectedPage;
+    unsigned char queuedPage; 
     // Steps are only used for the "Sequencer"-program
     struct Step steps[64];
 };

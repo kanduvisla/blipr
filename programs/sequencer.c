@@ -12,13 +12,14 @@
 #include "../midi.h"
 
 // TODO: These should be the global things I guess?
-int selectedPage = 0;   // The page currently playing
-int queuedPage = 0;     // The page in queue to play after this page
+
+// Pages can be global, or per track configured
+// int selectedPage = 0;   // The page currently playing
+// int queuedPage = 0;     // The page in queue to play after this page
 int selectedNote = 0;
 int defaultNote = 80;
 int defaultVelocity = 100;
 int halfVelocity = 50;
-int totalPpqnCounter = 0;
 int selectedStep = -1;
 
 /**
@@ -65,9 +66,9 @@ void setSelectedPage(
     int index
 ) {
     if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
-        selectedPage = index;
+        selectedTrack->selectedPage = index;
     } else {
-        queuedPage = index;
+        selectedTrack->queuedPage = index;
     }
 }
 
@@ -82,12 +83,15 @@ unsigned char transposeMidiNote(unsigned char midiNote, int steps) {
 
     // Clamp the result to the valid MIDI note range (0-127)
     if (transposed < 0) {
-        return 0;
+        transposed = 0;
     } else if (transposed > 127) {
-        return 127;
-    } else {
-        return (unsigned char)transposed;
-    }
+        transposed = 127;
+    } 
+
+    // Set default note to this:
+    defaultNote = transposed;
+
+    return (unsigned char)transposed;   
 }
 
 /**
@@ -98,7 +102,7 @@ void updateSequencer(
     bool keyStates[SDL_NUM_SCANCODES], 
     SDL_Scancode key
 ) {
-    int index = scancodeToStep(key) + (selectedPage * 16);
+    int index = scancodeToStep(key) + (selectedTrack->selectedPage * 16);
     if (keyStates[BLIPR_KEY_SHIFT_1]) {
         if (index >= 0) {
             // Toggle velocity
@@ -181,14 +185,15 @@ void runSequencer(
         int pp16 = *ppqnCounter / 4;        // pulses per 16th note (6 pulses idealy)
         int stepCounter = pp16 / 6;
 
+        // TODO: Now it's individual track pages by default, needs sync implementation:
         if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_REPEAT) {
             int pageLength = selectedTrack->pageLength + 1;
             stepCounter %= pageLength;
             // Check for queued page:
-            if (stepCounter % pageLength == 0 && selectedPage != queuedPage) {
-                selectedPage = queuedPage;
+            if (stepCounter % pageLength == 0 && selectedTrack->selectedPage != selectedTrack->queuedPage) {
+                selectedTrack->selectedPage = selectedTrack->queuedPage;
             }
-            stepCounter += (selectedPage * pageLength);
+            stepCounter += (selectedTrack->selectedPage * pageLength);
         }
 
         int trackStepIndex = calculateTrackStepIndex(
@@ -236,16 +241,16 @@ void drawSequencerMain(
     if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
         playingPage = trackStepIndex / 16;
         // Outline current page:
-        drawHighlightedGridTile(selectedPage + 16);
+        drawHighlightedGridTile(selectedTrack->selectedPage + 16);
     } else {
-        playingPage = selectedPage;
+        playingPage = selectedTrack->selectedPage;
         // Outline queued page:
-        drawHighlightedGridTile(queuedPage + 16);
+        drawHighlightedGridTile(selectedTrack->queuedPage + 16);
     }
 
     // Draw outline on currently playing note:
     if (
-        playingPage >= selectedPage && playingPage < selectedPage + 1
+        playingPage >= selectedTrack->selectedPage && playingPage < selectedTrack->selectedPage + 1
     ) {
             int x = trackStepIndex % 4;
             int y = (trackStepIndex / 4) % 4;
@@ -271,10 +276,10 @@ void drawSequencerMain(
     for (int j = 0; j < 4; j++) {
         int height = width;
         for (int i = 0; i < 4; i++) {
-            struct Step step = selectedTrack->steps[(i + (j * 4)) + (selectedPage * 16)];
+            struct Step step = selectedTrack->steps[(i + (j * 4)) + (selectedTrack->selectedPage * 16)];
             // Check if this is within the track length, or outside the page length:
             if (
-                ((selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) && (selectedPage * 16) + i + (j * 4) > selectedTrack->trackLength) ||
+                ((selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) && (selectedTrack->selectedPage * 16) + i + (j * 4) > selectedTrack->trackLength) ||
                 ((selectedTrack->pagePlayMode == PAGE_PLAY_MODE_REPEAT) && (i + (j * 4)) > selectedTrack->pageLength)
             ) {
                 // Nope
