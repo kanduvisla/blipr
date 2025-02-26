@@ -55,10 +55,11 @@ Basically the functionality for all programs is identical, with the following ma
         - A     : Track Options
             - 1-4   : Increase / decrease track length (default=16) (1-4 = by 16, 2-3 = by 1)
             - 5-6   : Increase / decrease track speed (default=0 / default speed)
-            - 7     : Set Midi Device
-            - 8     : Set Midi Channel
-            - 9     : Change track play mode (continuous or by page)
-            - 10    : Change track polyphony (8, 4, 2, 1)
+            - 7-8   : Set page size (1-16)
+            - 9     : Set Midi Device
+            - 10    : Set Midi Channel
+            - 11    : Change track play mode (continuous or by page)
+            - 12    : Change track polyphony (8, 4, 2, 1)
             - 11    : Change page repeat (how many times repeat a page before the transition happens?)
             - 12    : Change track name
             - 13-14 : Increase / decrease CC1 mapping (default=0)

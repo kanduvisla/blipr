@@ -15,7 +15,7 @@ SRCS = main.c midi.c utils.c drawing.c drawing_utils.c drawing_components.c draw
 OBJS = $(SRCS:.c=.o)
 
 TEST_TARGET = build/test_blipr
-TEST_SRCS = tests/main_test.c project.c
+TEST_SRCS = $(SRCS:main.c=tests/main_test.c) #project.c programs/sequencer.c tests/main_test.c
 TEST_OBJS = $(TEST_SRCS:.c=.o)
 
 # Debug build settings
@@ -30,7 +30,7 @@ $(TARGET): $(OBJS)
 
 # Test build target
 $(TEST_TARGET): $(TEST_OBJS)
-	$(CC) $(CFLAGS) -o $(TEST_TARGET) $^ $(LIBS)
+	$(CC) $(CFLAGS) -o $(TEST_TARGET) $(TEST_OBJS) $(LIBS)
 
 # Generic rule for compiling .c to .o
 %.o: %.c

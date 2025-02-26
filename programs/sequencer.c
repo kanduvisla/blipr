@@ -94,6 +94,85 @@ void updateSequencer(
 }
 
 /**
+ * Returns the index of the step in the track.steps array
+ */
+int calculateTrackStepIndex(int ppqnStep, int pageSize, int totalTrackLength, int pagePlayMode) {
+    // Each track has a page size, this can be 1 to 16.
+    // Pages are divided in the track.steps data in slots of 16.
+    // So for example: if page size is 12, slot 1 will be [0-11], slot 2 will be [16-27], slot 3 will be [32-43], etc.
+    // Meanwhile, the step calculated from the PPQN passed will be ever increased. So the challenge here will be to map this step to the index in the track.steps array
+    // In the example above, if ppqnStep is 11, the trackStepIndex will be 11, but if ppqnStep is 12, the next slot is triggered and the trackStepIndex will be 16.
+    // This can also be challenging for smaller page sizes. For example, with a page size of 4:
+    // if ppqnStep is 3, trackStepindex will be 3.
+    // if ppqnStep is 4, trackStepIndex will be 16. 
+    // if ppqnStep is 7, trackStepIndex will be 19.
+    // if ppqnStep is 8, trackStepIndex will be 32.
+    // Also - to make things more difficult - the complete track can have a maximum length as well, and the trackStepIndex can never exceed that. If that happens, it needs to go back to the first slot.
+    // For example, with a page size of 12, and a total track length of 44:
+    // if ppqnStep is 11, trackStepIndex will be 11.
+    // if ppqnStep is 12, trackStepIndex will be 16.
+    // if ppqnStep is 23, trackStepIndex will be 27.
+    // if ppqnStep is 24, trackStepIndex will be 32.
+    // if ppqnStep is 36, trackStepIndex would be 44, but this will exceed the total track length (since trackStepIndex is zero-indexed), so trackStepIndex will be 0
+    // if ppqnStep is 37, trackStepindex will be 1.
+    // etc...
+
+    /*
+    page size 12, track length 44
+    0=0
+    12=16
+    24=32
+    36=48
+    PPQN Step: 34, Track Step Index: 42
+    PPQN Step: 35, Track Step Index: 43
+    PPQN Step: 36, Track Step Index: 4      -- WHY?
+    PPQN Step: 37, Track Step Index: 5
+    */
+
+    // [................] [................] [................] [................] = 64 steps
+    // [xxxxxxxxxxxx....] [xxxxxxxxxxxx....] [xxxxxxxxxxxx....] [xxxxxxxxxxxx....] = page length 12
+    // [xxxxxxxxxxxx....] [xxxxxxxxxxxx....] [xxxxxxxxxxxx|                        = page length 12 / track length 44
+
+    // with continuous play, it's just ppqnStep % totalTrackLength
+    // with page repeat page, it's (16 * pageNumber) + (ppqnStep % pageLength)
+
+    // Ensure pageSize is between 1 and 16
+    pageSize = (pageSize < 1) ? 1 : (pageSize > 16) ? 16 : pageSize;
+
+    if (pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
+        // Continuous Mode, this ignores page length
+        return ppqnStep & totalTrackLength;
+    } else {
+        // Page Repeat Mode, this ignores track length
+        int pageNumber = ppqnStep / pageSize;
+        return (16 * pageNumber) + (ppqnStep % pageSize);
+    }
+
+    // Calculate the number of steps in a complete cycle
+    // int cycleLength = pageSize * ((totalTrackLength + 15) / 16);
+    // cycleLength = totalTrackLength;
+
+    // Wrap ppqnStep to the cycle length
+    ppqnStep %= totalTrackLength;
+
+    // Calculate the page number and step within the page
+    int pageNumber = ppqnStep / pageSize;
+    int stepInPage = ppqnStep % pageSize;
+
+    // Calculate the base index for the current page
+    int baseIndex = (pageNumber * 16) % totalTrackLength;
+    // printf("ppqn step: %d\n", ppqnStep);
+    // printf("page number: %d\n", pageNumber);
+    // printf("step in page: %d\n", stepInPage);
+    // printf("base index: %d\n", baseIndex);
+
+    // Calculate the final index
+    int trackStepIndex = (baseIndex + stepInPage) % totalTrackLength;
+
+    return trackStepIndex;
+}
+
+/**
  * Run the sequencer
  */
 void runSequencer(
@@ -107,31 +186,27 @@ void runSequencer(
         int pp16 = *ppqnCounter / 4;        // pulses per 16th note (6 pulses idealy)
         int stepIndex = 0;
         int stepCounter = pp16 / 6;
+        int pageLength = selectedTrack->pageLength + 1;
+        // TODO: To work with page length, we have to do something with stepCounter & pageLength
+        // The challenge here is that if page length is for example 12, then step 13 for the counter will
+        // step 17 in the sequencer. So the stepIndex needs to add n when (stepCounter % 16) > pageLength.
+        // What needs to be added in this case is ((stepCounter / 16) + 1) * (16 % pageLength) or something like that
+        // Need to come up with a formula...
 
         if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
             stepIndex = stepCounter % (selectedTrack->trackLength + 1);
         } else {
             // Check for queued page:
-            if (stepCounter % 16 == 0 && selectedPage != queuedPage) {
+            if (stepCounter % pageLength == 0 && selectedPage != queuedPage) {
                 selectedPage = queuedPage;
             }
             // Repeat current page:
-            // stepIndex = (pp16 / 6) % (selectedTrack->trackLength + 1);
-            // stepIndex = ((selectedPage * 16) + (pp16 / 6)) % 16;
-            // stepIndex = (selectedPage * 16);
-            // for 44 steps:
-            // page 1: (0 * 16) + (0 % 44) % 16
-            // page 2: (1 * 16) + (0 % 28) % 16
-            // page 3: (2 * 16) + (0 % 12) % 16
-            int remainingLength = (selectedTrack->trackLength + 1) - (selectedPage * 16);
-            if (remainingLength > 16) {
-                stepIndex = (selectedPage * 16) + (stepCounter % 16);
+            int remainingLength = (selectedTrack->trackLength + 1) - (selectedPage * pageLength);
+            if (remainingLength > pageLength) {
+                stepIndex = (selectedPage * pageLength) + (stepCounter % pageLength);
             } else {
-                stepIndex = (selectedPage * 16) + (stepCounter % remainingLength);
+                stepIndex = (selectedPage * pageLength) + (stepCounter % remainingLength);
             }
-            // stepIndex = (selectedPage * 16) + ((stepCounter % remainingLength) % 16);
-            // stepIndex = (pp16 / 6) % ((selectedTrack->trackLength + 1) - (selectedPage * 16));
-            // printf("selected page: %d / queued page: %d / step index: %d / step counter: %d\n", selectedPage, queuedPage, stepIndex, stepCounter);
         }
         
         struct Step *step = &selectedTrack->steps[stepIndex];
@@ -151,7 +226,7 @@ void runSequencer(
  */
 void drawSequencer(
     int *ppqnCounter, 
-    struct Track *track
+    struct Track *selectedTrack
 ) {
     // Outline currently active step:
     int width = HEIGHT / 6;
@@ -162,27 +237,29 @@ void drawSequencer(
     int stepCounter = pp16 / 6;
     int stepIndex = 0;
     int playingPage = 0;
-    if (track->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
-        stepIndex = stepCounter % (track->trackLength + 1);
+    int pageLength = selectedTrack->pageLength + 1;
+    // printf("page length: %d\n", pageLength);
+
+    if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
+        stepIndex = stepCounter % (selectedTrack->trackLength + 1);
         playingPage = stepIndex / 16;
-        printf("playing page: %d\n", playingPage);
         // Outline current page:
         drawHighlightedGridTile(selectedPage + 16);
     } else {
-        int remainingLength = (track->trackLength + 1) - (selectedPage * 16);
-        if (remainingLength > 16) {
-            stepIndex = (selectedPage * 16) + (stepCounter % 16);
+        int remainingLength = (selectedTrack->trackLength + 1) - (selectedPage * pageLength);
+        if (remainingLength > pageLength) {
+            stepIndex = (selectedPage * pageLength) + (stepCounter % pageLength);
         } else {
-            stepIndex = (selectedPage * 16) + (stepCounter % remainingLength);
+            stepIndex = (selectedPage * pageLength) + (stepCounter % remainingLength);
         }
         playingPage = selectedPage;
-
-        // stepIndex = stepCounter % (track->trackLength + 1) % 16;
-        // printf("step index: %d\n", stepIndex);
         drawHighlightedGridTile(queuedPage + 16);
     }
 
-    if (playingPage >= selectedPage && playingPage < selectedPage + 1) {
+    // Draw outline on currently playing note:
+    if (
+        playingPage >= selectedPage && playingPage < selectedPage + 1
+    ) {
             int x = stepIndex % 4;
             int y = (stepIndex / 4) % 4;
             drawSingleLineRectOutline(
@@ -207,9 +284,13 @@ void drawSequencer(
     for (int j = 0; j < 4; j++) {
         int height = width;
         for (int i = 0; i < 4; i++) {
-            struct Step step = track->steps[(i + (j * 4)) + (selectedPage * 16)];
-            // Check if this is within the track length:
-            if ((selectedPage * 16) + i + (j * 4) > track->trackLength) {
+            struct Step step = selectedTrack->steps[(i + (j * 4)) + (selectedPage * 16)];
+            // Check if this is within the track length, or outside the page length:
+            if (
+                (selectedPage * 16) + i + (j * 4) > selectedTrack->trackLength ||
+                (i + (j * 4)) > selectedTrack->pageLength
+            ) {
+                // Nope
                 drawRect(
                     4 + i + (i * width),
                     4 + j + (j * height),

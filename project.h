@@ -16,6 +16,13 @@
 
 #define PAGE_PLAY_MODE_CONTINUOUS 0 // Play the track pages after each other
 #define PAGE_PLAY_MODE_REPEAT 1     // Loop the currently selected track
+#define TRACK_SPEED_NORMAL 4
+#define TRACK_SPEED_TIMES_TWO 5
+#define TRACK_SPEED_TIMES_FOUR 6
+#define TRACK_SPEED_TIMES_EIGHT 7
+#define TRACK_SPEED_HALF 3
+#define TRACK_SPEED_QUARTER 2 
+#define TRACK_SPEED_EIGHT 1
 
 /**
  * A Note
@@ -58,6 +65,7 @@ struct Track {
     unsigned char cc2Assignment;
     unsigned char polyCount; // 1, 2, 4 or 8
     unsigned char pagePlayMode;
+    unsigned char speed;
     // Steps are only used for the "Sequencer"-program
     struct Step steps[64];
 };

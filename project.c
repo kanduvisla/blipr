@@ -86,7 +86,8 @@ void trackToByteArray(const struct Track *track, unsigned char bytes[TRACK_BYTE_
     bytes[38] = track->cc1Assignment;
     bytes[39] = track->cc2Assignment;
     bytes[40] = track->pagePlayMode;
-    memset(bytes + 41, 0, TRACK_BYTE_SIZE - 41);
+    bytes[41] = track->speed;
+    memset(bytes + 42, 0, TRACK_BYTE_SIZE - 42);
     for (int i = 0; i < 64; i++) {
         stepToByteArray(&track->steps[i], bytes + 64 + (i * STEP_BYTE_SIZE));
     }
@@ -111,6 +112,7 @@ struct Track* byteArrayToTrack(const unsigned char bytes[TRACK_BYTE_SIZE]) {
     track->cc1Assignment = bytes[38];
     track->cc2Assignment = bytes[39];
     track->pagePlayMode = bytes[40];
+    track->speed = bytes[41];
     for (int i = 0; i < 64; i++) {
         unsigned char arr[STEP_BYTE_SIZE];
         // Copy part of byte array into arr
@@ -242,9 +244,9 @@ void initializeProject(struct Project* project) {
                 track.midiDevice = 0;
                 track.midiChannel = 0;
                 track.program = BLIPR_PROGRAM_NONE;
-                track.pageLength = 16;
-                track.trackLength = 64;
-                track.polyCount = 8;
+                track.pageLength = 15;
+                track.trackLength = 63;
+                track.polyCount = 7;
                 for (int s = 0; s < 64; s++) {
                     struct Step step;
                     for (int n = 0; n < NOTES_IN_STEP; n++) {
