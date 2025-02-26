@@ -207,7 +207,7 @@ void drawTextOnButton(int index, char* text) {
     int y = index / 4;
 
     drawText(
-        15 + x + (x * width) - ((strlen(text) / 2) * 5),
+        14 + x + (x * width) - ((strlen(text) / 2) * 5),
         14 + y + (y * height),
         text,
         11,

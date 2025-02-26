@@ -116,7 +116,19 @@ void updateSequencer(
                 if (key == BLIPR_KEY_1) { note->note = transposeMidiNote(note->note, -12); } else
                 if (key == BLIPR_KEY_2) { note->note = transposeMidiNote(note->note, -1); } else 
                 if (key == BLIPR_KEY_3) { note->note = transposeMidiNote(note->note, 1); } else 
-                if (key == BLIPR_KEY_4) { note->note = transposeMidiNote(note->note, 12); }
+                if (key == BLIPR_KEY_4) { note->note = transposeMidiNote(note->note, 12); } else 
+                if (key == BLIPR_KEY_5) { note->velocity = MAX(0, note->velocity - 1); } else 
+                if (key == BLIPR_KEY_6) { note->velocity = MIN(127, note->velocity + 1); } else 
+                if (key == BLIPR_KEY_7) { note->length = MAX(0, note->length - 1); } else 
+                if (key == BLIPR_KEY_8) { note->length = MIN(127, note->length + 1); } else 
+                if (key == BLIPR_KEY_9) { note->nudge = MAX(0, note->nudge - 1); } else 
+                if (key == BLIPR_KEY_10) { note->nudge = MIN(127, note->nudge + 1); } else 
+                if (key == BLIPR_KEY_11) { note->trigg = MAX(0, note->trigg - 1); } else 
+                if (key == BLIPR_KEY_12) { note->trigg = MIN(127, note->trigg + 1); } else 
+                if (key == BLIPR_KEY_13) { note->cc1Value = MAX(0, note->cc1Value - 1); } else 
+                if (key == BLIPR_KEY_14) { note->cc1Value = MIN(127, note->cc1Value + 1); } else 
+                if (key == BLIPR_KEY_15) { note->cc2Value = MAX(0, note->cc2Value - 1); } else 
+                if (key == BLIPR_KEY_16) { note->cc2Value = MIN(127, note->cc2Value + 1); } 
             }
         }
     } else if(key == BLIPR_KEY_A) {
@@ -282,6 +294,7 @@ void drawSequencerMain(
                         height - 4,
                         step.notes[selectedNote].velocity >= defaultVelocity ? COLOR_RED : COLOR_DARK_RED
                     );
+                    drawTextOnButton((i + (j * 4)), getMidiNoteName(step.notes[selectedNote].note));
                 }
             }
         }
@@ -305,42 +318,62 @@ void drawStepEditor(struct Step *step) {
     // Title:
     drawCenteredLine(2, 133, "STEP OPTIONS", TITLE_WIDTH, COLOR_WHITE);
 
+    struct Note *note = &step->notes[selectedNote];
+
     // Transpose:
-    drawCenteredLine(2, 22, "TRANSPOSE", TITLE_WIDTH, COLOR_WHITE);
-    char *midiNoteName = getMidiNoteName(step->notes[selectedNote].note);
-    drawCenteredLine(TITLE_WIDTH, 22, midiNoteName, WIDTH - TITLE_WIDTH, COLOR_YELLOW);
+    drawCenteredLine(2, 7, "TRANSPOSE", TITLE_WIDTH, COLOR_WHITE);
+    char *midiNoteName = getMidiNoteName(note->note);
+    drawCenteredLine(2, 22, midiNoteName, TITLE_WIDTH, COLOR_YELLOW);
     drawTextOnButton(0, "-12");
     drawTextOnButton(1, "-1");
     drawTextOnButton(2, "+1");
     drawTextOnButton(3, "+12");
 
     // Velocity:
-    drawCenteredLine(2, 37, "VEL", BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawCenteredLine(2, 37, "VELOCITY", BUTTON_WIDTH * 2, COLOR_WHITE);
+    char velocityChar[4];
+    snprintf(velocityChar, sizeof(velocityChar), "%d", note->velocity);
+    drawCenteredLine(2, 47, velocityChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(4, "-");
     drawTextOnButton(5, "+");
 
     // Length:
-    drawCenteredLine(62, 37, "LEN", BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawCenteredLine(62, 37, "LENGTH", BUTTON_WIDTH * 2, COLOR_WHITE);
+    char lengthChar[4];
+    snprintf(lengthChar, sizeof(lengthChar), "%d", note->length);
+    drawCenteredLine(62, 47, lengthChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(6, "-");
     drawTextOnButton(7, "+");
 
     // Nudge:
-    drawCenteredLine(2, 67, "NUD", BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawCenteredLine(2, 67, "NUDGE", BUTTON_WIDTH * 2, COLOR_WHITE);
+    char nudgeChar[4];
+    snprintf(nudgeChar, sizeof(nudgeChar), "%d", note->nudge);
+    drawCenteredLine(2, 77, nudgeChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(8, "-");
     drawTextOnButton(9, "+");
 
     // Trig:
-    drawCenteredLine(62, 67, "TRIG", BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawCenteredLine(62, 67, "TRIGG", BUTTON_WIDTH * 2, COLOR_WHITE);
+    char triggChar[4];
+    snprintf(triggChar, sizeof(triggChar), "%d", note->trigg);
+    drawCenteredLine(62, 77, triggChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(10, "-");
     drawTextOnButton(11, "+");
 
     // CC1:
-    drawCenteredLine(2, 97, "CC1", BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawCenteredLine(2, 97, "CC1 VALUE", BUTTON_WIDTH * 2, COLOR_WHITE);
+    char cc1Value[4];
+    snprintf(cc1Value, sizeof(cc1Value), "%d", note->cc1Value);
+    drawCenteredLine(2, 107, cc1Value, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(12, "-");
     drawTextOnButton(13, "+");
 
     // CC2:
-    drawCenteredLine(62, 97, "CC2", BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawCenteredLine(62, 97, "CC2 VALUE", BUTTON_WIDTH * 2, COLOR_WHITE);
+    char cc2Value[4];
+    snprintf(cc2Value, sizeof(cc2Value), "%d", note->cc2Value);
+    drawCenteredLine(62, 107, cc2Value, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(14, "-");
     drawTextOnButton(15, "+");    
 }
