@@ -308,6 +308,8 @@ int main(int argc, char *argv[]) {
                     isPatternAndSequenceOptionsActive = false;
                     isUtilitiesActive = false;
                     resetConfigurationScreen();
+                } else if (scanCode == BLIPR_KEY_SHIFT_2) {
+                    resetSequencerSelectedStep();
                 }
 
                 #ifdef DEBUG

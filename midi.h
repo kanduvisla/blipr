@@ -55,4 +55,6 @@ void initializeNoteTracker();
 void addNoteToTracker(PmStream* outputStream, int midiChannel, const struct Note* note);
 void updateNotesAndSendOffs();
 
+char* getMidiNoteName(unsigned char midiNote);
+
 #endif

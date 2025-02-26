@@ -1,11 +1,13 @@
 #include <SDL.h>
 #include <stdbool.h>
 #include <portmidi.h>
+#include <string.h>
 #include "../project.h"
 #include "../constants.h"
 #include "../colors.h"
 #include "../drawing.h"
 #include "../drawing_components.h"
+#include "../drawing_text.h"
 #include "../utils.h"
 #include "../midi.h"
 
@@ -17,6 +19,14 @@ int defaultNote = 80;
 int defaultVelocity = 100;
 int halfVelocity = 50;
 int totalPpqnCounter = 0;
+int selectedStep = -1;
+
+/**
+ * Reset the selected step
+ */
+void resetSequencerSelectedStep() {
+    selectedStep = -1;
+}
 
 /**
  * Toggle a step
@@ -61,6 +71,25 @@ void setSelectedPage(
     }
 }
 
+unsigned char transposeMidiNote(unsigned char midiNote, int steps) {
+    // Ensure the input is a valid MIDI note
+    if (midiNote > 127) {
+        return 0;  // Return 0 (lowest note) for invalid input
+    }
+
+    // Perform the transposition
+    int transposed = (int)midiNote + steps;
+
+    // Clamp the result to the valid MIDI note range (0-127)
+    if (transposed < 0) {
+        return 0;
+    } else if (transposed > 127) {
+        return 127;
+    } else {
+        return (unsigned char)transposed;
+    }
+}
+
 /**
  * Update the sequencer according to user input
  */
@@ -77,6 +106,19 @@ void updateSequencer(
         }
     } else if(keyStates[BLIPR_KEY_SHIFT_2]) {
         // Update selected note or page:
+        if (index >= 0) {
+            if (selectedStep == -1) {
+                selectedStep = index;
+            } else {
+                struct Step *step = &selectedTrack->steps[selectedStep];
+                struct Note *note = &selectedTrack->steps[selectedStep].notes[selectedNote];
+                // We're in the step editor, handle keys:
+                if (key == BLIPR_KEY_1) { note->note = transposeMidiNote(note->note, -12); } else
+                if (key == BLIPR_KEY_2) { note->note = transposeMidiNote(note->note, -1); } else 
+                if (key == BLIPR_KEY_3) { note->note = transposeMidiNote(note->note, 1); } else 
+                if (key == BLIPR_KEY_4) { note->note = transposeMidiNote(note->note, 12); }
+            }
+        }
     } else if(key == BLIPR_KEY_A) {
         setSelectedPage(selectedTrack, 0);
     } else if(key == BLIPR_KEY_B) {
@@ -159,7 +201,7 @@ void runSequencer(
 /**
  * Draw the sequencer
  */
-void drawSequencer(
+void drawSequencerMain(
     int *ppqnCounter, 
     struct Track *selectedTrack
 ) {
@@ -245,3 +287,72 @@ void drawSequencer(
         }
     }   
 }
+
+/**
+ * Draw the step editor
+ */
+void drawStepEditor(struct Step *step) {
+    /*
+        - 1-4   : Transpose -12 / -1 / +1 / +12
+        - 5-6   : Increase / decrease velocity
+        - 7-8   : Increase / decrease length
+        - 9-10  : Increase / decrease nudge
+        - 11-12 : Increase / decrease trig condition
+        - 13-14 : Increase / decrease CC1 value
+        - 15-16 : Increase / decrease CC2 value    
+    */
+
+    // Title:
+    drawCenteredLine(2, 133, "STEP OPTIONS", TITLE_WIDTH, COLOR_WHITE);
+
+    // Transpose:
+    drawCenteredLine(2, 22, "TRANSPOSE", TITLE_WIDTH, COLOR_WHITE);
+    char *midiNoteName = getMidiNoteName(step->notes[selectedNote].note);
+    drawCenteredLine(TITLE_WIDTH, 22, midiNoteName, WIDTH - TITLE_WIDTH, COLOR_YELLOW);
+    drawTextOnButton(0, "-12");
+    drawTextOnButton(1, "-1");
+    drawTextOnButton(2, "+1");
+    drawTextOnButton(3, "+12");
+
+    // Velocity:
+    drawCenteredLine(2, 37, "VEL", BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawTextOnButton(4, "-");
+    drawTextOnButton(5, "+");
+
+    // Length:
+    drawCenteredLine(62, 37, "LEN", BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawTextOnButton(6, "-");
+    drawTextOnButton(7, "+");
+
+    // Nudge:
+    drawCenteredLine(2, 67, "NUD", BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawTextOnButton(8, "-");
+    drawTextOnButton(9, "+");
+
+    // Trig:
+    drawCenteredLine(62, 67, "TRIG", BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawTextOnButton(10, "-");
+    drawTextOnButton(11, "+");
+
+    // CC1:
+    drawCenteredLine(2, 97, "CC1", BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawTextOnButton(12, "-");
+    drawTextOnButton(13, "+");
+
+    // CC2:
+    drawCenteredLine(62, 97, "CC2", BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawTextOnButton(14, "-");
+    drawTextOnButton(15, "+");    
+}
+
+void drawSequencer(
+    int *ppqnCounter, 
+    struct Track *selectedTrack
+) {
+    if (selectedStep == -1) {
+        drawSequencerMain(ppqnCounter, selectedTrack);
+    } else {
+        drawStepEditor(&selectedTrack->steps[selectedStep]);
+    }
+}
+

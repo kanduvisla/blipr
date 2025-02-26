@@ -148,3 +148,19 @@ void updateNotesAndSendOffs() {
         }
     }
 }
+
+char* getMidiNoteName(unsigned char midiNote) {
+    static char noteName[5];  // Static array to hold the result
+
+    if (midiNote > 127) {
+        return "Invalid";
+    }
+
+    const char* noteNames[] = {"C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "B-"};
+    int octave = (midiNote / 12) - 1;
+    int note = midiNote % 12;
+
+    snprintf(noteName, sizeof(noteName), "%s%d", noteNames[note], octave);
+
+    return noteName;
+}

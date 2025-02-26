@@ -111,11 +111,19 @@ void drawSequencer(
     struct Track *track
 );
 
+/**
+ * Calculate the step index
+ */
 int calculateTrackStepIndex(
     int ppqnStep, 
     int pageSize, 
     int totalTrackLength,
     int pagePlayMode
 );
+
+/**
+ * Reset the selected step
+ */
+void resetSequencerSelectedStep();
 
 #endif
