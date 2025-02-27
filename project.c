@@ -258,6 +258,11 @@ void initializeProject(struct Project* project) {
                         note.enabled = false;
                         note.note = 0;
                         note.velocity = 0;
+                        note.length = 0;
+                        note.nudge = 0;
+                        note.trigg = 0;
+                        note.cc1Value = 0;
+                        note.cc2Value = 0;
                         step.notes[n] = note;
                     }
                     track.steps[s] = step;
