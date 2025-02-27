@@ -88,6 +88,7 @@ bool checkFlag(int argc, char *argv[], char *flag) {
 int main(int argc, char *argv[]) {
     bool isScreenRotated = checkFlag(argc, argv, "--rotate180");
     isMidiDataLogged = checkFlag(argc, argv, "--logMidiData");
+    bool isTimeMeasured = checkFlag(argc, argv, "--measureTime");
 
     printLog("Screen rotated: %s", isScreenRotated ? "true" : "false");
 
@@ -141,7 +142,7 @@ int main(int argc, char *argv[]) {
     calculateMicroSecondsPerPulse();
 
     // Clock:
-    struct timespec prevTime, nowTime;
+    struct timespec prevTime, nowTime, measureTime;
     clock_gettime(CLOCK_MONOTONIC, &nowTime);
     prevTime = nowTime;
 
@@ -368,6 +369,7 @@ int main(int argc, char *argv[]) {
         // Calculate with monotonic clock:
         clock_gettime(CLOCK_MONOTONIC, &nowTime);
         int64_t elapsedNs = getTimespecDiffInNanoSeconds(&prevTime, &nowTime);
+        int64_t startNs = elapsedNs;
 
         // Check if ppqn is trigged:
         if (elapsedNs > nanoSecondsPerPulse) {
@@ -442,6 +444,16 @@ int main(int argc, char *argv[]) {
                 }
                 isRenderRequired = true;
             }
+
+            if (isTimeMeasured) {
+                clock_gettime(CLOCK_MONOTONIC, &measureTime);
+                int64_t pulseElapsedNs = getTimespecDiffInNanoSeconds(&prevTime, &measureTime);
+                printLog("Nano seconds per pulse: %d", nanoSecondsPerPulse);
+                int64_t elapsedSinceStartNs = pulseElapsedNs - startNs;
+                double percentageUsed = (double)elapsedSinceStartNs / nanoSecondsPerPulse * 100.0;
+                printLog("Pulse elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
+                startNs = pulseElapsedNs;
+            }
         }
 
         // Drawing magic:
@@ -507,6 +519,14 @@ int main(int argc, char *argv[]) {
             // Render:
             SDL_RenderPresent(renderer);
             isRenderRequired = false;
+
+            if (isTimeMeasured) {
+                clock_gettime(CLOCK_MONOTONIC, &measureTime);
+                int64_t renderElapsedNs = getTimespecDiffInNanoSeconds(&prevTime, &measureTime);
+                int64_t elapsedSinceStartNs = renderElapsedNs - startNs;
+                double percentageUsed = (double)elapsedSinceStartNs / nanoSecondsPerPulse * 100.0;
+                printLog("Render elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
+            }
         }
 
         // Re-calculate clock (if required):
