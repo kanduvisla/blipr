@@ -137,6 +137,8 @@ int main(int argc, char *argv[]) {
         printError("Couldn't get renderer info! SDL_Error: %s", SDL_GetError());
     }
 
+    initializeTextures();
+
     // Flag to determine if the app should quit:
     bool quit = false;
     calculateMicroSecondsPerPulse();
@@ -556,6 +558,8 @@ int main(int argc, char *argv[]) {
     }
 
     Pm_Terminate();
+
+    cleanupTextures();
 
     return (0);
 }

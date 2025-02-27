@@ -3,6 +3,7 @@
 #include "drawing.h"
 #include "constants.h"
 #include "colors.h"
+#include "globals.h"
 
 // Define the size of each character
 #define CHAR_WIDTH 5
@@ -10,6 +11,10 @@
 #define CHAR_SPACING 1
 #define SPACE_WIDTH 6
 #define LINE_SPACING 2
+
+#define NUM_CHARACTERS 53  // A-Z, 0-9, and special characters
+
+SDL_Texture* charTextures[NUM_CHARACTERS] = {NULL};
 
 // Define the 5x5 matrix for each character
 // 1 represents a pixel to be drawn, 0 represents an empty space
@@ -334,6 +339,47 @@ const int characters[][CHAR_HEIGHT][CHAR_WIDTH] = {
      {0,1,0,1,0}}
 };
 
+void initializeTextures() {
+    for (int i = 0; i < NUM_CHARACTERS; i++) {
+        SDL_Surface* surface = SDL_CreateRGBSurface(0, CHAR_WIDTH, CHAR_HEIGHT, 32, 0, 0, 0, 0);
+        if (surface == NULL) {
+            SDL_Log("Failed to create surface for character %d: %s", i, SDL_GetError());
+            continue;
+        }
+
+        SDL_LockSurface(surface);
+        Uint32* pixels = (Uint32*)surface->pixels;
+
+        for (int y = 0; y < CHAR_HEIGHT; y++) {
+            for (int x = 0; x < CHAR_WIDTH; x++) {
+                if (characters[i][y][x] == 1) {
+                    pixels[y * CHAR_WIDTH + x] = SDL_MapRGBA(surface->format, 255, 255, 255, 255);
+                } else {
+                    pixels[y * CHAR_WIDTH + x] = SDL_MapRGBA(surface->format, 0, 0, 0, 0);
+                }
+            }
+        }
+
+        SDL_UnlockSurface(surface);
+
+        charTextures[i] = SDL_CreateTextureFromSurface(renderer, surface);
+        SDL_FreeSurface(surface);
+
+        if (charTextures[i] == NULL) {
+            SDL_Log("Failed to create texture for character %d: %s", i, SDL_GetError());
+        }
+    }
+}
+
+void cleanupTextures() {
+    for (int i = 0; i < NUM_CHARACTERS; i++) {
+        if (charTextures[i]) {
+            SDL_DestroyTexture(charTextures[i]);
+            charTextures[i] = NULL;
+        }
+    }
+}
+
 /**
  * Draw a single character
  */
@@ -368,12 +414,10 @@ void drawCharacter(int startX, int startY, char character, SDL_Color color) {
     }
 
     // Draw the character
-    for (int y = 0; y < CHAR_HEIGHT; y++) {
-        for (int x = 0; x < CHAR_WIDTH; x++) {
-            if (characters[charIndex][y][x] == 1) {
-                drawPixel(startX + x, startY + y, color);
-            }
-        }
+    if (charTextures[charIndex]) {
+        SDL_Rect destRect = {startX, startY, CHAR_WIDTH, CHAR_HEIGHT};
+        SDL_SetTextureColorMod(charTextures[charIndex], color.r, color.g, color.b);
+        SDL_RenderCopy(renderer, charTextures[charIndex], NULL, &destRect);
     }
 }
 
