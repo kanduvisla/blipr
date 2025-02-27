@@ -41,10 +41,12 @@ char *projectFile = "data.blipr";
 
 // For Midi:
 PmStream *input_stream;
-PmStream *outputStreamA;
-PmStream *outputStreamB;
-PmStream *outputStreamC;
-PmStream *outputStreamD;
+// PmStream *outputStreamA;
+// PmStream *outputStreamB;
+// PmStream *outputStreamC;
+// PmStream *outputStreamD;
+PmStream *outputStream[4]; // 4 streams, for A, B, C and D
+int midiDevice[4];          // 4 midi devices, for A, B, C and D
 
 void calculateMicroSecondsPerPulse() {
     double beatsPerSecond = bpm / 60.0;
@@ -178,23 +180,39 @@ int main(int argc, char *argv[]) {
     struct Track* track = &project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack];
 
     // Setup Midi devices:
-    int midiDeviceIdA = getOutputDeviceIdByDeviceName(project->midiDeviceAName);
-    if (midiDeviceIdA != -1) {
-        printLog("Midi output device A: %d", midiDeviceIdA);
-        openMidiOutput(midiDeviceIdA, &outputStreamA);
-        if (outputStreamA == NULL) {
-            printError("Unable to open output stream for device");
+    for (int i=0; i<4; i++) {
+        char* midiDeviceName;
+        switch (i) {
+            case 0:
+                midiDeviceName = project->midiDeviceAName;
+                break;
+            case 1:
+                midiDeviceName = project->midiDeviceBName;
+                break;
+            case 2:
+                midiDeviceName = project->midiDeviceCName;
+                break;
+            case 3:
+                midiDeviceName = project->midiDeviceDName;
+                break;
         }
-    } else {
-        printError("Midi device not found: %s", project->midiDeviceAName);
-    }
 
-    int midiDeviceIdB = getOutputDeviceIdByDeviceName(project->midiDeviceBName);
-    printf("midi output device B: %d\n", midiDeviceIdB);
-    int midiDeviceIdC = getOutputDeviceIdByDeviceName(project->midiDeviceCName);
-    printf("midi output device C: %d\n", midiDeviceIdC);
-    int midiDeviceIdD = getOutputDeviceIdByDeviceName(project->midiDeviceDName);
-    printf("midi output device D: %d\n", midiDeviceIdD);
+        if (strcmp(midiDeviceName, "") == 0) {
+            printLog("No midi output device set for slot %d", i);
+            continue;
+        }
+
+        midiDevice[i] = getOutputDeviceIdByDeviceName(midiDeviceName);
+        if (midiDevice[i] != -1) {
+            printLog("Configured midi output device: %d", midiDevice[i]);
+            openMidiOutput(midiDevice[i], &outputStream[i]);
+            if (outputStream[i] == NULL) {
+                printError("Unable to open output stream for this device");
+            }
+        } else {
+            printError("Midi device not found: %s", midiDeviceName);
+        }
+    }
 
     // While application is running
     while(!quit) {
@@ -329,28 +347,28 @@ int main(int argc, char *argv[]) {
         // Check if ppqn is trigged:
         if (elapsedNs > nanoSecondsPerPulse) {
             // Send Midi Clock:
-            if (midiDeviceIdA != -1) {
-                // Calculate back using the multiplier, otherwise the clock is too fast:
-                if (ppqnCounter % PPQN_MULTIPLIER == 0) {
-                    sendMidiClock(outputStreamA);
-                } 
+            for (int i=0; i<4; i++) { 
+                if (outputStream[i] != NULL) {
+                    // Calculate back using the multiplier, otherwise the clock is too fast:
+                    if (ppqnCounter % PPQN_MULTIPLIER == 0) {
+                        sendMidiClock(outputStream[i]);
+                    } 
+                }
             }
-
             // Iterate over all tracks, and send proper midi signals
             for (int i=0; i<16; i++) {
                 struct Track* iTrack = &project->sequences[selectedSequence].patterns[selectedPattern].tracks[i];
-                // Get the proper stream for the program:
-
-                // Run the program:
-                switch (iTrack->program) {
-                    case BLIPR_PROGRAM_SEQUENCER:
-                        runSequencer(outputStreamA, &ppqnCounter, iTrack);
-                        break;
-                    case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
-                        // Todo: select proper stream:
-                        // printf("memory address of track: %d\n", &iTrack);
-                        runFourOnTheFloor(outputStreamA, &ppqnCounter, iTrack);
-                        break;
+                // Make sure the output stream is not null:
+                if (outputStream[iTrack->midiDevice] != NULL) {
+                    // Run the program:
+                    switch (iTrack->program) {
+                        case BLIPR_PROGRAM_SEQUENCER:
+                            runSequencer(outputStream[iTrack->midiDevice], &ppqnCounter, iTrack);
+                            break;
+                        case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
+                            runFourOnTheFloor(outputStream[iTrack->midiDevice], &ppqnCounter, iTrack);
+                            break;
+                    }
                 }
             }
 
@@ -444,10 +462,10 @@ int main(int argc, char *argv[]) {
     writeProjectFile(project, projectFile);
     free(project);
 
-    Pm_Close(outputStreamA);
-    Pm_Close(outputStreamB);
-    Pm_Close(outputStreamC);
-    Pm_Close(outputStreamD);
+    for (int i=0; i<4; i++) {
+        outputStream[i];
+    }
+    
     Pm_Terminate();
 
     return (0);
