@@ -44,10 +44,6 @@ char *projectFile = "data.blipr";
 
 // For Midi:
 PmStream *input_stream;
-// PmStream *outputStreamA;
-// PmStream *outputStreamB;
-// PmStream *outputStreamC;
-// PmStream *outputStreamD;
 PmStream *outputStream[4]; // 4 streams, for A, B, C and D
 int midiDevice[4];          // 4 midi devices, for A, B, C and D
 
@@ -236,6 +232,10 @@ int main(int argc, char *argv[]) {
         } else {
             printError("Midi device not found: %s", midiDeviceName);
         }
+    }
+
+    if (isTimeMeasured) {
+        printLog("Nano seconds per pulse: %d", nanoSecondsPerPulse);
     }
 
     // While application is running
@@ -450,10 +450,12 @@ int main(int argc, char *argv[]) {
             if (isTimeMeasured) {
                 clock_gettime(CLOCK_MONOTONIC, &measureTime);
                 int64_t pulseElapsedNs = getTimespecDiffInNanoSeconds(&prevTime, &measureTime);
-                printLog("Nano seconds per pulse: %d", nanoSecondsPerPulse);
                 int64_t elapsedSinceStartNs = pulseElapsedNs - startNs;
                 double percentageUsed = (double)elapsedSinceStartNs / nanoSecondsPerPulse * 100.0;
-                printLog("Pulse elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
+                // Only print if > 5%
+                if (percentageUsed > 5) {
+                    printLog("Pulse elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
+                }
                 startNs = pulseElapsedNs;
             }
         }
@@ -531,7 +533,7 @@ int main(int argc, char *argv[]) {
                     printError("Render elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
                 } else if (percentageUsed > 50) {
                     printWarning("Render elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
-                } else {
+                } else if (percentageUsed > 5) {
                     printLog("Render elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
                 }
             }
