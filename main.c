@@ -333,7 +333,7 @@ int main(int argc, char *argv[]) {
                     }
 
                     #ifdef DEBUG
-                    print("Key pressed: %s", SDL_GetKeyName(e.key.keysym.sym));
+                    // print("Key pressed: %s", SDL_GetKeyName(e.key.keysym.sym));
                     #endif
 
                     if (e.key.keysym.sym == SDLK_ESCAPE) {
@@ -360,7 +360,7 @@ int main(int argc, char *argv[]) {
                 }
 
                 #ifdef DEBUG
-                print("Key released: %s (%d)", SDL_GetKeyName(e.key.keysym.sym), scanCode);
+                // print("Key released: %s (%d)", SDL_GetKeyName(e.key.keysym.sym), scanCode);
                 #endif
             }
         }
@@ -380,28 +380,34 @@ int main(int argc, char *argv[]) {
                     } 
                 }
             }
-            // Iterate over all tracks, and send proper midi signals
+
+            // Check for key repeats, this can be on active tracks, but also on configuration menu's:
             bool isKeyRepeatTriggered = false;
+            int d = PPQN_MULTIPLIED;
+            if (keyRepeats >= 4 && keyRepeats < 8) {
+                d /= 2;
+            } else if (keyRepeats >= 8 && keyRepeats < 16) {
+                d /= 4;
+            } else if (keyRepeats >= 16 && keyRepeats < 32) {
+                d /= 8;
+            } else if (keyRepeats >= 32) {
+                d /= 16;
+            }
+            
+            keyRepeatCounter += 1;
+            isKeyRepeatTriggered = keyRepeatCounter % d == d - 1;
+            if (isKeyRepeatTriggered) {
+                keyRepeats += 1;
+            }
+
+            // Iterate over all tracks, and send proper midi signals
             for (int i=0; i<16; i++) {
                 struct Track* iTrack = &project->sequences[selectedSequence].patterns[selectedPattern].tracks[i];
+                bool isTrackKeyRepeatTriggered = false;
                 
                 // Check for key repeats:
                 if (iTrack == track) {
-                    int d = PPQN_MULTIPLIED;
-                    if (keyRepeats >= 4 && keyRepeats < 8) {
-                        d /= 2;
-                    } else if (keyRepeats >= 8 && keyRepeats < 16) {
-                        d /= 4;
-                    } else if (keyRepeats >= 16 && keyRepeats < 32) {
-                        d /= 8;
-                    } else if (keyRepeats >= 32) {
-                        d /= 16;
-                    }
-                    isKeyRepeatTriggered = keyRepeatCounter % d == d - 1;
-                    keyRepeatCounter += 1;
-                    if (isKeyRepeatTriggered) {
-                        keyRepeats += 1;
-                    }
+                    isTrackKeyRepeatTriggered = isKeyRepeatTriggered;
                 }
     
                 // Run the program:
@@ -415,6 +421,13 @@ int main(int argc, char *argv[]) {
                     case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
                         runFourOnTheFloor(outputStream[iTrack->midiDevice], &ppqnCounter, iTrack);
                         break;
+                }
+            }
+
+            // Check for key repeats for other screens:
+            if (isKeyRepeatTriggered) {
+                if (isTrackOptionsActive) {
+                    checkTrackOptionsForKeyRepeats(track, keyStates);
                 }
             }
 

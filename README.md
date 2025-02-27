@@ -53,7 +53,9 @@ Basically the functionality for all programs is identical, with the following ma
 - Shift3    : Track Options / Pattern Options / Sequence Options / Utilities
     - When holding Shift3, ABCD is for different options:
         - A     : Track Options
-            - 1-4   : ✅ Increase / decrease track length (default=16) (1-4 = by 16, 2-3 = by 1)
+            - 1     : Change track play mode (continuous or by page)
+            - 2     : Change poly
+            - 3-4   : ✅ Increase / decrease track / page length (depending on play mode)
             - 5-6   : Increase / decrease track speed (default=0 / default speed)
             - 7-8   : ✅ Set page size (1-16)
             - 9     : ✅ Set Midi Device

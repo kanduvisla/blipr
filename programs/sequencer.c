@@ -98,7 +98,6 @@ unsigned char transposeMidiNote(unsigned char midiNote, int steps) {
 
 static void handleKey(
     struct Track *selectedTrack,
-    bool keyStates[SDL_NUM_SCANCODES], 
     SDL_Scancode key
 ) {
     struct Step *step = &selectedTrack->steps[selectedStep];
@@ -142,7 +141,7 @@ void updateSequencer(
             if (selectedStep == -1) {
                 selectedStep = index;
             } else {
-                handleKey(selectedTrack, keyStates, key);
+                handleKey(selectedTrack, key);
             }
         }
     } else if(key == BLIPR_KEY_A) {
@@ -169,22 +168,22 @@ void checkSequencerForKeyRepeats(
     bool keyStates[SDL_NUM_SCANCODES]
 ) {
     if(keyStates[BLIPR_KEY_SHIFT_2]) {
-        if (keyStates[BLIPR_KEY_1]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_1); }
-        if (keyStates[BLIPR_KEY_2]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_2); }
-        if (keyStates[BLIPR_KEY_3]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_3); }
-        if (keyStates[BLIPR_KEY_4]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_4); }
-        if (keyStates[BLIPR_KEY_5]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_5); }
-        if (keyStates[BLIPR_KEY_6]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_6); }
-        if (keyStates[BLIPR_KEY_7]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_7); }
-        if (keyStates[BLIPR_KEY_8]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_8); }
-        if (keyStates[BLIPR_KEY_9]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_9); }
-        if (keyStates[BLIPR_KEY_10]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_10); }
-        if (keyStates[BLIPR_KEY_11]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_11); }
-        if (keyStates[BLIPR_KEY_12]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_12); }
-        if (keyStates[BLIPR_KEY_13]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_13); }
-        if (keyStates[BLIPR_KEY_14]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_14); }
-        if (keyStates[BLIPR_KEY_15]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_15); }
-        if (keyStates[BLIPR_KEY_16]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_16); }        
+        if (keyStates[BLIPR_KEY_1]) { handleKey(selectedTrack, BLIPR_KEY_1); } else 
+        if (keyStates[BLIPR_KEY_2]) { handleKey(selectedTrack, BLIPR_KEY_2); } else 
+        if (keyStates[BLIPR_KEY_3]) { handleKey(selectedTrack, BLIPR_KEY_3); } else 
+        if (keyStates[BLIPR_KEY_4]) { handleKey(selectedTrack, BLIPR_KEY_4); } else 
+        if (keyStates[BLIPR_KEY_5]) { handleKey(selectedTrack, BLIPR_KEY_5); } else 
+        if (keyStates[BLIPR_KEY_6]) { handleKey(selectedTrack, BLIPR_KEY_6); } else 
+        if (keyStates[BLIPR_KEY_7]) { handleKey(selectedTrack, BLIPR_KEY_7); } else 
+        if (keyStates[BLIPR_KEY_8]) { handleKey(selectedTrack, BLIPR_KEY_8); } else 
+        if (keyStates[BLIPR_KEY_9]) { handleKey(selectedTrack, BLIPR_KEY_9); } else 
+        if (keyStates[BLIPR_KEY_10]) { handleKey(selectedTrack, BLIPR_KEY_10); } else 
+        if (keyStates[BLIPR_KEY_11]) { handleKey(selectedTrack, BLIPR_KEY_11); } else 
+        if (keyStates[BLIPR_KEY_12]) { handleKey(selectedTrack, BLIPR_KEY_12); } else 
+        if (keyStates[BLIPR_KEY_13]) { handleKey(selectedTrack, BLIPR_KEY_13); } else 
+        if (keyStates[BLIPR_KEY_14]) { handleKey(selectedTrack, BLIPR_KEY_14); } else 
+        if (keyStates[BLIPR_KEY_15]) { handleKey(selectedTrack, BLIPR_KEY_15); } else 
+        if (keyStates[BLIPR_KEY_16]) { handleKey(selectedTrack, BLIPR_KEY_16); }        
     }
 }
 

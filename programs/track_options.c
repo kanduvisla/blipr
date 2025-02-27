@@ -1,10 +1,12 @@
 #include <string.h>
+#include <stdbool.h>
 #include "../project.h"
 #include "../drawing_components.h"
 #include "../utils.h"
 #include "../constants.h"
 #include "../drawing_text.h"
 #include "../colors.h"
+#include "../print.h"
 
 char midiDeviceToCharacter(int midiDevice) {
     switch (midiDevice) {
@@ -21,30 +23,43 @@ char midiDeviceToCharacter(int midiDevice) {
     return ' ';
 }
 
+int getPolyCount(struct Track* track) {
+    int polyCount = 8;
+    if (track->polyCount == 1) { polyCount = 4; } else
+    if (track->polyCount == 2) { polyCount = 2; } else
+    if (track->polyCount == 3) { polyCount = 1; }
+    return polyCount;
+}
+
 void drawTrackOptions(struct Track* track) {
     // Title:
     drawCenteredLine(2, 133, "TRACK OPTIONS", TITLE_WIDTH, COLOR_WHITE);
 
+    // Page play mode:
+    drawCenteredLine(2, 5, "PPM", BUTTON_WIDTH, COLOR_WHITE);
+    drawTextOnButton(0, track->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS ? "C" : "R");
+
+    // Polyphony:
+    drawCenteredLine(33, 5, "POLY", BUTTON_WIDTH, COLOR_WHITE);
+    char polyChar[2];
+    snprintf(polyChar, sizeof(polyChar), "%d", getPolyCount(track));
+    drawTextOnButton(1, polyChar);
+
     // Track Length:
     char trackLengthTitle[32];
-    snprintf(trackLengthTitle, sizeof(trackLengthTitle), "TRACK LENGTH:%d", track->trackLength + 1);
-    drawCenteredLine(2, 22, trackLengthTitle, TITLE_WIDTH, COLOR_WHITE);
-    drawTextOnButton(0, "<<");
-    drawTextOnButton(1, "<");
-    drawTextOnButton(2, ">");
-    drawTextOnButton(3, ">>");
+    if (track->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
+        snprintf(trackLengthTitle, sizeof(trackLengthTitle), "T.LEN:%d", track->trackLength + 1);
+    } else {
+        snprintf(trackLengthTitle, sizeof(trackLengthTitle), "P.LEN:%d", track->pageLength + 1);
+    }
+    drawCenteredLine(64, 5, trackLengthTitle, BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawTextOnButton(2, "<");
+    drawTextOnButton(3, ">");
 
     // Track Speed (TODO):
     drawCenteredLine(2, 37, "SPEED", BUTTON_WIDTH * 2, COLOR_WHITE);
     drawTextOnButton(4, "<");
     drawTextOnButton(5, ">");
-
-    // Page Length:
-    char pageLengthTitle[32];
-    snprintf(pageLengthTitle, sizeof(pageLengthTitle), "PL:%d", track->pageLength + 1);
-    drawCenteredLine(62, 37, pageLengthTitle, BUTTON_WIDTH * 2, COLOR_WHITE);
-    drawTextOnButton(6, "<");
-    drawTextOnButton(7, ">");
 
     // Midi Device: 
     char deviceChar[2] = {
@@ -60,38 +75,72 @@ void drawTrackOptions(struct Track* track) {
     drawCenteredLine(32, 67, "MC", BUTTON_WIDTH, COLOR_WHITE);
     drawTextOnButton(9, channelChar);
 
-    // Page play mode:
-    drawCenteredLine(62, 67, "PPM", BUTTON_WIDTH, COLOR_WHITE);
-    drawTextOnButton(10, track->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS ? "C" : "R");
+    // ABCD Buttons:
+    char descriptions[4][4] = {"TRK", "PRG", "PAT", "UTI"};
+    drawABCDButtons(descriptions);
+    drawHighlightedGridTile(16);
 }
 
-void updateTrackOptions(struct Track* track, SDL_Scancode key) {
-    int maxLength = (8 - track->polyCount) * 64;
+void handleKey(
+    struct Track *track,
+    SDL_Scancode key
+) {
+    int polyCount = getPolyCount(track);
+    int maxLength = (9 - polyCount) * 64;
 
     switch (key) {
-        case BLIPR_KEY_1:
-            track->trackLength = MAX(0, track->trackLength - 16);
-            break;
-        case BLIPR_KEY_2:
-            track->trackLength = MAX(0, track->trackLength - 1);
-            break;
         case BLIPR_KEY_3:
-            track->trackLength = MIN(maxLength - 1, track->trackLength + 1);
+            if (track->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
+                track->trackLength = MAX(0, track->trackLength - 1);
+            } else {
+                track->pageLength = MAX(0, track->pageLength - 1);
+            }
             break;
         case BLIPR_KEY_4:
-            track->trackLength = MIN(maxLength - 1, track->trackLength + 16);
+            if (track->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
+                track->trackLength = MIN(maxLength - 1, track->trackLength + 1);
+            } else {
+                track->pageLength = MIN(15, track->pageLength + 1);
+            }
+            break;
+    }
+} 
+
+/**
+ * Check if we need to do some key repeat actions
+ */
+void checkTrackOptionsForKeyRepeats(
+    struct Track *selectedTrack,
+    bool keyStates[SDL_NUM_SCANCODES]
+) {
+    if (keyStates[BLIPR_KEY_3]) { handleKey(selectedTrack, BLIPR_KEY_3); } else 
+    if (keyStates[BLIPR_KEY_4]) { handleKey(selectedTrack, BLIPR_KEY_4); }
+}
+
+/**
+ * Update track options according to key input
+ */
+void updateTrackOptions(struct Track* track, SDL_Scancode key) {
+    switch (key) {
+        case BLIPR_KEY_1:
+            track->pagePlayMode = track->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS ? PAGE_PLAY_MODE_REPEAT : PAGE_PLAY_MODE_CONTINUOUS;
+            break;
+        case BLIPR_KEY_2:
+            if (track->polyCount + 1 >= 4) {
+                track->polyCount = 0;
+            } else {
+                track->polyCount += 1;
+            }
+            break;
+        case BLIPR_KEY_3:
+        case BLIPR_KEY_4:
+            handleKey(track, key);
             break;
         case BLIPR_KEY_5:
             track->speed = MAX(TRACK_SPEED_EIGHT, track->speed - 1);
             break;
         case BLIPR_KEY_6:
             track->speed = MIN(TRACK_SPEED_TIMES_EIGHT, track->speed + 1);
-            break;
-        case BLIPR_KEY_7:
-            track->pageLength = MAX(0, track->pageLength - 1);
-            break;
-        case BLIPR_KEY_8:
-            track->pageLength = MIN(15, track->pageLength + 1);
             break;
         case BLIPR_KEY_9:
             track->midiDevice = track->midiDevice + 1;
@@ -105,7 +154,5 @@ void updateTrackOptions(struct Track* track, SDL_Scancode key) {
                 track->midiChannel = 0;
             }
             break;
-        case BLIPR_KEY_11:
-            track->pagePlayMode = track->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS ? PAGE_PLAY_MODE_REPEAT : PAGE_PLAY_MODE_CONTINUOUS;
     }
 }
