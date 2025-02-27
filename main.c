@@ -157,7 +157,9 @@ int main(int argc, char *argv[]) {
 
     // Array to keep track of key states
     bool keyStates[SDL_NUM_SCANCODES] = {false};
-    
+    int keyRepeatCounter = 0;
+    int keyRepeats = 0;
+
     // State:
     // [SHIFT3]
     bool isTrackOptionsActive = false;
@@ -245,6 +247,8 @@ int main(int argc, char *argv[]) {
                 isRenderRequired = true;
                 if (!keyStates[scanCode]) {
                     keyStates[scanCode] = true;
+                    keyRepeatCounter = 0;
+                    keyRepeats = 0;
                     // Check if this is one of the global Func-options:
                     if (keyStates[BLIPR_KEY_FUNC]) {
                         // Only enable track selection on the Main Configuration screen:
@@ -377,12 +381,36 @@ int main(int argc, char *argv[]) {
                 }
             }
             // Iterate over all tracks, and send proper midi signals
+            bool isKeyRepeatTriggered = false;
             for (int i=0; i<16; i++) {
                 struct Track* iTrack = &project->sequences[selectedSequence].patterns[selectedPattern].tracks[i];
+                
+                // Check for key repeats:
+                if (iTrack == track) {
+                    int d = PPQN_MULTIPLIED;
+                    if (keyRepeats >= 4 && keyRepeats < 8) {
+                        d /= 2;
+                    } else if (keyRepeats >= 8 && keyRepeats < 16) {
+                        d /= 4;
+                    } else if (keyRepeats >= 16 && keyRepeats < 32) {
+                        d /= 8;
+                    } else if (keyRepeats >= 32) {
+                        d /= 16;
+                    }
+                    isKeyRepeatTriggered = keyRepeatCounter % d == d - 1;
+                    keyRepeatCounter += 1;
+                    if (isKeyRepeatTriggered) {
+                        keyRepeats += 1;
+                    }
+                }
+    
                 // Run the program:
                 switch (iTrack->program) {
                     case BLIPR_PROGRAM_SEQUENCER:
                         runSequencer(outputStream[iTrack->midiDevice], &ppqnCounter, iTrack);
+                        if (isKeyRepeatTriggered) {
+                            checkSequencerForKeyRepeats(iTrack, keyStates);
+                        }
                         break;
                     case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
                         runFourOnTheFloor(outputStream[iTrack->midiDevice], &ppqnCounter, iTrack);

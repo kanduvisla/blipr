@@ -96,6 +96,32 @@ unsigned char transposeMidiNote(unsigned char midiNote, int steps) {
     return (unsigned char)transposed;   
 }
 
+static void handleKey(
+    struct Track *selectedTrack,
+    bool keyStates[SDL_NUM_SCANCODES], 
+    SDL_Scancode key
+) {
+    struct Step *step = &selectedTrack->steps[selectedStep];
+    struct Note *note = &selectedTrack->steps[selectedStep].notes[selectedNote];
+    // We're in the step editor, handle keys:
+    if (key == BLIPR_KEY_1) { note->note = transposeMidiNote(note->note, -12); } else
+    if (key == BLIPR_KEY_2) { note->note = transposeMidiNote(note->note, -1); } else 
+    if (key == BLIPR_KEY_3) { note->note = transposeMidiNote(note->note, 1); } else 
+    if (key == BLIPR_KEY_4) { note->note = transposeMidiNote(note->note, 12); } else 
+    if (key == BLIPR_KEY_5) { note->velocity = MAX(0, note->velocity - 1); } else 
+    if (key == BLIPR_KEY_6) { note->velocity = MIN(127, note->velocity + 1); } else 
+    if (key == BLIPR_KEY_7) { note->length = MAX(0, note->length - 1); } else 
+    if (key == BLIPR_KEY_8) { note->length = MIN(127, note->length + 1); } else 
+    if (key == BLIPR_KEY_9) { note->nudge = MAX(0, note->nudge - 1); } else 
+    if (key == BLIPR_KEY_10) { note->nudge = MIN(127, note->nudge + 1); } else 
+    if (key == BLIPR_KEY_11) { note->trigg = MAX(0, note->trigg - 1); } else 
+    if (key == BLIPR_KEY_12) { note->trigg = MIN(127, note->trigg + 1); } else 
+    if (key == BLIPR_KEY_13) { note->cc1Value = MAX(0, note->cc1Value - 1); } else 
+    if (key == BLIPR_KEY_14) { note->cc1Value = MIN(127, note->cc1Value + 1); } else 
+    if (key == BLIPR_KEY_15) { note->cc2Value = MAX(0, note->cc2Value - 1); } else 
+    if (key == BLIPR_KEY_16) { note->cc2Value = MIN(127, note->cc2Value + 1); }
+} 
+
 /**
  * Update the sequencer according to user input
  */
@@ -116,25 +142,7 @@ void updateSequencer(
             if (selectedStep == -1) {
                 selectedStep = index;
             } else {
-                struct Step *step = &selectedTrack->steps[selectedStep];
-                struct Note *note = &selectedTrack->steps[selectedStep].notes[selectedNote];
-                // We're in the step editor, handle keys:
-                if (key == BLIPR_KEY_1) { note->note = transposeMidiNote(note->note, -12); } else
-                if (key == BLIPR_KEY_2) { note->note = transposeMidiNote(note->note, -1); } else 
-                if (key == BLIPR_KEY_3) { note->note = transposeMidiNote(note->note, 1); } else 
-                if (key == BLIPR_KEY_4) { note->note = transposeMidiNote(note->note, 12); } else 
-                if (key == BLIPR_KEY_5) { note->velocity = MAX(0, note->velocity - 1); } else 
-                if (key == BLIPR_KEY_6) { note->velocity = MIN(127, note->velocity + 1); } else 
-                if (key == BLIPR_KEY_7) { note->length = MAX(0, note->length - 1); } else 
-                if (key == BLIPR_KEY_8) { note->length = MIN(127, note->length + 1); } else 
-                if (key == BLIPR_KEY_9) { note->nudge = MAX(0, note->nudge - 1); } else 
-                if (key == BLIPR_KEY_10) { note->nudge = MIN(127, note->nudge + 1); } else 
-                if (key == BLIPR_KEY_11) { note->trigg = MAX(0, note->trigg - 1); } else 
-                if (key == BLIPR_KEY_12) { note->trigg = MIN(127, note->trigg + 1); } else 
-                if (key == BLIPR_KEY_13) { note->cc1Value = MAX(0, note->cc1Value - 1); } else 
-                if (key == BLIPR_KEY_14) { note->cc1Value = MIN(127, note->cc1Value + 1); } else 
-                if (key == BLIPR_KEY_15) { note->cc2Value = MAX(0, note->cc2Value - 1); } else 
-                if (key == BLIPR_KEY_16) { note->cc2Value = MIN(127, note->cc2Value + 1); } 
+                handleKey(selectedTrack, keyStates, key);
             }
         }
     } else if(key == BLIPR_KEY_A) {
@@ -150,6 +158,33 @@ void updateSequencer(
             // Toggle key
             toggleStep(&selectedTrack->steps[index]);
         }
+    }
+}
+
+/**
+ * Check sequencer for key repeats
+ */
+void checkSequencerForKeyRepeats(
+    struct Track *selectedTrack,
+    bool keyStates[SDL_NUM_SCANCODES]
+) {
+    if(keyStates[BLIPR_KEY_SHIFT_2]) {
+        if (keyStates[BLIPR_KEY_1]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_1); }
+        if (keyStates[BLIPR_KEY_2]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_2); }
+        if (keyStates[BLIPR_KEY_3]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_3); }
+        if (keyStates[BLIPR_KEY_4]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_4); }
+        if (keyStates[BLIPR_KEY_5]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_5); }
+        if (keyStates[BLIPR_KEY_6]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_6); }
+        if (keyStates[BLIPR_KEY_7]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_7); }
+        if (keyStates[BLIPR_KEY_8]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_8); }
+        if (keyStates[BLIPR_KEY_9]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_9); }
+        if (keyStates[BLIPR_KEY_10]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_10); }
+        if (keyStates[BLIPR_KEY_11]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_11); }
+        if (keyStates[BLIPR_KEY_12]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_12); }
+        if (keyStates[BLIPR_KEY_13]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_13); }
+        if (keyStates[BLIPR_KEY_14]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_14); }
+        if (keyStates[BLIPR_KEY_15]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_15); }
+        if (keyStates[BLIPR_KEY_16]) { handleKey(selectedTrack, keyStates, BLIPR_KEY_16); }        
     }
 }
 

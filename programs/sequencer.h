@@ -95,6 +95,14 @@ void updateSequencer(
 );
 
 /**
+ * Check if we need to do some key repeat actions
+ */
+void checkSequencerForKeyRepeats(
+    struct Track *selectedTrack,
+    bool keyStates[SDL_NUM_SCANCODES]
+);
+
+/**
  * Run the sequencer
  */
 void runSequencer(
