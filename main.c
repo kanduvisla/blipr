@@ -68,9 +68,25 @@ int64_t getTimespecDiffInNanoSeconds(struct timespec *start, struct timespec *en
 }
 
 /**
+ * Check for flags
+ */
+bool checkFlag(int argc, char *argv[], char *flag) {
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], flag) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * Main loop
  */
 int main(int argc, char *argv[]) {
+    bool isScreenRotated = checkFlag(argc, argv, "--rotate180");
+
+    printLog("Screen rotated: %s", isScreenRotated ? "true" : "false");
+
     #ifdef DEBUG
     printf("--- DEBUG BUILD ---\n");
     #endif
@@ -96,15 +112,16 @@ int main(int argc, char *argv[]) {
     // Get renderer info
     SDL_RendererInfo info;
     if (SDL_GetRendererInfo(renderer, &info) == 0) {
-        printf("Renderer name: %s\n", info.name);
-        printf("Renderer flags: ");
+        printLog("Renderer: %s", info.name);
 
-        if (info.flags & SDL_RENDERER_SOFTWARE) printf("Software ");
-        if (info.flags & SDL_RENDERER_ACCELERATED) printf("Accelerated ");
-        if (info.flags & SDL_RENDERER_PRESENTVSYNC) printf("VSync ");
-        if (info.flags & SDL_RENDERER_TARGETTEXTURE) printf("TargetTexture ");
-
-        printf("\n");
+        if (checkFlag(argc, argv, "--displayRendererFlags")) {
+            printf("Renderer flags: ");
+            if (info.flags & SDL_RENDERER_SOFTWARE) printf("Software ");
+            if (info.flags & SDL_RENDERER_ACCELERATED) printf("Accelerated ");
+            if (info.flags & SDL_RENDERER_PRESENTVSYNC) printf("VSync ");
+            if (info.flags & SDL_RENDERER_TARGETTEXTURE) printf("TargetTexture ");
+            printf("\n");
+        }
 
         if (info.flags & SDL_RENDERER_ACCELERATED) {
             printLog("Hardware acceleration is enabled.");
@@ -150,8 +167,6 @@ int main(int argc, char *argv[]) {
     bool isPatternSelectionActive = false;
     bool isSequenceSelectionActive = false;
     
-    int selectedMidiInstrument = 0;
-    int selectedMidiChannel = 0;
     int selectedTrack = 0;
     int selectedPattern = 0;
     int selectedSequence = 0;
@@ -439,7 +454,11 @@ int main(int argc, char *argv[]) {
 
             // Draw the scaled-up texture to the screen
             SDL_Rect destRect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
-            SDL_RenderCopy(renderer, renderTarget, NULL, &destRect);
+            if (isScreenRotated) {
+                SDL_RenderCopyEx(renderer, renderTarget, NULL, &destRect, 180.0, NULL, SDL_FLIP_NONE);
+            } else {
+                SDL_RenderCopy(renderer, renderTarget, NULL, &destRect);
+            }
 
             // Render:
             SDL_RenderPresent(renderer);
@@ -463,9 +482,9 @@ int main(int argc, char *argv[]) {
     free(project);
 
     for (int i=0; i<4; i++) {
-        outputStream[i];
+        Pm_Close(outputStream[i]);
     }
-    
+
     Pm_Terminate();
 
     return (0);

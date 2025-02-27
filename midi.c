@@ -6,6 +6,7 @@
 #include <porttime.h>
 #include "project.h"
 #include "constants.h"
+#include "print.h"
 
 #define INPUT_BUFFER_SIZE 100
 #define OUTPUT_BUFFER_SIZE 100
@@ -14,17 +15,17 @@
 
 void handleMidiError(PmError error) {
     if (error != pmNoError) {
-        printf("PortMidi error: %s\n", Pm_GetErrorText(error));
+        printError("PortMidi error: %s", Pm_GetErrorText(error));
         exit(1);
     }
 }
 
 void listMidiDevices() {
     int num_devices = Pm_CountDevices();
-    printf("Available MIDI devices:\n");
+    printLog("Available MIDI devices:");
     for (int i = 0; i < num_devices; i++) {
         const PmDeviceInfo *info = Pm_GetDeviceInfo(i);
-        printf("%d: %s, %s\n", i, info->name, info->input ? "Input" : "Output");
+        printLog("%d: %s, %s", i, info->name, info->input ? "Input" : "Output");
     }
 }
 
@@ -39,13 +40,13 @@ void sendMidiClock(PmStream *outputStream) {
 void openMidiInput(int deviceId, PmStream **inputStream) {
     PmError error = Pm_OpenInput(inputStream, deviceId, NULL, INPUT_BUFFER_SIZE, NULL, NULL);
     handleMidiError(error);
-    printf("Opened input device %d\n", deviceId);
+    printLog("Opened input device %d", deviceId);
 }
 
 void openMidiOutput(int deviceId, PmStream **outputStream) {
     PmError error = Pm_OpenOutput(outputStream, deviceId, NULL, OUTPUT_BUFFER_SIZE, NULL, NULL, 0);
     handleMidiError(error);
-    printf("Opened output device %d\n", deviceId);
+    printLog("Opened output device %d", deviceId);
 }
 
 void sendMidiMessage(PmStream *outputStream, int status, int data1, int data2) {
@@ -125,7 +126,6 @@ void addNoteToTracker(PmStream* outputStream, int midiChannel, const struct Note
             activeNotes[i].midiChannel = midiChannel;
             activeNotes[i].counter = MAX(1, note->length) * 6;  // TODO: Make a proper calculation for length here.
             activeNotes[i].active = true;
-            // printf("set counter: %d\n", activeNotes[i].counter);
             break;
         }
     }
@@ -135,9 +135,7 @@ void updateNotesAndSendOffs() {
     for (int i = 0; i < MAX_NOTES; i++) {
         if (activeNotes[i].active) {
             activeNotes[i].counter--;
-            // printf("counter: %d\n", activeNotes[i].counter);
             if (activeNotes[i].counter <= 0) {
-                // printf("Send note off on channel %d\n", activeNotes[i].midiChannel);
                 sendMidiNoteOff(activeNotes[i].outputStream, 
                                 activeNotes[i].midiChannel, 
                                 activeNotes[i].note->note);
@@ -153,7 +151,7 @@ char* getMidiNoteName(unsigned char midiNote) {
     static char noteName[5];  // Static array to hold the result
 
     if (midiNote > 127) {
-        return "Invalid";
+        return "---";
     }
 
     const char* noteNames[] = {"C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "B-"};
