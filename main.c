@@ -525,7 +525,13 @@ int main(int argc, char *argv[]) {
                 int64_t renderElapsedNs = getTimespecDiffInNanoSeconds(&prevTime, &measureTime);
                 int64_t elapsedSinceStartNs = renderElapsedNs - startNs;
                 double percentageUsed = (double)elapsedSinceStartNs / nanoSecondsPerPulse * 100.0;
-                printLog("Render elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
+                if (percentageUsed > 100) {
+                    printError("Render elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
+                } else if (percentageUsed > 50) {
+                    printWarning("Render elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
+                } else {
+                    printLog("Render elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
+                }
             }
         }
 
