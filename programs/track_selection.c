@@ -20,4 +20,8 @@ void drawTrackSelection(int *selectedTrack) {
 
     // Title:
     drawCenteredLine(2, 133, "SELECT TRACK", TITLE_WIDTH, COLOR_WHITE);
+
+    // Track Selection doubles as entrypoint to conifguration:
+    char descriptions[4][4] = {"PAT", "SEQ", "TRA", "CFG"};
+    drawABCDButtons(descriptions);
 }

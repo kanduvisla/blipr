@@ -306,6 +306,10 @@ void drawSequencerMain(
             }
         }
     }   
+
+    // ABCD Buttons:
+    char descriptions[4][4] = {"A.1", "B.1", "C.1", "D.1"};
+    drawABCDButtons(descriptions);
 }
 
 /**

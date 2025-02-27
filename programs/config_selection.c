@@ -26,7 +26,7 @@ void resetConfigurationScreen() {
 void drawConfigSelection(struct Project *project) {
     if (isMainScreen()) {
         drawIconOnIndex(0, BLIPR_ICON_MIDI);
-        drawCenteredLine(2, 133, "CONFIGURATION", TITLE_WIDTH, COLOR_WHITE);      
+        drawCenteredLine(2, 133, "CONFIGURATION", TITLE_WIDTH, COLOR_WHITE);       
     } else {
         if (isMidiConfigActive) {
             drawCenteredLine(2, 130, "SELECT A DEVICE FOR", TITLE_WIDTH, COLOR_WHITE);
@@ -63,7 +63,10 @@ void drawConfigSelection(struct Project *project) {
                     y ++;
                 }
             }
-        }            
+            // ABCD Buttons:
+            char descriptions[4][4] = {" A ", " B ", " C ", " D "};
+            drawABCDButtons(descriptions);            
+        }      
     }
 }
 

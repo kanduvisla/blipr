@@ -7,6 +7,7 @@
 #include "project.h"
 #include "constants.h"
 #include "print.h"
+#include "globals.h"
 
 #define INPUT_BUFFER_SIZE 100
 #define OUTPUT_BUFFER_SIZE 100
@@ -50,13 +51,13 @@ void openMidiOutput(int deviceId, PmStream **outputStream) {
 }
 
 void sendMidiMessage(PmStream *outputStream, int status, int data1, int data2) {
-    #ifdef DEBUG
     if (outputStream == NULL) {
+        // Failsafe to prevent crashing
+        return;
+    } else if (isMidiDataLogged) {
         // Print debug info instead, ignoring clock
         printLog("MIDI: 0x%X 0x%X 0x%X", status, data1, data2);
-        return;
     }
-    #endif
 
     PmEvent event = {0};
     event.message = Pm_Message(status, data1, data2);

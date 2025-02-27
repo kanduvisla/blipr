@@ -27,6 +27,9 @@
 // Renderer:
 SDL_Renderer *renderer = NULL;
 
+// For debugging:
+bool isMidiDataLogged = false;
+
 // The initial BPM:
 double bpm = 120.0;
 
@@ -84,6 +87,7 @@ bool checkFlag(int argc, char *argv[], char *flag) {
  */
 int main(int argc, char *argv[]) {
     bool isScreenRotated = checkFlag(argc, argv, "--rotate180");
+    isMidiDataLogged = checkFlag(argc, argv, "--logMidiData");
 
     printLog("Screen rotated: %s", isScreenRotated ? "true" : "false");
 
@@ -276,6 +280,8 @@ int main(int argc, char *argv[]) {
                             updateSequenceSelection(&selectedSequence, scanCode);
                         } else if (isConfigurationModeActive) {
                             updateConfiguration(project, scanCode);
+                        } else if (isTransportSelectionActive) {
+                            // TODO
                         }
                     } else if (keyStates[BLIPR_KEY_SHIFT_3]) {
                         // Only enable track options on the Main screen:

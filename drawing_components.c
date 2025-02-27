@@ -5,6 +5,7 @@
 #include "drawing.h"
 #include "colors.h"
 #include "constants.h"
+#include "print.h"
 
 /**
  * Draw a simple button
@@ -90,7 +91,7 @@ void drawBasicGrid(bool keyStates[SDL_NUM_SCANCODES]) {
         }
     }
 
-    char characters[] = {'A', 'B', 'C', 'D'};
+    // char characters[] = {'A', 'B', 'C', 'D'};
     char bottomButtonsDescriptions[4][3] = {"^1", "^2", "^3", "FN"};
 
     // Bottom Pad
@@ -105,11 +106,11 @@ void drawBasicGrid(bool keyStates[SDL_NUM_SCANCODES]) {
                 (j == 0 && i == 0 && keyStates[BLIPR_KEY_SHIFT_1]) ||
                 (j == 0 && i == 1 && keyStates[BLIPR_KEY_SHIFT_2]) ||
                 (j == 0 && i == 2 && keyStates[BLIPR_KEY_SHIFT_3]) ||
-                (j == 0 && i == 3 && keyStates[BLIPR_KEY_FUNC]) ||
+                (j == 0 && i == 3 && keyStates[BLIPR_KEY_FUNC])/* ||
                 (j == 1 && i == 0 && keyStates[BLIPR_KEY_A]) ||
                 (j == 1 && i == 1 && keyStates[BLIPR_KEY_B]) ||
                 (j == 1 && i == 2 && keyStates[BLIPR_KEY_C]) ||
-                (j == 1 && i == 3 && keyStates[BLIPR_KEY_D])
+                (j == 1 && i == 3 && keyStates[BLIPR_KEY_D])*/
             ) {
                 drawRect(x, y, width, height, COLOR_GRAY);
                 drawSingleLineRectOutline(x, y, width, height, COLOR_LIGHT_GRAY);
@@ -121,10 +122,23 @@ void drawBasicGrid(bool keyStates[SDL_NUM_SCANCODES]) {
                 drawText(x + 10, y + 5, bottomButtonsDescriptions[i], width, COLOR_WHITE);
             }
 
+            /*
             if (j == 1) {
                 drawCharacter(x + 13, y + 5, characters[i], COLOR_WHITE);
             }
+            */
         }
+    }
+}
+
+void drawABCDButtons(char descriptions[4][4]) {
+    int width = WIDTH / 6;
+    int height = width / 2;
+
+    for (int i = 0; i < 4; i++) {
+        int x = 3 + i + (i * width);
+        int y = HEIGHT - 3 - (2 * height);
+        drawCenteredLine(x, y + 5, descriptions[i], width, COLOR_WHITE);
     }
 }
 

@@ -35,4 +35,9 @@ void drawSingleNumber(int index);
  */
 void drawTextOnButton(int index, char* text);
 
+/**
+ * Draw ABCD buttons
+ */
+void drawABCDButtons(char descriptions[4][3]);
+
 #endif
