@@ -22,6 +22,7 @@
 #include "programs/track_options.h"
 #include "programs/four_on_the_floor.h"
 #include "midi.h"
+#include "print.h"
 
 // Renderer:
 SDL_Renderer *renderer = NULL;
@@ -104,12 +105,12 @@ int main(int argc, char *argv[]) {
         printf("\n");
 
         if (info.flags & SDL_RENDERER_ACCELERATED) {
-            printf("Hardware acceleration is enabled.\n");
+            printLog("Hardware acceleration is enabled.");
         } else {
-            printf("Hardware acceleration is not enabled.\n");
+            printLog("Hardware acceleration is not enabled.");
         }
     } else {
-        printf("Couldn't get renderer info! SDL_Error: %s\n", SDL_GetError());
+        printError("Couldn't get renderer info! SDL_Error: %s", SDL_GetError());
     }
 
     // Flag to determine if the app should quit:
@@ -154,35 +155,38 @@ int main(int argc, char *argv[]) {
     int selectedSequence = 0;
 
     // Project file:
-    printf("Loading project file: %s\n", projectFile);
+    print("Loading project file: %s", projectFile);
     struct Project *project = readProjectFile(projectFile);
     if (project == NULL) {
-        printf("No project found, creating new project\n");
+        print("No project found, creating new project");
         project = malloc(PROJECT_BYTE_SIZE);
         if (project == NULL) {
-            printf("Memory allocation failed\n");
+            printError("Memory allocation failed");
             return 1;  // or handle the error appropriately
         } else {
-            printf("Memory allocated succesfully\n");
-        }        
+            printLog("Memory allocated succesfully");
+        }
         initializeProject(project);
-        printf("Project initialized\n");
+        printLog("Project initialized");
         writeProjectFile(project, projectFile);
-        printf("Project saved\n");
+        printLog("Project saved");
     } else {
-        printf("Loaded project: %s\n", project->name);
+        printLog("Loaded project: %s", project->name);
     }
 
     // Currently active track:
     struct Track* track = &project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack];
 
-    // Setup Midi:
+    // Setup Midi devices:
     int midiDeviceIdA = getOutputDeviceIdByDeviceName(project->midiDeviceAName);
     if (midiDeviceIdA != -1) {
-        printf("Midi output device A: %d\n", midiDeviceIdA);
+        printLog("Midi output device A: %d", midiDeviceIdA);
         openMidiOutput(midiDeviceIdA, &outputStreamA);
+        if (outputStreamA == NULL) {
+            printError("Unable to open output stream for device");
+        }
     } else {
-        
+        printError("Midi device not found: %s", project->midiDeviceAName);
     }
 
     int midiDeviceIdB = getOutputDeviceIdByDeviceName(project->midiDeviceBName);
@@ -335,6 +339,8 @@ int main(int argc, char *argv[]) {
             // Iterate over all tracks, and send proper midi signals
             for (int i=0; i<16; i++) {
                 struct Track* iTrack = &project->sequences[selectedSequence].patterns[selectedPattern].tracks[i];
+                // Get the proper stream for the program:
+
                 // Run the program:
                 switch (iTrack->program) {
                     case BLIPR_PROGRAM_SEQUENCER:

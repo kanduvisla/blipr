@@ -17,7 +17,7 @@
 // int selectedPage = 0;   // The page currently playing
 // int queuedPage = 0;     // The page in queue to play after this page
 int selectedNote = 0;
-int defaultNote = 80;
+int defaultNote = 60;       // C-4
 int defaultVelocity = 100;
 int halfVelocity = 50;
 int selectedStep = -1;

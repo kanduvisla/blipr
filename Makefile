@@ -3,7 +3,18 @@ CFLAGS = -Wall -Wextra $(shell sdl2-config --cflags) $(shell pkg-config --cflags
 LIBS = $(shell sdl2-config --libs) $(shell pkg-config --libs portmidi)
 
 TARGET = build/blipr
-SRCS = main.c midi.c utils.c drawing.c drawing_utils.c drawing_components.c drawing_text.c drawing_icons.c colors.c file_handling.c project.c \
+SRCS = print.c \
+	main.c \
+	midi.c \
+	utils.c \
+	drawing.c \
+	drawing_utils.c \
+	drawing_components.c \
+	drawing_text.c \
+	drawing_icons.c \
+	colors.c \
+	file_handling.c \
+	project.c \
 	programs/sequencer.c \
 	programs/track_selection.c \
 	programs/pattern_selection.c \
