@@ -30,10 +30,10 @@ TEST_SRCS = $(SRCS:main.c=tests/main_test.c) #project.c programs/sequencer.c tes
 TEST_OBJS = $(TEST_SRCS:.c=.o)
 
 # Debug build settings
-DEBUG ?= 0
-ifeq ($(DEBUG), 1)
-	CFLAGS += -g -DDEBUG
-endif
+# DEBUG ?= 0
+# ifeq ($(DEBUG), 1)
+# 	CFLAGS += -g -DDEBUG
+# endif
 
 # Main build target
 $(TARGET): $(OBJS)
@@ -52,7 +52,7 @@ run: $(TARGET)
 	./$(TARGET)
 
 # Make & Run debug target
-debug: DEBUG=1
+debug: CFLAGS += -g -DDEBUG
 debug: $(TARGET)
 	./$(TARGET)
 

@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
     printLog("Screen rotated: %s", isScreenRotated ? "true" : "false");
 
     #ifdef DEBUG
-    printf("--- DEBUG BUILD ---\n");
+    printWarning("Running in debug mode");
     #endif
 
     listMidiDevices();
@@ -323,7 +323,7 @@ int main(int argc, char *argv[]) {
                     }
 
                     #ifdef DEBUG
-                    printf("Key pressed: %s\n", SDL_GetKeyName(e.key.keysym.sym));
+                    print("Key pressed: %s", SDL_GetKeyName(e.key.keysym.sym));
                     #endif
 
                     if (e.key.keysym.sym == SDLK_ESCAPE) {
@@ -350,7 +350,7 @@ int main(int argc, char *argv[]) {
                 }
 
                 #ifdef DEBUG
-                printf("Key released: %s (%d)\n", SDL_GetKeyName(e.key.keysym.sym), scanCode);
+                print("Key released: %s (%d)", SDL_GetKeyName(e.key.keysym.sym), scanCode);
                 #endif
             }
         }
@@ -373,17 +373,14 @@ int main(int argc, char *argv[]) {
             // Iterate over all tracks, and send proper midi signals
             for (int i=0; i<16; i++) {
                 struct Track* iTrack = &project->sequences[selectedSequence].patterns[selectedPattern].tracks[i];
-                // Make sure the output stream is not null:
-                if (outputStream[iTrack->midiDevice] != NULL) {
-                    // Run the program:
-                    switch (iTrack->program) {
-                        case BLIPR_PROGRAM_SEQUENCER:
-                            runSequencer(outputStream[iTrack->midiDevice], &ppqnCounter, iTrack);
-                            break;
-                        case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
-                            runFourOnTheFloor(outputStream[iTrack->midiDevice], &ppqnCounter, iTrack);
-                            break;
-                    }
+                // Run the program:
+                switch (iTrack->program) {
+                    case BLIPR_PROGRAM_SEQUENCER:
+                        runSequencer(outputStream[iTrack->midiDevice], &ppqnCounter, iTrack);
+                        break;
+                    case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
+                        runFourOnTheFloor(outputStream[iTrack->midiDevice], &ppqnCounter, iTrack);
+                        break;
                 }
             }
 

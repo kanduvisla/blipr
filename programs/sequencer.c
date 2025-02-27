@@ -10,12 +10,11 @@
 #include "../drawing_text.h"
 #include "../utils.h"
 #include "../midi.h"
+#include "../print.h"
 
 // TODO: These should be the global things I guess?
 
 // Pages can be global, or per track configured
-// int selectedPage = 0;   // The page currently playing
-// int queuedPage = 0;     // The page in queue to play after this page
 int selectedNote = 0;
 int defaultNote = 60;       // C-4
 int defaultVelocity = 100;
@@ -72,6 +71,9 @@ void setSelectedPage(
     }
 }
 
+/**
+ * Transpose an amount of steps, clamped
+ */
 unsigned char transposeMidiNote(unsigned char midiNote, int steps) {
     // Ensure the input is a valid MIDI note
     if (midiNote > 127) {

@@ -22,6 +22,7 @@ void runFourOnTheFloor(
         isNotePlaying = true;
     } else if(isNotePlaying) {
         sendMidiNoteOff(outputStream, selectedTrack->midiChannel, 60);
+        isNotePlaying = false;
     }
 }
 
