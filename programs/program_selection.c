@@ -17,7 +17,7 @@ void drawProgramSelection(struct Track *track) {
     drawHighlightedGridTile(track->program);
 
     // Title:
-    drawCenteredLine(2, 133, "SELECT PROGRAM", TITLE_WIDTH, COLOR_WHITE);
+    drawCenteredLine(2, 133, "SELECT PROGRAM", TITLE_WIDTH, SDL_COLOR_WHITE);
 
     // ABCD Buttons:
     char descriptions[4][4] = {"TRK", "PRG", "PAT", "UTI"};

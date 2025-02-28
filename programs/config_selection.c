@@ -26,11 +26,11 @@ void resetConfigurationScreen() {
 void drawConfigSelection(struct Project *project) {
     if (isMainScreen()) {
         drawIconOnIndex(0, BLIPR_ICON_MIDI);
-        drawCenteredLine(2, 133, "CONFIGURATION", TITLE_WIDTH, COLOR_WHITE);       
+        drawCenteredLine(2, 133, "CONFIGURATION", TITLE_WIDTH, SDL_COLOR_WHITE);       
     } else {
         if (isMidiConfigActive) {
-            drawCenteredLine(2, 130, "SELECT A DEVICE FOR", TITLE_WIDTH, COLOR_WHITE);
-            drawCenteredLine(2, 137, "MIDI SLOT A,B,C OR D", TITLE_WIDTH, COLOR_WHITE);
+            drawCenteredLine(2, 130, "SELECT A DEVICE FOR", TITLE_WIDTH, SDL_COLOR_WHITE);
+            drawCenteredLine(2, 137, "MIDI SLOT A,B,C OR D", TITLE_WIDTH, SDL_COLOR_WHITE);
             // Highlight current selected Midi device:
             drawHighlightedGridTile(16 + selectedMidiDevice);
 
@@ -59,7 +59,7 @@ void drawConfigSelection(struct Project *project) {
                         // Handle error: string was truncated or an error occurred
                         snprintf(line, sizeof(line), "%d:(ERROR)", y + 1);
                     }
-                    drawText(4, 4 + (y * 6), line, WIDTH, COLOR_WHITE);
+                    drawText(4, 4 + (y * 6), line, WIDTH, SDL_COLOR_WHITE);
                     y ++;
                 }
             }

@@ -19,7 +19,7 @@ void drawTrackSelection(int *selectedTrack) {
     drawHighlightedGridTile(*selectedTrack);
 
     // Title:
-    drawCenteredLine(2, 133, "SELECT TRACK", TITLE_WIDTH, COLOR_WHITE);
+    drawCenteredLine(2, 133, "SELECT TRACK", TITLE_WIDTH, SDL_COLOR_WHITE);
 
     // Track Selection doubles as entrypoint to conifguration:
     char descriptions[4][4] = {"PAT", "SEQ", "TRA", "CFG"};

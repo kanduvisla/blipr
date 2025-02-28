@@ -25,5 +25,5 @@ void drawPatternSelection(int *selectedPattern) {
     drawHighlightedGridTile(*selectedPattern);
 
     // Title:
-    drawCenteredLine(2, 133, "SELECT PATTERN", TITLE_WIDTH, COLOR_WHITE);
+    drawCenteredLine(2, 133, "SELECT PATTERN", TITLE_WIDTH, SDL_COLOR_WHITE);
 }

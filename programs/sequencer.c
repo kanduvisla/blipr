@@ -295,7 +295,7 @@ void drawSequencerMain(
             2 + y + (y * height),
             width,
             height,
-            COLOR_WHITE
+            SDL_COLOR_WHITE
         );
     }
    
@@ -305,7 +305,7 @@ void drawSequencerMain(
         HEIGHT - BUTTON_HEIGHT - 5,
         2 + playingPage + ((playingPage + 1) * BUTTON_WIDTH) - 1,
         HEIGHT - BUTTON_HEIGHT - 5,
-        COLOR_RED
+        SDL_COLOR_RED
     );
 
     // Highlight non-empty steps:
@@ -324,7 +324,7 @@ void drawSequencerMain(
                     4 + j + (j * height),
                     width - 4,
                     height - 4,
-                    COLOR_GRAY
+                    SDL_COLOR_GRAY
                 );
             } else {
                 if (step.notes[selectedNote].enabled) {
@@ -333,7 +333,7 @@ void drawSequencerMain(
                         4 + j + (j * height),
                         width - 4,
                         height - 4,
-                        step.notes[selectedNote].velocity >= defaultVelocity ? COLOR_RED : COLOR_DARK_RED
+                        step.notes[selectedNote].velocity >= defaultVelocity ? SDL_COLOR_RED : SDL_COLOR_DARK_RED
                     );
                     drawTextOnButton((i + (j * 4)), getMidiNoteName(step.notes[selectedNote].note));
                 }
@@ -361,64 +361,64 @@ void drawStepEditor(struct Step *step) {
     */
 
     // Title:
-    drawCenteredLine(2, 133, "STEP OPTIONS", TITLE_WIDTH, COLOR_WHITE);
+    drawCenteredLine(2, 133, "STEP OPTIONS", TITLE_WIDTH, SDL_COLOR_WHITE);
 
     struct Note *note = &step->notes[selectedNote];
 
     // Transpose:
-    drawCenteredLine(2, 7, "TRANSPOSE", TITLE_WIDTH, COLOR_WHITE);
+    drawCenteredLine(2, 7, "TRANSPOSE", TITLE_WIDTH, SDL_COLOR_WHITE);
     char *midiNoteName = getMidiNoteName(note->note);
-    drawCenteredLine(2, 22, midiNoteName, TITLE_WIDTH, COLOR_YELLOW);
+    drawCenteredLine(2, 22, midiNoteName, TITLE_WIDTH, SDL_COLOR_YELLOW);
     drawTextOnButton(0, "-12");
     drawTextOnButton(1, "-1");
     drawTextOnButton(2, "+1");
     drawTextOnButton(3, "+12");
 
     // Velocity:
-    drawCenteredLine(2, 37, "VELOCITY", BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawCenteredLine(2, 37, "VELOCITY", BUTTON_WIDTH * 2, SDL_COLOR_WHITE);
     char velocityChar[4];
     snprintf(velocityChar, sizeof(velocityChar), "%d", note->velocity);
-    drawCenteredLine(2, 47, velocityChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
+    drawCenteredLine(2, 47, velocityChar, BUTTON_WIDTH * 2, SDL_COLOR_YELLOW);
     drawTextOnButton(4, "-");
     drawTextOnButton(5, "+");
 
     // Length:
-    drawCenteredLine(62, 37, "LENGTH", BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawCenteredLine(62, 37, "LENGTH", BUTTON_WIDTH * 2, SDL_COLOR_WHITE);
     char lengthChar[4];
     snprintf(lengthChar, sizeof(lengthChar), "%d", note->length);
-    drawCenteredLine(62, 47, lengthChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
+    drawCenteredLine(62, 47, lengthChar, BUTTON_WIDTH * 2, SDL_COLOR_YELLOW);
     drawTextOnButton(6, "-");
     drawTextOnButton(7, "+");
 
     // Nudge:
-    drawCenteredLine(2, 67, "NUDGE", BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawCenteredLine(2, 67, "NUDGE", BUTTON_WIDTH * 2, SDL_COLOR_WHITE);
     char nudgeChar[4];
     snprintf(nudgeChar, sizeof(nudgeChar), "%d", note->nudge);
-    drawCenteredLine(2, 77, nudgeChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
+    drawCenteredLine(2, 77, nudgeChar, BUTTON_WIDTH * 2, SDL_COLOR_YELLOW);
     drawTextOnButton(8, "-");
     drawTextOnButton(9, "+");
 
     // Trig:
-    drawCenteredLine(62, 67, "TRIGG", BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawCenteredLine(62, 67, "TRIGG", BUTTON_WIDTH * 2, SDL_COLOR_WHITE);
     char triggChar[4];
     snprintf(triggChar, sizeof(triggChar), "%d", note->trigg);
-    drawCenteredLine(62, 77, triggChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
+    drawCenteredLine(62, 77, triggChar, BUTTON_WIDTH * 2, SDL_COLOR_YELLOW);
     drawTextOnButton(10, "-");
     drawTextOnButton(11, "+");
 
     // CC1:
-    drawCenteredLine(2, 97, "CC1 VALUE", BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawCenteredLine(2, 97, "CC1 VALUE", BUTTON_WIDTH * 2, SDL_COLOR_WHITE);
     char cc1Value[4];
     snprintf(cc1Value, sizeof(cc1Value), "%d", note->cc1Value);
-    drawCenteredLine(2, 107, cc1Value, BUTTON_WIDTH * 2, COLOR_YELLOW);
+    drawCenteredLine(2, 107, cc1Value, BUTTON_WIDTH * 2, SDL_COLOR_YELLOW);
     drawTextOnButton(12, "-");
     drawTextOnButton(13, "+");
 
     // CC2:
-    drawCenteredLine(62, 97, "CC2 VALUE", BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawCenteredLine(62, 97, "CC2 VALUE", BUTTON_WIDTH * 2, SDL_COLOR_WHITE);
     char cc2Value[4];
     snprintf(cc2Value, sizeof(cc2Value), "%d", note->cc2Value);
-    drawCenteredLine(62, 107, cc2Value, BUTTON_WIDTH * 2, COLOR_YELLOW);
+    drawCenteredLine(62, 107, cc2Value, BUTTON_WIDTH * 2, SDL_COLOR_YELLOW);
     drawTextOnButton(14, "-");
     drawTextOnButton(15, "+");    
 }

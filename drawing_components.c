@@ -11,16 +11,16 @@
  * Draw a simple button
  */
 void drawButton(int x, int y, int width, int height) {
-    drawBeveledRect(x, y, width, height, COLOR_LIGHT_GRAY);
+    drawBeveledRect(x, y, width, height, SDL_COLOR_LIGHT_GRAY);
 }
 
 /**
  * Draw sequencer button
  */
 void drawSequencerButton(int x, int y, int width, int height, bool isActive) {
-    drawBeveledRect(x, y, width, height, COLOR_LIGHT_GRAY);
-    drawBeveledRectOutline(x + (width / 2) - 3, y + height - 5, 6, 3, COLOR_LIGHT_GRAY, true);
-    SDL_Color indicatorColor = adjustColorBrightness(COLOR_RED, isActive ? 0 : -0.75f);
+    drawBeveledRect(x, y, width, height, SDL_COLOR_LIGHT_GRAY);
+    drawBeveledRectOutline(x + (width / 2) - 3, y + height - 5, 6, 3, SDL_COLOR_LIGHT_GRAY, true);
+    SDL_Color indicatorColor = adjustColorBrightness(SDL_COLOR_RED, isActive ? 0 : -0.75f);
     drawLine(
         x + (width / 2) - 2, 
         y + height - 4,
@@ -51,7 +51,7 @@ void drawNoteCounter(int noteCounter) {
         drawPixel(
             2 + (i * 2),
             HEIGHT - (GRID_UNIT * 3),
-            noteCounter == i ? COLOR_RED : COLOR_GRAY
+            noteCounter == i ? SDL_COLOR_RED : SDL_COLOR_GRAY
         );
     } 
     */           
@@ -66,7 +66,7 @@ void drawPageCounter(int pageCounter) {
         drawPixel(
             WIDTH - 9 + (i * 2),
             HEIGHT - (GRID_UNIT * 3),
-            pageCounter == i ? COLOR_RED : COLOR_GRAY
+            pageCounter == i ? SDL_COLOR_RED : SDL_COLOR_GRAY
         );
     }
 }
@@ -86,7 +86,7 @@ void drawBasicGrid(bool keyStates[SDL_NUM_SCANCODES]) {
                 2 + j + (j * height),
                 width,
                 height,
-                COLOR_GRAY
+                SDL_COLOR_GRAY
             );
         }
     }
@@ -112,19 +112,19 @@ void drawBasicGrid(bool keyStates[SDL_NUM_SCANCODES]) {
                 (j == 1 && i == 2 && keyStates[BLIPR_KEY_C]) ||
                 (j == 1 && i == 3 && keyStates[BLIPR_KEY_D])*/
             ) {
-                drawRect(x, y, width, height, COLOR_GRAY);
-                drawSingleLineRectOutline(x, y, width, height, COLOR_LIGHT_GRAY);
+                drawRect(x, y, width, height, SDL_COLOR_GRAY);
+                drawSingleLineRectOutline(x, y, width, height, SDL_COLOR_LIGHT_GRAY);
             } else {
-                drawSingleLineRectOutline(x, y, width, height, COLOR_GRAY);
+                drawSingleLineRectOutline(x, y, width, height, SDL_COLOR_GRAY);
             }
 
             if (j == 0) {
-                drawText(x + 10, y + 5, bottomButtonsDescriptions[i], width, COLOR_WHITE);
+                drawText(x + 10, y + 5, bottomButtonsDescriptions[i], width, SDL_COLOR_WHITE);
             }
 
             /*
             if (j == 1) {
-                drawCharacter(x + 13, y + 5, characters[i], COLOR_WHITE);
+                drawCharacter(x + 13, y + 5, characters[i], SDL_COLOR_WHITE);
             }
             */
         }
@@ -138,7 +138,7 @@ void drawABCDButtons(char descriptions[4][4]) {
     for (int i = 0; i < 4; i++) {
         int x = 3 + i + (i * width);
         int y = HEIGHT - 3 - (2 * height);
-        drawCenteredLine(x, y + 5, descriptions[i], width, COLOR_WHITE);
+        drawCenteredLine(x, y + 5, descriptions[i], width, SDL_COLOR_WHITE);
     }
 }
 
@@ -155,7 +155,7 @@ void drawHighlightedGridTile(int tileIndex) {
             2 + y + (y * height),
             width,
             height,
-            COLOR_WHITE
+            SDL_COLOR_WHITE
         );
     } else {
         // Bottom buttons:
@@ -165,7 +165,7 @@ void drawHighlightedGridTile(int tileIndex) {
             (HEIGHT - 7 - (height * 2)) + y + ((y-4) * height),
             width,
             height,
-            COLOR_WHITE
+            SDL_COLOR_WHITE
         );
     }
 }
@@ -187,7 +187,7 @@ void drawBasicNumbers() {
                 14 + j + (j * height),
                 str,
                 11,
-                COLOR_WHITE
+                SDL_COLOR_WHITE
             );
         }
     }
@@ -209,7 +209,7 @@ void drawSingleNumber(int index) {
         14 + y + (y * height),
         str,
         11,
-        COLOR_WHITE
+        SDL_COLOR_WHITE
     );
 }
 
@@ -225,6 +225,6 @@ void drawTextOnButton(int index, char* text) {
         14 + y + (y * height),
         text,
         11,
-        COLOR_WHITE
+        SDL_COLOR_WHITE
     );
 }

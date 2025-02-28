@@ -33,14 +33,14 @@ int getPolyCount(struct Track* track) {
 
 void drawTrackOptions(struct Track* track) {
     // Title:
-    drawCenteredLine(2, 133, "TRACK OPTIONS", TITLE_WIDTH, COLOR_WHITE);
+    drawCenteredLine(2, 133, "TRACK OPTIONS", TITLE_WIDTH, SDL_COLOR_WHITE);
 
     // Page play mode:
-    drawCenteredLine(2, 5, "PPM", BUTTON_WIDTH, COLOR_WHITE);
+    drawCenteredLine(2, 5, "PPM", BUTTON_WIDTH, SDL_COLOR_WHITE);
     drawTextOnButton(0, track->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS ? "C" : "R");
 
     // Polyphony:
-    drawCenteredLine(33, 5, "POLY", BUTTON_WIDTH, COLOR_WHITE);
+    drawCenteredLine(33, 5, "POLY", BUTTON_WIDTH, SDL_COLOR_WHITE);
     char polyChar[2];
     snprintf(polyChar, sizeof(polyChar), "%d", getPolyCount(track));
     drawTextOnButton(1, polyChar);
@@ -52,12 +52,12 @@ void drawTrackOptions(struct Track* track) {
     } else {
         snprintf(trackLengthTitle, sizeof(trackLengthTitle), "P.LEN:%d", track->pageLength + 1);
     }
-    drawCenteredLine(64, 5, trackLengthTitle, BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawCenteredLine(64, 5, trackLengthTitle, BUTTON_WIDTH * 2, SDL_COLOR_WHITE);
     drawTextOnButton(2, "<");
     drawTextOnButton(3, ">");
 
     // Track Speed (TODO):
-    drawCenteredLine(2, 37, "SPEED", BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawCenteredLine(2, 37, "SPEED", BUTTON_WIDTH * 2, SDL_COLOR_WHITE);
     drawTextOnButton(4, "<");
     drawTextOnButton(5, ">");
 
@@ -66,13 +66,13 @@ void drawTrackOptions(struct Track* track) {
         midiDeviceToCharacter(track->midiDevice),
         '\0'
     };
-    drawCenteredLine(2, 67, "MD", BUTTON_WIDTH, COLOR_WHITE);
+    drawCenteredLine(2, 67, "MD", BUTTON_WIDTH, SDL_COLOR_WHITE);
     drawTextOnButton(8, deviceChar);
     
     // Midi Channel:
     char channelChar[3];
     snprintf(channelChar, sizeof(channelChar), "%d", track->midiChannel + 1);
-    drawCenteredLine(32, 67, "MC", BUTTON_WIDTH, COLOR_WHITE);
+    drawCenteredLine(32, 67, "MC", BUTTON_WIDTH, SDL_COLOR_WHITE);
     drawTextOnButton(9, channelChar);
 
     // ABCD Buttons:

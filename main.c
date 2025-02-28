@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <time.h>
 #include <sys/resource.h>
+// #include <ncurses.h>
 #include "globals.h"
 #include "colors.h"
 #include "drawing_components.h"
@@ -462,17 +463,19 @@ int main(int argc, char *argv[]) {
 
         // Drawing magic:
         if (isRenderRequired) {
+
+            /*
             // Set the render target to our texture
             SDL_SetRenderTarget(renderer, renderTarget);
             // Clear the render target
-            SDL_SetRenderDrawColor(renderer, COLOR_BLACK.r, COLOR_BLACK.g, COLOR_BLACK.b, 255);
+            SDL_SetRenderDrawColor(renderer, SDL_COLOR_BLACK.r, SDL_COLOR_BLACK.g, SDL_COLOR_BLACK.b, 255);
             SDL_RenderClear(renderer);
 
             // BPM Blinker:
             drawBPMBlinker(&ppqnCounter);
 
             // Sequence, pattern and track number (replace with real numbers):
-            drawText(WIDTH - 54, 4, "S00P00T00", 60, COLOR_GRAY);
+            drawText(WIDTH - 54, 4, "S00P00T00", 60, SDL_COLOR_GRAY);
 
             // Basic Grid:
             drawBasicGrid(keyStates);
@@ -491,14 +494,14 @@ int main(int argc, char *argv[]) {
             } else if (isProgramSelectionActive) {
                 drawProgramSelection(track);
             } else if (isPatternAndSequenceOptionsActive) {
-                drawCenteredLine(2, 61, "(PAT&SEQ OPTIONS)", TITLE_WIDTH, COLOR_WHITE);      
+                drawCenteredLine(2, 61, "(PAT&SEQ OPTIONS)", TITLE_WIDTH, SDL_COLOR_WHITE);      
             } else if (isUtilitiesActive) {
-                drawCenteredLine(2, 61, "(UTILITIES)", TITLE_WIDTH, COLOR_WHITE);      
+                drawCenteredLine(2, 61, "(UTILITIES)", TITLE_WIDTH, SDL_COLOR_WHITE);      
             } else {
                 // Draw the program associated with this Track:
                 switch (track->program) {
                     case BLIPR_PROGRAM_NONE:
-                        drawCenteredLine(2, 61, "(NO PROGRAM)", TITLE_WIDTH, COLOR_WHITE);      
+                        drawCenteredLine(2, 61, "(NO PROGRAM)", TITLE_WIDTH, SDL_COLOR_WHITE);      
                         break;
                     case BLIPR_PROGRAM_SEQUENCER:
                         drawSequencer(&ppqnCounter, track);
@@ -537,6 +540,7 @@ int main(int argc, char *argv[]) {
                     printLog("Render elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
                 }
             }
+            */
         }
 
         // Re-calculate clock (if required):
