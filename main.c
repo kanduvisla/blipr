@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <time.h>
 #include <sys/resource.h>
-// #include <ncurses.h>
+#include <ncurses.h>
 #include "globals.h"
 #include "colors.h"
 #include "drawing_components.h"
@@ -135,6 +135,11 @@ int main(int argc, char *argv[]) {
     }
 
     initializeTextures();
+
+    // ncurses setup:
+    initscr();            // Initialize ncurses
+    cbreak();             // Disable line buffering
+    noecho();             // Don't echo keystrokes
 
     // Flag to determine if the app should quit:
     bool quit = false;
@@ -463,6 +468,9 @@ int main(int argc, char *argv[]) {
 
         // Drawing magic:
         if (isRenderRequired) {
+            // Clear the screen
+            clear();
+            mvprintw(5, 10, "Hello, World!");
 
             /*
             // Set the render target to our texture
@@ -527,20 +535,23 @@ int main(int argc, char *argv[]) {
             SDL_RenderPresent(renderer);
             isRenderRequired = false;
 
-            if (isTimeMeasured) {
+            */
+           if (isTimeMeasured) {
                 clock_gettime(CLOCK_MONOTONIC, &measureTime);
                 int64_t renderElapsedNs = getTimespecDiffInNanoSeconds(&prevTime, &measureTime);
                 int64_t elapsedSinceStartNs = renderElapsedNs - startNs;
                 double percentageUsed = (double)elapsedSinceStartNs / nanoSecondsPerPulse * 100.0;
                 if (percentageUsed > 100) {
-                    printError("Render elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
+                    mvprintw(0, 20, "Render elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
                 } else if (percentageUsed > 50) {
-                    printWarning("Render elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
-                } else if (percentageUsed > 5) {
-                    printLog("Render elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
+                    mvprintw(0, 20, "Render elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
+                } else { // if (percentageUsed > 5) {
+                    mvprintw(0, 20, "Render elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
                 }
             }
-            */
+
+            // Refresh the screen to show the changes
+            refresh();
         }
 
         // Re-calculate clock (if required):
@@ -566,6 +577,8 @@ int main(int argc, char *argv[]) {
     Pm_Terminate();
 
     cleanupTextures();
+
+    endwin();
 
     return (0);
 }

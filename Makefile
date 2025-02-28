@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra $(shell sdl2-config --cflags) $(shell pkg-config --cflags portmidi)
-LIBS = $(shell sdl2-config --libs) $(shell pkg-config --libs portmidi)
+LIBS = $(shell sdl2-config --libs) $(shell pkg-config --libs portmidi) -lncurses
 
 TARGET = build/blipr
 SRCS = print.c \
