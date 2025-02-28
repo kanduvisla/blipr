@@ -140,6 +140,8 @@ int main(int argc, char *argv[]) {
     initscr();            // Initialize ncurses
     cbreak();             // Disable line buffering
     noecho();             // Don't echo keystrokes
+    // Create a new window for buffering
+    WINDOW *buffer = newwin(0, 0, 0, 0);
 
     // Flag to determine if the app should quit:
     bool quit = false;
@@ -469,8 +471,12 @@ int main(int argc, char *argv[]) {
         // Drawing magic:
         if (isRenderRequired) {
             // Clear the screen
-            clear();
-            mvprintw(5, 10, "Hello, World!");
+            // Clear the screen/buffer
+            wclear(buffer);
+            mvwprintw(buffer, 5, 10, "Hello, World!");
+
+            // BPM Blinker:
+            // drawBPMBlinker(&ppqnCounter);
 
             /*
             // Set the render target to our texture
@@ -542,13 +548,16 @@ int main(int argc, char *argv[]) {
                 int64_t elapsedSinceStartNs = renderElapsedNs - startNs;
                 double percentageUsed = (double)elapsedSinceStartNs / nanoSecondsPerPulse * 100.0;
                 if (percentageUsed > 100) {
-                    mvprintw(0, 20, "Render elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
+                    mvwprintw(buffer, 0, 20, "Render elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
                 } else if (percentageUsed > 50) {
-                    mvprintw(0, 20, "Render elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
+                    mvwprintw(buffer, 0, 20, "Render elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
                 } else { // if (percentageUsed > 5) {
-                    mvprintw(0, 20, "Render elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
+                    mvwprintw(buffer, 0, 20, "Render elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
                 }
             }
+
+            // Copy the buffer to the screen
+            overwrite(buffer, stdscr);
 
             // Refresh the screen to show the changes
             refresh();
@@ -578,7 +587,8 @@ int main(int argc, char *argv[]) {
 
     cleanupTextures();
 
+    delwin(buffer);
     endwin();
 
-    return (0);
+    return 0;
 }
