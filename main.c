@@ -98,7 +98,6 @@ int main(int argc, char *argv[]) {
 
     listMidiDevices();
 
-    #ifndef CLI
     SDL_Window      *win = NULL;
     SDL_Texture     *renderTarget = NULL;
 
@@ -107,6 +106,7 @@ int main(int argc, char *argv[]) {
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
     SDL_CreateWindowAndRenderer(720, 720, 0, &win, &renderer);
 
+    #ifndef CLI
     renderTarget = SDL_CreateTexture(
         renderer,
         SDL_PIXELFORMAT_RGBA8888,
@@ -146,6 +146,8 @@ int main(int argc, char *argv[]) {
     initscr();            // Initialize ncurses
     cbreak();             // Disable line buffering
     noecho();             // Don't echo keystrokes
+    keypad(stdscr, TRUE); // Enable function keys, arrow keys, etc.
+    nodelay(stdscr, TRUE); // Make getch() non-blocking
     start_color();        // Enable color
     buffer = newwin(0, 0, 0, 0);
     #endif
@@ -256,7 +258,7 @@ int main(int argc, char *argv[]) {
     // While application is running
     while(!quit) {
         // Handle events on queue
-        while(SDL_PollEvent(&e) != 0 ) {
+        while(SDL_PollEvent(&e) != 0) {
             //User requests quit
             if (e.type == SDL_QUIT) {
                 quit = true;
