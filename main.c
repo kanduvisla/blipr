@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
 
     renderTarget = SDL_CreateTexture(
         renderer,
-        SDL_PIXELFORMAT_RGBA8888,
+        SDL_PIXELFORMAT_RGB444,
         SDL_TEXTUREACCESS_TARGET,
         WINDOW_WIDTH / SCALE_FACTOR,
         WINDOW_HEIGHT / SCALE_FACTOR
@@ -457,6 +457,10 @@ int main(int argc, char *argv[]) {
                     printLog("Pulse elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
                 }
                 startNs = pulseElapsedNs;
+
+                // char percText[8];
+                // snprintf(percText, sizeof(percText), "C:%.2f%%", percentageUsed);
+                // drawText(WIDTH - 54, 10, percText, 60, COLOR_WHITE);
             }
         }
 
@@ -509,8 +513,27 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            // Clear the renderer:
+            if (isTimeMeasured) {
+                clock_gettime(CLOCK_MONOTONIC, &measureTime);
+                int64_t renderElapsedNs = getTimespecDiffInNanoSeconds(&prevTime, &measureTime);
+                int64_t elapsedSinceStartNs = renderElapsedNs - startNs;
+                double percentageUsed = (double)elapsedSinceStartNs / nanoSecondsPerPulse * 100.0;
+                printLog("Pre-ender elapsed: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
+                char percText[8];
+                snprintf(percText, sizeof(percText), "R:%.2f%%", percentageUsed);
+                drawText(WIDTH - 54, 16, percText, 60, COLOR_WHITE);
+            }
+
+            // Set the render target to NULL, effectively setting the active window as the render target
             SDL_SetRenderTarget(renderer, NULL);
+
+            if (isTimeMeasured) {
+                clock_gettime(CLOCK_MONOTONIC, &measureTime);
+                int64_t renderElapsedNs = getTimespecDiffInNanoSeconds(&prevTime, &measureTime);
+                int64_t elapsedSinceStartNs = renderElapsedNs - startNs;
+                double percentageUsed = (double)elapsedSinceStartNs / nanoSecondsPerPulse * 100.0;
+                printLog("Mark 1: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
+            }
 
             // Draw the scaled-up texture to the screen
             SDL_Rect destRect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
@@ -518,6 +541,13 @@ int main(int argc, char *argv[]) {
                 SDL_RenderCopyEx(renderer, renderTarget, NULL, &destRect, 180.0, NULL, SDL_FLIP_NONE);
             } else {
                 SDL_RenderCopy(renderer, renderTarget, NULL, &destRect);
+            }
+            if (isTimeMeasured) {
+                clock_gettime(CLOCK_MONOTONIC, &measureTime);
+                int64_t renderElapsedNs = getTimespecDiffInNanoSeconds(&prevTime, &measureTime);
+                int64_t elapsedSinceStartNs = renderElapsedNs - startNs;
+                double percentageUsed = (double)elapsedSinceStartNs / nanoSecondsPerPulse * 100.0;
+                printLog("Mark 2: %d ns (%.2f%%)", elapsedSinceStartNs, percentageUsed);
             }
 
             // Render:
