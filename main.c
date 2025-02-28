@@ -79,6 +79,9 @@ bool checkFlag(int argc, char *argv[], char *flag) {
     return false;
 }
 
+// Create a new window for buffering
+WINDOW *buffer;
+
 /**
  * Main loop
  */
@@ -136,12 +139,14 @@ int main(int argc, char *argv[]) {
 
     initializeTextures();
 
+    #ifdef CLI
     // ncurses setup:
     initscr();            // Initialize ncurses
     cbreak();             // Disable line buffering
     noecho();             // Don't echo keystrokes
-    // Create a new window for buffering
-    WINDOW *buffer = newwin(0, 0, 0, 0);
+    start_color();        // Enable color
+    buffer = newwin(0, 0, 0, 0);
+    #endif
 
     // Flag to determine if the app should quit:
     bool quit = false;
@@ -473,10 +478,11 @@ int main(int argc, char *argv[]) {
             // Clear the screen
             // Clear the screen/buffer
             wclear(buffer);
+            #ifdef CLI
             mvwprintw(buffer, 5, 10, "Hello, World!");
-
+            #endif
             // BPM Blinker:
-            // drawBPMBlinker(&ppqnCounter);
+            drawBPMBlinker(&ppqnCounter);
 
             /*
             // Set the render target to our texture

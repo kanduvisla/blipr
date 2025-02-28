@@ -36,6 +36,7 @@ TEST_OBJS = $(TEST_SRCS:.c=.o)
 # endif
 
 # Main build target
+$(TARGET): CFLAGS += -g -DCLI
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS) $(LIBS)
 

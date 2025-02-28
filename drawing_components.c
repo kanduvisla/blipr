@@ -37,8 +37,16 @@ void drawBPMBlinker(int *ppqnCounter) {
     float p = (float)(*ppqnCounter % (PPQN_MULTIPLIED)) / (float)(PPQN_MULTIPLIED);
     int r = 255 * (1-p);
 
+    for (int i=0; i<COLS; i++) {
+        for (int j=0; j<LINES; j++) {
+            mvwprintw(buffer, j, i, "*");
+        }
+    }
+
+    #ifndef CLI
     SDL_Color colorBlinker = {r, 0, 0, 255};
     drawRectOutline(0, 0, WIDTH, HEIGHT, GRID_UNIT, colorBlinker);
+    #endif
 }
 
 /**
