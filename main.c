@@ -98,6 +98,7 @@ int main(int argc, char *argv[]) {
 
     listMidiDevices();
 
+    #ifndef CLI
     SDL_Window      *win = NULL;
     SDL_Texture     *renderTarget = NULL;
 
@@ -138,6 +139,7 @@ int main(int argc, char *argv[]) {
     }
 
     initializeTextures();
+    #endif
 
     #ifdef CLI
     // ncurses setup:
@@ -577,10 +579,13 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    #ifndef CLI
     SDL_DestroyTexture(renderTarget);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(win);
     SDL_Quit();
+    cleanupTextures();
+    #endif
 
     writeProjectFile(project, projectFile);
     free(project);
@@ -590,8 +595,6 @@ int main(int argc, char *argv[]) {
     }
 
     Pm_Terminate();
-
-    cleanupTextures();
 
     delwin(buffer);
     endwin();
