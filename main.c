@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <time.h>
 #include <sys/resource.h>
+#include <pthread.h>
+#include <unistd.h>
 #include "globals.h"
 #include "colors.h"
 #include "drawing_components.h"
@@ -31,10 +33,10 @@ SDL_Renderer *renderer = NULL;
 bool isMidiDataLogged = false;
 
 // The initial BPM:
-double bpm = 120.0;
+// double bpm = 120.0;
 
 // Used for delay calculations:
-int64_t nanoSecondsPerPulse = 0;
+// int64_t nanoSecondsPerPulse = 0;
 
 // Project file
 char *projectFile = "data.blipr";
@@ -44,14 +46,14 @@ char *projectFile = "data.blipr";
 
 // For Midi:
 PmStream *input_stream;
-PmStream *outputStream[4]; // 4 streams, for A, B, C and D
-int midiDevice[4];          // 4 midi devices, for A, B, C and D
+// PmStream *outputStream[4]; // 4 streams, for A, B, C and D
+// int midiDevice[4];          // 4 midi devices, for A, B, C and D
 
-void calculateMicroSecondsPerPulse() {
+int64_t calculateMicroSecondsPerPulse(int bpm) {
     double beatsPerSecond = bpm / 60.0;
     double secondsPerQuarterNote = 1.0 / beatsPerSecond;
     int64_t nanoSecondsPerQuarterNote = secondsPerQuarterNote * NANOS_PER_SEC;
-    nanoSecondsPerPulse = nanoSecondsPerQuarterNote / PPQN_MULTIPLIED;
+    return nanoSecondsPerQuarterNote / PPQN_MULTIPLIED;
 }
 
 int64_t getTimespecDiffInNanoSeconds(struct timespec *start, struct timespec *end) {
@@ -77,6 +79,224 @@ bool checkFlag(int argc, char *argv[], char *flag) {
     }
     return false;
 }
+
+// Shared data structure between threads
+typedef struct {
+    struct Project *project;
+    struct Track* track;
+    int ppqnCounter;
+    bool isRenderRequired;
+    bool keyStates[SDL_NUM_SCANCODES]; // = {false};
+    bool isTrackOptionsActive; // = false;
+    bool isProgramSelectionActive; // = false;
+    bool isPatternAndSequenceOptionsActive; // = false;
+    bool isUtilitiesActive; // = false;
+    bool isConfigurationModeActive; // = false;
+    bool isTransportSelectionActive; // = false;
+    bool isTrackSelectionActive; // = false;
+    bool isPatternSelectionActive; // = false;
+    bool isSequenceSelectionActive; // = false;
+    bool quit;
+    int64_t nanoSecondsPerPulse;
+    SDL_Scancode scanCode;
+
+    int selectedTrack; // = 0;
+    int selectedPattern; // = 0;
+    int selectedSequence; // = 0;
+    
+    // Synchronization primitives
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+} SharedState;
+
+// Initialize shared state
+void initSharedState(SharedState* state) {
+    state->ppqnCounter = 0;
+    state->isRenderRequired = false;
+    for (int i=0; i<SDL_NUM_SCANCODES; i++) {
+        state->keyStates[i] = false;
+    }
+    state->isTrackOptionsActive = false;
+    state->isProgramSelectionActive = false;
+    state->isPatternAndSequenceOptionsActive = false;
+    state->isUtilitiesActive = false;
+    state->isConfigurationModeActive = false;
+    state->isTransportSelectionActive = false;
+    state->isTrackSelectionActive = false;
+    state->isPatternSelectionActive = false;
+    state->isSequenceSelectionActive = false;
+    state->selectedTrack = 0;
+    state->selectedPattern = 0;
+    state->selectedSequence = 0;
+    state->quit = false;
+    state->scanCode = SDL_SCANCODE_UNKNOWN;
+
+    // Project file:
+    print("Loading project file: %s", projectFile);
+    state->project = readProjectFile(projectFile);
+    if (state->project == NULL) {
+        print("No project found, creating new project");
+        state->project = malloc(PROJECT_BYTE_SIZE);
+        if (state->project == NULL) {
+            printError("Memory allocation failed");
+        } else {
+            printLog("Memory allocated succesfully");
+        }
+        initializeProject(state->project);
+        printLog("Project initialized");
+        writeProjectFile(state->project, projectFile);
+        printLog("Project saved");
+    } else {
+        printLog("Loaded project: %s", state->project->name);
+    }
+    
+    // TODO: Should be fetched from current pattern:
+    state->nanoSecondsPerPulse = calculateMicroSecondsPerPulse(120);
+    state->track = &state->project->sequences[0].patterns[0].tracks[0];
+
+    pthread_mutex_init(&state->mutex, NULL);
+    pthread_cond_init(&state->cond, NULL);
+}
+
+// Clean up shared state
+void cleanupSharedState(SharedState* state) {
+    pthread_mutex_destroy(&state->mutex);
+    pthread_cond_destroy(&state->cond);
+}
+
+// Sequencer thread function
+void* sequencerThread(void* arg) {
+    SharedState* state = (SharedState*)arg;
+
+    // Timing for sequencer:
+    struct timespec prevTime, nowTime, measureTime;
+    clock_gettime(CLOCK_MONOTONIC, &nowTime);
+    prevTime = nowTime;
+    bool isClockResetRequired = false;
+
+    // Setup Midi:
+    PmStream *outputStream[4]; // 4 streams, for A, B, C and D
+    int midiDevice[4];          // 4 midi devices, for A, B, C and D
+
+    // Setup Midi devices:
+    for (int i=0; i<4; i++) {
+        char* midiDeviceName;
+        switch (i) {
+            case 0:
+                midiDeviceName = state->project->midiDeviceAName;
+                break;
+            case 1:
+                midiDeviceName = state->project->midiDeviceBName;
+                break;
+            case 2:
+                midiDeviceName = state->project->midiDeviceCName;
+                break;
+            case 3:
+                midiDeviceName = state->project->midiDeviceDName;
+                break;
+        }
+
+        if (strcmp(midiDeviceName, "") == 0) {
+            printLog("No midi output device set for slot %d", i);
+            continue;
+        }
+
+        midiDevice[i] = getOutputDeviceIdByDeviceName(midiDeviceName);
+        if (midiDevice[i] != -1) {
+            printLog("Configured midi output device: %d", midiDevice[i]);
+            openMidiOutput(midiDevice[i], &outputStream[i]);
+            if (outputStream[i] == NULL) {
+                printError("Unable to open output stream for this device");
+            }
+        } else {
+            printError("Midi device not found: %s", midiDeviceName);
+        }
+    }
+
+    // SDL Event:
+    // SDL_Event e;
+    int keyRepeatCounter = 0;
+    int keyRepeats = 0;
+    
+    // Sequencer logic:
+    while (!state->quit) {
+        // Handle events on queue
+        if(state->scanCode != SDL_SCANCODE_UNKNOWN) {
+            print("SDL Event: %d", state->scanCode);
+            //User requests quit
+            if (state->scanCode == SDL_SCANCODE_ESCAPE) {
+                pthread_mutex_lock(&state->mutex);
+                state->quit = true;
+                pthread_mutex_unlock(&state->mutex);
+            }
+            pthread_mutex_lock(&state->mutex);
+            state->scanCode = SDL_SCANCODE_UNKNOWN;
+            pthread_mutex_unlock(&state->mutex);
+        }
+    }
+
+    writeProjectFile(state->project, projectFile);
+    free(state->project);
+
+    for (int i=0; i<4; i++) {
+        Pm_Close(outputStream[i]);
+    }
+
+    Pm_Terminate();
+
+    return NULL;
+}
+
+// UI rendering thread function
+/*
+void* uiThread(void* arg) {
+    SharedState* state = (SharedState*)arg;
+
+    SDL_Window *win = NULL;
+    SDL_Texture *renderTarget = NULL;
+
+    SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles2");
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
+    SDL_CreateWindowAndRenderer(720, 720, 0, &win, &renderer);
+
+    renderTarget = SDL_CreateTexture(
+        renderer,
+        SDL_PIXELFORMAT_RGBA8888,
+        SDL_TEXTUREACCESS_TARGET,
+        WINDOW_WIDTH / SCALE_FACTOR,
+        WINDOW_HEIGHT / SCALE_FACTOR
+    );
+
+    SDL_RendererInfo info;
+    if (SDL_GetRendererInfo(renderer, &info) == 0) {
+        printLog("Renderer: %s", info.name);
+        if (info.flags & SDL_RENDERER_ACCELERATED) {
+            printLog("Hardware acceleration is enabled.");
+        } else {
+            printLog("Hardware acceleration is not enabled.");
+        }
+    } else {
+        printError("Couldn't get renderer info! SDL_Error: %s", SDL_GetError());
+    }
+
+    initializeTextures();
+
+    // Rendering logic:
+    while (!state->quit) {
+        // TODO
+    }
+
+    SDL_DestroyTexture(renderTarget);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(win);
+    SDL_Quit();
+
+    cleanupTextures();
+
+    return NULL;
+}
+*/
 
 /**
  * Main loop
@@ -136,31 +356,45 @@ int main(int argc, char *argv[]) {
     initializeTextures();
 
     // Flag to determine if the app should quit:
-    bool quit = false;
-    calculateMicroSecondsPerPulse();
+    // bool quit = false;
+    // calculateMicroSecondsPerPulse();
 
     // Clock:
-    struct timespec prevTime, nowTime, measureTime;
-    clock_gettime(CLOCK_MONOTONIC, &nowTime);
-    prevTime = nowTime;
+    // struct timespec prevTime, nowTime, measureTime;
+    // clock_gettime(CLOCK_MONOTONIC, &nowTime);
+    // prevTime = nowTime;
 
     // Event handler
-    SDL_Event e;
+    // SDL_Event e;
 
     // Triggs:
-    bool isClockResetRequired = false;
-    bool isRenderRequired = false;
+    // bool isClockResetRequired = false;
+    // bool isRenderRequired = false;
 
     // Counters:
-    int ppqnCounter = 0;
+    // int ppqnCounter = 0;
 
     // Array to keep track of key states
-    bool keyStates[SDL_NUM_SCANCODES] = {false};
-    int keyRepeatCounter = 0;
-    int keyRepeats = 0;
+    // bool keyStates[SDL_NUM_SCANCODES] = {false};
+    // int keyRepeatCounter = 0;
+    // int keyRepeats = 0;
 
-    // State:
+    // Multi threading:
+    SharedState state;
+    initSharedState(&state);
+
+    pthread_t seqThreadId; //, uiThreadId;
+
+    // Create threads
+    pthread_create(&seqThreadId, NULL, sequencerThread, &state);
+    // pthread_create(&uiThreadId, NULL, uiThread, &state);
+
+    // Wait for threads (in practice, you'd have a way to exit cleanly)
+    // pthread_join(seqThreadId, NULL);
+    // pthread_join(uiThreadId, NULL);
+
     // [SHIFT3]
+    /*
     bool isTrackOptionsActive = false;
     bool isProgramSelectionActive = false;
     bool isPatternAndSequenceOptionsActive = false;
@@ -198,7 +432,9 @@ int main(int argc, char *argv[]) {
 
     // Currently active track:
     struct Track* track = &project->sequences[selectedSequence].patterns[selectedPattern].tracks[selectedTrack];
+    */
 
+    /*
     // Setup Midi devices:
     for (int i=0; i<4; i++) {
         char* midiDeviceName;
@@ -233,13 +469,25 @@ int main(int argc, char *argv[]) {
             printError("Midi device not found: %s", midiDeviceName);
         }
     }
+    */
 
-    if (isTimeMeasured) {
-        printLog("Nano seconds per pulse: %d", nanoSecondsPerPulse);
-    }
+    // if (isTimeMeasured) {
+    //     printLog("Nano seconds per pulse: %d", nanoSecondsPerPulse);
+    // }
+
+    // Event handler
+    SDL_Event e;
 
     // While application is running
-    while(!quit) {
+    while(!state.quit) {
+        // Handle events on queue
+        while(SDL_PollEvent(&e) != 0 ) {
+            pthread_mutex_lock(&state.mutex);
+            state.scanCode = e.key.keysym.scancode;
+            pthread_mutex_unlock(&state.mutex);
+        }
+        /*    
+
         // Handle events on queue
         while(SDL_PollEvent(&e) != 0 ) {
             //User requests quit
@@ -545,6 +793,7 @@ int main(int argc, char *argv[]) {
             isClockResetRequired = false;
             clock_gettime(CLOCK_MONOTONIC, &prevTime);
         }
+    */
     }
 
     SDL_DestroyTexture(renderTarget);
@@ -552,6 +801,9 @@ int main(int argc, char *argv[]) {
     SDL_DestroyWindow(win);
     SDL_Quit();
 
+    cleanupSharedState(&state);
+
+    /*
     writeProjectFile(project, projectFile);
     free(project);
 
@@ -560,8 +812,8 @@ int main(int argc, char *argv[]) {
     }
 
     Pm_Terminate();
-
+    */
     cleanupTextures();
-
-    return (0);
+    
+    return 0;
 }
