@@ -3,6 +3,7 @@
 #include <string.h>
 #include "project.h"
 #include "constants.h"
+#include "print.h"
 
 /**
  * Convert Note to Byte Array

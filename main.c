@@ -87,6 +87,7 @@ typedef struct {
     int ppqnCounter;
     bool isRenderRequired;
     bool keyStates[SDL_NUM_SCANCODES]; // = {false};
+    // TODO: Maybe visible screen can be an enum?
     bool isTrackOptionsActive; // = false;
     bool isProgramSelectionActive; // = false;
     bool isPatternAndSequenceOptionsActive; // = false;
@@ -98,7 +99,8 @@ typedef struct {
     bool isSequenceSelectionActive; // = false;
     bool quit;
     int64_t nanoSecondsPerPulse;
-    SDL_Scancode scanCode;
+    SDL_Scancode scanCodeKeyDown;
+    SDL_Scancode scanCodeKeyUp;
 
     int selectedTrack; // = 0;
     int selectedPattern; // = 0;
@@ -129,7 +131,8 @@ void initSharedState(SharedState* state) {
     state->selectedPattern = 0;
     state->selectedSequence = 0;
     state->quit = false;
-    state->scanCode = SDL_SCANCODE_UNKNOWN;
+    state->scanCodeKeyDown = SDL_SCANCODE_UNKNOWN;
+    state->scanCodeKeyUp = SDL_SCANCODE_UNKNOWN;
 
     // Project file:
     print("Loading project file: %s", projectFile);
@@ -213,30 +216,74 @@ void* sequencerThread(void* arg) {
         }
     }
 
-    // SDL Event:
-    // SDL_Event e;
-    int keyRepeatCounter = 0;
-    int keyRepeats = 0;
-    
     // Sequencer logic:
     while (!state->quit) {
-        // Handle events on queue
-        if(state->scanCode != SDL_SCANCODE_UNKNOWN) {
-            print("SDL Event: %d", state->scanCode);
-            //User requests quit
-            if (state->scanCode == SDL_SCANCODE_ESCAPE) {
+        // Calculate with monotonic clock:
+        clock_gettime(CLOCK_MONOTONIC, &nowTime);
+        int64_t elapsedNs = getTimespecDiffInNanoSeconds(&prevTime, &nowTime);
+        int64_t startNs = elapsedNs;
+
+        if (elapsedNs > state->nanoSecondsPerPulse) {
+            isClockResetRequired = true;
+            pthread_mutex_lock(&state->mutex);
+            state->ppqnCounter += 1;
+            pthread_mutex_unlock(&state->mutex);
+
+            // Send Midi Clock:
+            for (int i=0; i<4; i++) { 
+                if (outputStream[i] != NULL) {
+                    // Calculate back using the multiplier, otherwise the clock is too fast:
+                    if (state->ppqnCounter % PPQN_MULTIPLIER == 0) {
+                        sendMidiClock(outputStream[i]);
+                    } 
+                }
+            }
+
+            // Iterate over all tracks, and send proper midi signals
+            for (int i=0; i<16; i++) {
+                struct Track* iTrack = &state->project->sequences[state->selectedSequence].patterns[state->selectedPattern].tracks[i];
+                bool isTrackKeyRepeatTriggered = false;
+                
+                // Check for key repeats:
+                // if (iTrack == state->track) {
+                //     isTrackKeyRepeatTriggered = isKeyRepeatTriggered;
+                // }
+    
+                // Run the program:
+                switch (iTrack->program) {
+                    case BLIPR_PROGRAM_SEQUENCER:
+                        runSequencer(outputStream[iTrack->midiDevice], &state->ppqnCounter, iTrack);
+                        // if (isKeyRepeatTriggered) {
+                        //     checkSequencerForKeyRepeats(iTrack, keyStates);
+                        // }
+                        break;
+                    case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
+                        runFourOnTheFloor(outputStream[iTrack->midiDevice], &state->ppqnCounter, iTrack);
+                        break;
+                }
+            }
+
+            // Check for key repeats for other screens:
+            // if (isKeyRepeatTriggered) {
+            //     if (isTrackOptionsActive) {
+            //         checkTrackOptionsForKeyRepeats(track, keyStates);
+            //     }
+            // }
+
+            // Check for render trigger:
+            if (state->ppqnCounter % PPQN == 0) {
                 pthread_mutex_lock(&state->mutex);
-                state->quit = true;
+                if (state->ppqnCounter >= MAX_PULSES) {
+                    state->ppqnCounter = 0;
+                }
+                state->isRenderRequired = true;
                 pthread_mutex_unlock(&state->mutex);
             }
-            pthread_mutex_lock(&state->mutex);
-            state->scanCode = SDL_SCANCODE_UNKNOWN;
-            pthread_mutex_unlock(&state->mutex);
+
+            // Reset clock:
+            clock_gettime(CLOCK_MONOTONIC, &prevTime);
         }
     }
-
-    writeProjectFile(state->project, projectFile);
-    free(state->project);
 
     for (int i=0; i<4; i++) {
         Pm_Close(outputStream[i]);
@@ -247,56 +294,164 @@ void* sequencerThread(void* arg) {
     return NULL;
 }
 
-// UI rendering thread function
-/*
-void* uiThread(void* arg) {
+/**
+ * Thread for keyboard input
+ */
+void* keyThread(void* arg) {
     SharedState* state = (SharedState*)arg;
 
-    SDL_Window *win = NULL;
-    SDL_Texture *renderTarget = NULL;
+    int keyRepeatCounter = 0;
+    int keyRepeats = 0;
 
-    SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");
-    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles2");
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
-    SDL_CreateWindowAndRenderer(720, 720, 0, &win, &renderer);
-
-    renderTarget = SDL_CreateTexture(
-        renderer,
-        SDL_PIXELFORMAT_RGBA8888,
-        SDL_TEXTUREACCESS_TARGET,
-        WINDOW_WIDTH / SCALE_FACTOR,
-        WINDOW_HEIGHT / SCALE_FACTOR
-    );
-
-    SDL_RendererInfo info;
-    if (SDL_GetRendererInfo(renderer, &info) == 0) {
-        printLog("Renderer: %s", info.name);
-        if (info.flags & SDL_RENDERER_ACCELERATED) {
-            printLog("Hardware acceleration is enabled.");
-        } else {
-            printLog("Hardware acceleration is not enabled.");
-        }
-    } else {
-        printError("Couldn't get renderer info! SDL_Error: %s", SDL_GetError());
-    }
-
-    initializeTextures();
-
-    // Rendering logic:
+    // Keydown logic:
     while (!state->quit) {
-        // TODO
+        // Perform key down actions:
+        if(state->scanCodeKeyDown != SDL_SCANCODE_UNKNOWN) {
+            // User requests quit
+            if (state->scanCodeKeyDown == SDL_SCANCODE_ESCAPE) {
+                pthread_mutex_lock(&state->mutex);
+                state->quit = true;
+                pthread_mutex_unlock(&state->mutex);
+            }
+
+            if (!state->keyStates[state->scanCodeKeyDown]) {
+                pthread_mutex_lock(&state->mutex);
+                state->keyStates[state->scanCodeKeyDown] = true;
+                pthread_mutex_unlock(&state->mutex);
+                keyRepeatCounter = 0;
+                keyRepeats = 0;
+            }
+
+            // Check if this is one of the global Func-options:
+            if (state->keyStates[BLIPR_KEY_FUNC]) {
+                // Only enable track selection on the Main Configuration screen:
+                if (!state->isPatternSelectionActive && 
+                    !state->isSequenceSelectionActive && 
+                    !state->isTransportSelectionActive &&
+                    !state->isConfigurationModeActive
+                ) {
+                    pthread_mutex_lock(&state->mutex);
+                    state->isTrackSelectionActive = true;
+                    pthread_mutex_unlock(&state->mutex);
+                }
+
+                if (state->isTrackSelectionActive) {
+                    // If in the main configuration screen ABCD are pressed, open sub-screen:
+                    pthread_mutex_lock(&state->mutex);
+                    if (state->scanCodeKeyDown == BLIPR_KEY_A) {
+                        state->isTrackSelectionActive = false;
+                        state->isPatternSelectionActive = true;
+                    } else if (state->scanCodeKeyDown == BLIPR_KEY_B) {
+                        state->isTrackSelectionActive = false;
+                        state->isSequenceSelectionActive = true;
+                    } else if (state->scanCodeKeyDown == BLIPR_KEY_D) {
+                        state->isTrackSelectionActive = false;
+                        state->isConfigurationModeActive = true;
+                    }
+                    pthread_mutex_unlock(&state->mutex);
+                }
+
+                // Actions while the Func-key is down:
+                pthread_mutex_lock(&state->mutex);
+                if (state->isTrackSelectionActive) {
+                    updateTrackSelection(&state->selectedTrack, state->scanCodeKeyDown);
+                    state->track = &state->project->sequences[state->selectedSequence]
+                        .patterns[state->selectedPattern]
+                        .tracks[state->selectedTrack];
+                } else if (state->isPatternSelectionActive) {
+                    updateTrackSelection(&state->selectedPattern, state->scanCodeKeyDown);
+                } else if (state->isSequenceSelectionActive) {
+                    updateSequenceSelection(&state->selectedSequence, state->scanCodeKeyDown);
+                } else if (state->isConfigurationModeActive) {
+                    updateConfiguration(state->project, state->scanCodeKeyDown);
+                } else if (state->isTransportSelectionActive) {
+                    // TODO
+                }
+                pthread_mutex_unlock(&state->mutex);
+            } else if (state->keyStates[BLIPR_KEY_SHIFT_3]) {
+                pthread_mutex_lock(&state->mutex);
+                // Only enable track options on the Main screen:
+                if (!state->isProgramSelectionActive &&
+                    !state->isPatternAndSequenceOptionsActive &&
+                    !state->isUtilitiesActive
+                ) { 
+                    state->isTrackOptionsActive = true;
+                }
+
+                if (state->scanCodeKeyDown == BLIPR_KEY_A) {
+                    state->isTrackOptionsActive = true;
+                    state->isProgramSelectionActive = false;
+                    state->isPatternAndSequenceOptionsActive = false;
+                    state->isUtilitiesActive = false;
+                } else if (state->scanCodeKeyDown == BLIPR_KEY_B) {
+                    state->isTrackOptionsActive = false;
+                    state->isProgramSelectionActive = true;
+                    state->isPatternAndSequenceOptionsActive = false;
+                    state->isUtilitiesActive = false;
+                } else if (state->scanCodeKeyDown == BLIPR_KEY_C) {
+                    state->isTrackOptionsActive = false;
+                    state->isProgramSelectionActive = false;
+                    state->isPatternAndSequenceOptionsActive = true;
+                    state->isUtilitiesActive = false;
+                } else if (state->scanCodeKeyDown == BLIPR_KEY_D) {
+                    state->isTrackOptionsActive = false;
+                    state->isProgramSelectionActive = false;
+                    state->isPatternAndSequenceOptionsActive = false;
+                    state->isUtilitiesActive = true;
+                }
+
+                if (state->isTrackOptionsActive) {
+                    updateTrackOptions(state->track, state->scanCodeKeyDown);
+                } else if (state->isProgramSelectionActive) {
+                    updateProgram(state->track, state->scanCodeKeyDown);
+                }
+                pthread_mutex_unlock(&state->mutex);
+            } else {
+                pthread_mutex_lock(&state->mutex);
+                // Func-key is not down, so program of current track should be shown:
+                switch (state->track->program) {
+                    case BLIPR_PROGRAM_SEQUENCER:
+                        updateSequencer(state->track, state->keyStates, state->scanCodeKeyDown);
+                        break;
+                }
+                pthread_mutex_unlock(&state->mutex);
+            }
+
+            // Reset flag:
+            pthread_mutex_lock(&state->mutex);
+            state->scanCodeKeyDown = SDL_SCANCODE_UNKNOWN;
+            state->isRenderRequired = true;
+            pthread_mutex_unlock(&state->mutex);
+        }
+
+        // Perform key down actions:
+        if(state->scanCodeKeyUp != SDL_SCANCODE_UNKNOWN) {
+            // Func-keyup always closes the entire program selection & func-menu
+            if (state->scanCodeKeyUp == BLIPR_KEY_FUNC || state->scanCodeKeyUp == BLIPR_KEY_SHIFT_3) {
+                pthread_mutex_lock(&state->mutex);
+                state->isTrackSelectionActive = false;
+                state->isPatternSelectionActive = false;
+                state->isSequenceSelectionActive = false;
+                state->isConfigurationModeActive = false;
+                state->isProgramSelectionActive = false;
+                state->isTrackOptionsActive = false;
+                state->isPatternAndSequenceOptionsActive = false;
+                state->isUtilitiesActive = false;
+                pthread_mutex_unlock(&state->mutex);
+                resetConfigurationScreen();
+            } else if (state->scanCodeKeyUp == BLIPR_KEY_SHIFT_2) {
+                resetSequencerSelectedStep();
+            }
+            
+            // Reset flag:
+            pthread_mutex_lock(&state->mutex);
+            state->keyStates[state->scanCodeKeyUp] = false;
+            state->scanCodeKeyUp = SDL_SCANCODE_UNKNOWN;
+            state->isRenderRequired = true;
+            pthread_mutex_unlock(&state->mutex);
+        }
     }
-
-    SDL_DestroyTexture(renderTarget);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(win);
-    SDL_Quit();
-
-    cleanupTextures();
-
-    return NULL;
 }
-*/
 
 /**
  * Main loop
@@ -355,39 +510,15 @@ int main(int argc, char *argv[]) {
 
     initializeTextures();
 
-    // Flag to determine if the app should quit:
-    // bool quit = false;
-    // calculateMicroSecondsPerPulse();
-
-    // Clock:
-    // struct timespec prevTime, nowTime, measureTime;
-    // clock_gettime(CLOCK_MONOTONIC, &nowTime);
-    // prevTime = nowTime;
-
-    // Event handler
-    // SDL_Event e;
-
-    // Triggs:
-    // bool isClockResetRequired = false;
-    // bool isRenderRequired = false;
-
-    // Counters:
-    // int ppqnCounter = 0;
-
-    // Array to keep track of key states
-    // bool keyStates[SDL_NUM_SCANCODES] = {false};
-    // int keyRepeatCounter = 0;
-    // int keyRepeats = 0;
-
     // Multi threading:
     SharedState state;
     initSharedState(&state);
 
-    pthread_t seqThreadId; //, uiThreadId;
+    pthread_t seqThreadId, keyThreadId;
 
-    // Create threads
+    // Create threads for sequencer and key input
     pthread_create(&seqThreadId, NULL, sequencerThread, &state);
-    // pthread_create(&uiThreadId, NULL, uiThread, &state);
+    pthread_create(&keyThreadId, NULL, keyThread, &state);
 
     // Wait for threads (in practice, you'd have a way to exit cleanly)
     // pthread_join(seqThreadId, NULL);
@@ -480,12 +611,88 @@ int main(int argc, char *argv[]) {
 
     // While application is running
     while(!state.quit) {
-        // Handle events on queue
+        // Delegate keyboard events to the right thread:
         while(SDL_PollEvent(&e) != 0 ) {
+            if (e.type == SDL_KEYDOWN) {
+                pthread_mutex_lock(&state.mutex);
+                state.scanCodeKeyDown = e.key.keysym.scancode;
+                pthread_mutex_unlock(&state.mutex);
+            } else if (e.type == SDL_KEYUP) {
+                pthread_mutex_lock(&state.mutex);
+                state.scanCodeKeyUp = e.key.keysym.scancode;
+                pthread_mutex_unlock(&state.mutex);
+            }
+        }
+
+        // Determine if rendering should take place:
+        if (state.isRenderRequired) {
+            // Set the render target to our texture
+            SDL_SetRenderTarget(renderer, renderTarget);
+            // Clear the render target
+            SDL_SetRenderDrawColor(renderer, COLOR_BLACK.r, COLOR_BLACK.g, COLOR_BLACK.b, 255);
+            SDL_RenderClear(renderer);
+
+            // BPM Blinker:
+            drawBPMBlinker(&state.ppqnCounter);
+
+            // Sequence, pattern and track number (replace with real numbers):
+            drawText(WIDTH - 54, 4, "S00P00T00", 60, COLOR_GRAY);
+
+            // Basic Grid:
+            drawBasicGrid(state.keyStates);
+            
+            // Render proper screen / program / menu:
+            if (state.isTrackSelectionActive) {
+                drawTrackSelection(&state.selectedTrack);
+            } else if (state.isPatternSelectionActive) {
+                drawPatternSelection(&state.selectedPattern);
+            } else if (state.isSequenceSelectionActive) {
+                drawSequenceSelection(&state.selectedPattern);
+            } else if (state.isConfigurationModeActive) {
+                drawConfigSelection(state.project);
+            } else if (state.isTrackOptionsActive) {
+                drawTrackOptions(state.track);
+            } else if (state.isProgramSelectionActive) {
+                drawProgramSelection(state.track);
+            } else if (state.isPatternAndSequenceOptionsActive) {
+                drawCenteredLine(2, 61, "(PAT&SEQ OPTIONS)", TITLE_WIDTH, COLOR_WHITE);      
+            } else if (state.isUtilitiesActive) {
+                drawCenteredLine(2, 61, "(UTILITIES)", TITLE_WIDTH, COLOR_WHITE);      
+            } else {
+                // Draw the program associated with this Track:
+                switch (state.track->program) {
+                    case BLIPR_PROGRAM_NONE:
+                        drawCenteredLine(2, 61, "(NO PROGRAM)", TITLE_WIDTH, COLOR_WHITE);      
+                        break;
+                    case BLIPR_PROGRAM_SEQUENCER:
+                        drawSequencer(&state.ppqnCounter, state.track);
+                        break;
+                    case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
+                        drawFourOnTheFloor(&state.ppqnCounter, state.track);
+                        break;
+                }
+            }
+
+            // Clear the renderer:
+            SDL_SetRenderTarget(renderer, NULL);
+
+            // Draw the scaled-up texture to the screen
+            SDL_Rect destRect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+            if (isScreenRotated) {
+                SDL_RenderCopyEx(renderer, renderTarget, NULL, &destRect, 180.0, NULL, SDL_FLIP_NONE);
+            } else {
+                SDL_RenderCopy(renderer, renderTarget, NULL, &destRect);
+            }
+
+            // Render:
+            SDL_RenderPresent(renderer);
+            
+            // Reset flag:
             pthread_mutex_lock(&state.mutex);
-            state.scanCode = e.key.keysym.scancode;
+            state.isRenderRequired = false;
             pthread_mutex_unlock(&state.mutex);
         }
+
         /*    
 
         // Handle events on queue
@@ -710,21 +917,6 @@ int main(int argc, char *argv[]) {
 
         // Drawing magic:
         if (isRenderRequired) {
-            // Set the render target to our texture
-            SDL_SetRenderTarget(renderer, renderTarget);
-            // Clear the render target
-            SDL_SetRenderDrawColor(renderer, COLOR_BLACK.r, COLOR_BLACK.g, COLOR_BLACK.b, 255);
-            SDL_RenderClear(renderer);
-
-            // BPM Blinker:
-            drawBPMBlinker(&ppqnCounter);
-
-            // Sequence, pattern and track number (replace with real numbers):
-            drawText(WIDTH - 54, 4, "S00P00T00", 60, COLOR_GRAY);
-
-            // Basic Grid:
-            drawBasicGrid(keyStates);
-
             // Configuration mode:
             if (isTrackSelectionActive) {
                 drawTrackSelection(&selectedTrack);
@@ -757,19 +949,6 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            // Clear the renderer:
-            SDL_SetRenderTarget(renderer, NULL);
-
-            // Draw the scaled-up texture to the screen
-            SDL_Rect destRect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
-            if (isScreenRotated) {
-                SDL_RenderCopyEx(renderer, renderTarget, NULL, &destRect, 180.0, NULL, SDL_FLIP_NONE);
-            } else {
-                SDL_RenderCopy(renderer, renderTarget, NULL, &destRect);
-            }
-
-            // Render:
-            SDL_RenderPresent(renderer);
             isRenderRequired = false;
 
             if (isTimeMeasured) {
@@ -796,24 +975,14 @@ int main(int argc, char *argv[]) {
     */
     }
 
+    cleanupTextures();
     SDL_DestroyTexture(renderTarget);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(win);
     SDL_Quit();
 
+    writeProjectFile(state.project, projectFile);
     cleanupSharedState(&state);
-
-    /*
-    writeProjectFile(project, projectFile);
-    free(project);
-
-    for (int i=0; i<4; i++) {
-        Pm_Close(outputStream[i]);
-    }
-
-    Pm_Terminate();
-    */
-    cleanupTextures();
     
     return 0;
 }
