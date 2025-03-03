@@ -531,9 +531,10 @@ int main(int argc, char *argv[]) {
     SharedState state;
     initSharedState(&state);
 
-    pthread_t seqThreadId, keyThreadId;
+    pthread_t timerThreadId, seqThreadId, keyThreadId;
 
     // Create threads for sequencer and key input
+    pthread_create(&timerThreadId, NULL, timerThread, &state);
     pthread_create(&seqThreadId, NULL, sequencerThread, &state);
     pthread_create(&keyThreadId, NULL, keyThread, &state);
 
