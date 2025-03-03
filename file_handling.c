@@ -2,26 +2,27 @@
 #include <stdlib.h>
 #include "file_handling.h"
 #include "project.h"
+#include "print.h"
 
 /**
  * Save project to file
  */
 void writeProjectFile(struct Project *project, const char *fileName) {
     FILE *file = fopen(fileName, "w");
-    
+
     if (file == NULL) {
-        printf("Error opening file for writing!\n");
+        printError("Error opening file for writing!");
         return;
     }
 
     unsigned char *arr = malloc(PROJECT_BYTE_SIZE);
     projectToByteArray(project, arr);
 
-    printf("Saving project \"%s\"...\n", project->name);
+    printLog("Saving project \"%s\"...", project->name);
     fwrite(arr, PROJECT_BYTE_SIZE, 1, file);
     free(arr);
     fclose(file);
-    printf("Saved project file.\n");
+    printLog("Saved project file.");
 }
 
 /**
@@ -33,7 +34,7 @@ struct Project* readProjectFile(const char *fileName) {
     // Open file
     file = fopen(fileName, "rb");
     if (file == NULL) {
-        printf("Error opening file\n");
+        printError("Error opening file");
         return NULL;
     }
 
@@ -42,14 +43,14 @@ struct Project* readProjectFile(const char *fileName) {
     fclose(file);
 
     if (bytesRead != PROJECT_BYTE_SIZE) {
-        printf("Error reading file: unexpected file size\n");
+        printError("Error reading file: unexpected file size");
         return NULL;
     }
 
     struct Project* project = byteArrayToProject(arr);
     free(arr);
     if (project == NULL) {
-        printf("Failed to create project from byte array\n");
+        printError("Failed to create project from byte array");
         exit(1);
     }
 
