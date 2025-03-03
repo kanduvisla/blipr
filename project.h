@@ -32,7 +32,7 @@ struct Note {
     bool enabled;               // If this note is enabled
     unsigned char note;         // byte representation of note C-5, D#3, etc.
     unsigned char velocity;     // 0-127          
-    char nudge;                 // -63 - 63
+    char nudge;                 // -23 - +23
     unsigned char trigg;        // Trigg condition
     unsigned char length;       // Length
     unsigned char cc1Value;     // CC1 Value
@@ -69,6 +69,7 @@ struct Track {
     unsigned char speed;
     // Not saved, used internally:
     unsigned char selectedPage;
+    unsigned char selectedPageBank;
     unsigned char queuedPage; 
     // Steps are only used for the "Sequencer"-program
     struct Step steps[64];
@@ -118,5 +119,10 @@ struct Project* byteArrayToProject(const unsigned char bytes[PROJECT_BYTE_SIZE])
  * Initialize an empty project
  */
 void initializeProject(struct Project* project);
+
+/**
+ * Get polyphony count for a given track
+ */
+int getPolyCount(struct Track* track);
 
 #endif

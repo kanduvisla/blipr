@@ -119,7 +119,7 @@ static void handleKey(
     if (key == BLIPR_KEY_14) { note->cc1Value = MIN(127, note->cc1Value + 1); } else 
     if (key == BLIPR_KEY_15) { note->cc2Value = MAX(0, note->cc2Value - 1); } else 
     if (key == BLIPR_KEY_16) { note->cc2Value = MIN(127, note->cc2Value + 1); }
-} 
+}
 
 /**
  * Update the sequencer according to user input
@@ -134,15 +134,49 @@ void updateSequencer(
         if (index >= 0) {
             // Toggle velocity
             toggleVelocity(&selectedTrack->steps[index]);
+        } else {
+            // this is one of the bottom buttons, change page bank, for poly 2 to 8, this is:
+            // A=page 1,2,3,4       (bank 0)
+            // B=page 5,6,7,8       (bank 1)
+            // C=page 9,10,11,12    (bank 2)
+            // D=page 13,14,15,16   (bank 3)
+            // for monophonic (512 steps = 32 pages, this is)
+            // A=page 1,2,3,4       / 5,6,7,8       (bank 0 & 4)
+            // B=page 9,10,11,12    / 13,14,15,16   (bank 1 & 5)
+            // C=page 17,18,19,20   / 21,22,23,24   (bank 2 & 6)
+            // D=page 25,26,27,28   / 29,30,31,32   (bank 3 & 7)
+            if (getPolyCount(selectedTrack) == 1) {
+                if (key == BLIPR_KEY_A) { selectedTrack->selectedPageBank == 0 ? 4 : 0; } else
+                if (key == BLIPR_KEY_B) { selectedTrack->selectedPageBank == 1 ? 5 : 1; } else
+                if (key == BLIPR_KEY_C) { selectedTrack->selectedPageBank == 2 ? 6 : 2; } else
+                if (key == BLIPR_KEY_D) { selectedTrack->selectedPageBank == 3 ? 7 : 3; }
+            } else {
+                if (key == BLIPR_KEY_A) { selectedTrack->selectedPageBank = 0; } else
+                if (key == BLIPR_KEY_B) { selectedTrack->selectedPageBank = 1; } else
+                if (key == BLIPR_KEY_C) { selectedTrack->selectedPageBank = 2; } else
+                if (key == BLIPR_KEY_D) { selectedTrack->selectedPageBank = 3; }
+            }
         }
     } else if(keyStates[BLIPR_KEY_SHIFT_2]) {
         // Update selected note or page:
-        if (index >= 0) {
-            if (selectedStep == -1) {
-                selectedStep = index;
-            } else {
-                handleKey(selectedTrack, key);
+        if (index >= 0 && selectedStep == -1) {
+            // Select step
+            selectedStep = index;
+        } else if (selectedStep == -1) {
+            // No step selected, but also no index, so this is one of the bottom buttons
+            // Change selected note:
+            if (key == BLIPR_KEY_A) { 
+                selectedNote = MAX(0, selectedNote - 1); 
+            } else if (key == BLIPR_KEY_B) { 
+                selectedNote = MIN(getPolyCount(selectedTrack) - 1, selectedNote + 1); 
+            } else if (key == BLIPR_KEY_C) {
+                // TODO: Copy (once=copy note, twice=copy step)
+            } else if (key == BLIPR_KEY_D) {
+                // TODO: Paste
             }
+        } else {
+            // Handle key input with selected step
+            handleKey(selectedTrack, key);
         }
     } else if(key == BLIPR_KEY_A) {
         setSelectedPage(selectedTrack, 0);
@@ -153,6 +187,7 @@ void updateSequencer(
     } else if(key == BLIPR_KEY_D) {
         setSelectedPage(selectedTrack, 3);
     } else {
+        // Default stp pressed
         if (index >= 0) {
             // Toggle key
             toggleStep(&selectedTrack->steps[index]);
@@ -215,6 +250,7 @@ void runSequencer(
     int *ppqnCounter, 
     struct Track *selectedTrack
 ) {
+    // TODO: we need to run this every step, and do the modulo with the nudge property :-)
     // We always divide by 4, because there are four 16th notes in one quarter note:
     // TODO: Change this when resolution is increased:
     if (*ppqnCounter % (PPQN_MULTIPLIED / 4) == 0) {
@@ -240,6 +276,8 @@ void runSequencer(
         );
 
         struct Step *step = &selectedTrack->steps[trackStepIndex];
+        // Depending on polyphony, iterate over notes:
+
         struct Note *note = &step->notes[selectedNote];
         if (note->enabled) {
             sendMidiNoteOn(outputStream, selectedTrack->midiChannel, note->note, note->velocity);

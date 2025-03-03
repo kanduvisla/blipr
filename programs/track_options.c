@@ -23,14 +23,6 @@ char midiDeviceToCharacter(int midiDevice) {
     return ' ';
 }
 
-int getPolyCount(struct Track* track) {
-    int polyCount = 8;
-    if (track->polyCount == 1) { polyCount = 4; } else
-    if (track->polyCount == 2) { polyCount = 2; } else
-    if (track->polyCount == 3) { polyCount = 1; }
-    return polyCount;
-}
-
 void drawTrackOptions(struct Track* track) {
     // Title:
     drawCenteredLine(2, 133, "TRACK OPTIONS", TITLE_WIDTH, COLOR_WHITE);
