@@ -157,6 +157,9 @@ Each pattern has 64 steps, divided in 4 pages. Each step can have up to 8 notes.
         - 11-12 : Increase / decrease trig condition
         - 13-14 : Increase / decrease CC1 value
         - 15-16 : Increase / decrease CC2 value
+        - A-B   : (For polyphony) Channel -/+
+        - C     : Copy Note (2x to copy entire step/all notes on step)
+        - D     : Paste Note/Step
 - ABCD  : ✅ Select page for playing (or next in queue, depending on page play mode)
     - ✅ When pages are playing after each other (play mode), this button selects which page to edit
     - ✅ When page play mode is repeat page, this button queues the next page

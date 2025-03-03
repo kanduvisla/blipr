@@ -73,7 +73,7 @@ void drawConfigSelection(struct Project *project) {
 /**
  * Set the midi device name on the project
  */
-void setMidiDeviceName(struct Project *project, int indexInList, int deviceOnProject) {
+void setMidiDeviceName(struct Project *project, int deviceOnProject, int indexInList) {
     int num_devices = Pm_CountDevices();
     int j = 0;
     for (int i = 0; i < num_devices; i++) {
