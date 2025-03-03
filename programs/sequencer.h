@@ -115,7 +115,8 @@ void runSequencer(
  * Draw the sequencer
  */
 void drawSequencer(
-    int *ppqnCounter, 
+    int *ppqnCounter,
+    bool keyStates[SDL_NUM_SCANCODES],
     struct Track *track
 );
 

@@ -118,7 +118,12 @@ static void handleKey(
     if (key == BLIPR_KEY_13) { note->cc1Value = MAX(0, note->cc1Value - 1); } else 
     if (key == BLIPR_KEY_14) { note->cc1Value = MIN(127, note->cc1Value + 1); } else 
     if (key == BLIPR_KEY_15) { note->cc2Value = MAX(0, note->cc2Value - 1); } else 
-    if (key == BLIPR_KEY_16) { note->cc2Value = MIN(127, note->cc2Value + 1); }
+    if (key == BLIPR_KEY_16) { note->cc2Value = MIN(127, note->cc2Value + 1); } else 
+    if (key == BLIPR_KEY_C) {
+        // TODO: Copy (once=copy note, twice=copy step)
+    } else if (key == BLIPR_KEY_D) {
+        // TODO: Paste
+    }
 }
 
 /**
@@ -169,10 +174,6 @@ void updateSequencer(
                 selectedNote = MAX(0, selectedNote - 1); 
             } else if (key == BLIPR_KEY_B) { 
                 selectedNote = MIN(getPolyCount(selectedTrack) - 1, selectedNote + 1); 
-            } else if (key == BLIPR_KEY_C) {
-                // TODO: Copy (once=copy note, twice=copy step)
-            } else if (key == BLIPR_KEY_D) {
-                // TODO: Paste
             }
         } else {
             // Handle key input with selected step
@@ -294,6 +295,7 @@ void runSequencer(
  */
 void drawSequencerMain(
     int *ppqnCounter, 
+    bool keyStates[SDL_NUM_SCANCODES],
     struct Track *selectedTrack
 ) {
     // Outline currently active step:
@@ -380,8 +382,45 @@ void drawSequencerMain(
     }   
 
     // ABCD Buttons:
-    char descriptions[4][4] = {"A.1", "B.1", "C.1", "D.1"};
-    drawABCDButtons(descriptions);
+    if (keyStates[BLIPR_KEY_SHIFT_1]) {
+        // Show page bank numbers:
+        int polyCount = getPolyCount(selectedTrack);
+        if (polyCount == 1) {
+            char descriptions[4][4] = {"1/5", "2/6", "3/7", "4/8"};
+            drawABCDButtons(descriptions);
+        } else if (polyCount == 2) {
+            char descriptions[4][4] = {"1", "2", "3", "4"};
+            drawABCDButtons(descriptions);    
+        } else if (polyCount == 4) {
+            char descriptions[4][4] = {"1", "2", "-", "-"};
+            drawABCDButtons(descriptions);    
+        } else {
+            // 8 poly only has 1 page bank
+            char descriptions[4][4] = {"1", "-", "-", "-"};
+            drawABCDButtons(descriptions);    
+        }
+    } else if (keyStates[BLIPR_KEY_SHIFT_2] && selectedStep >= 0) {
+        // Step selected, show copy paste options:
+        char descriptions[4][4] = {"-", "-", "CPY", "PST"};
+        drawABCDButtons(descriptions);
+    } else {
+        // Page numbers:
+        char descriptions[4][4] = {"P00", "P00", "P00", "P00"};
+        int startPage = (selectedTrack->selectedPageBank * 4) + 1;
+        
+        // Fill the descriptions array
+        for (int i = 0; i < 4; i++) {
+            int pageNumber = startPage + i;
+            // Format with leading zero if needed
+            if (pageNumber < 10) {
+                sprintf(descriptions[i], "P0%d", pageNumber);
+            } else {
+                sprintf(descriptions[i], "P%d", pageNumber);
+            }
+        }
+
+        drawABCDButtons(descriptions);
+    }
 }
 
 /**
@@ -463,10 +502,11 @@ void drawStepEditor(struct Step *step) {
 
 void drawSequencer(
     int *ppqnCounter, 
+    bool keyStates[SDL_NUM_SCANCODES],
     struct Track *selectedTrack
 ) {
     if (selectedStep == -1) {
-        drawSequencerMain(ppqnCounter, selectedTrack);
+        drawSequencerMain(ppqnCounter, keyStates, selectedTrack);
     } else {
         drawStepEditor(&selectedTrack->steps[selectedStep]);
     }

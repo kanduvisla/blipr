@@ -596,7 +596,7 @@ int main(int argc, char *argv[]) {
                         drawCenteredLine(2, 61, "(NO PROGRAM)", TITLE_WIDTH, COLOR_WHITE);      
                         break;
                     case BLIPR_PROGRAM_SEQUENCER:
-                        drawSequencer(&state.ppqnCounter, state.track);
+                        drawSequencer(&state.ppqnCounter, state.track, state.keyStates);
                         break;
                     case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
                         drawFourOnTheFloor(&state.ppqnCounter, state.track);
