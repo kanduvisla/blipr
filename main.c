@@ -84,27 +84,29 @@ bool checkFlag(int argc, char *argv[], char *flag) {
 typedef struct {
     struct Project *project;
     struct Track* track;
-    int ppqnCounter;
+    int unprocessedPulses;              // Pulses are count with unprocessed pulses in the clock thread.
+    int ppqnCounter;                    // The ppqn counter is kept in the sequencer track in conjunction with the unprocessedPulses counter. This way skipped pulses can be caught.
     bool isRenderRequired;
-    bool keyStates[SDL_NUM_SCANCODES]; // = {false};
+    bool keyStates[SDL_NUM_SCANCODES];
+    bool isSetupMidiDevicesRequired;    // Boolean flag to determine if midi devices needs to be set-up (required after changing midi assignment)
     // TODO: Maybe visible screen can be an enum?
-    bool isTrackOptionsActive; // = false;
-    bool isProgramSelectionActive; // = false;
-    bool isPatternAndSequenceOptionsActive; // = false;
-    bool isUtilitiesActive; // = false;
-    bool isConfigurationModeActive; // = false;
-    bool isTransportSelectionActive; // = false;
-    bool isTrackSelectionActive; // = false;
-    bool isPatternSelectionActive; // = false;
-    bool isSequenceSelectionActive; // = false;
+    bool isTrackOptionsActive;
+    bool isProgramSelectionActive;
+    bool isPatternAndSequenceOptionsActive;
+    bool isUtilitiesActive;
+    bool isConfigurationModeActive;
+    bool isTransportSelectionActive;
+    bool isTrackSelectionActive;
+    bool isPatternSelectionActive;
+    bool isSequenceSelectionActive;
     bool quit;
     int64_t nanoSecondsPerPulse;
     SDL_Scancode scanCodeKeyDown;
     SDL_Scancode scanCodeKeyUp;
 
-    int selectedTrack; // = 0;
-    int selectedPattern; // = 0;
-    int selectedSequence; // = 0;
+    int selectedTrack;
+    int selectedPattern;
+    int selectedSequence;
     
     // Synchronization primitives
     pthread_mutex_t mutex;
@@ -113,11 +115,15 @@ typedef struct {
 
 // Initialize shared state
 void initSharedState(SharedState* state) {
+    state->unprocessedPulses = 0;
     state->ppqnCounter = 0;
+
     state->isRenderRequired = false;
     for (int i=0; i<SDL_NUM_SCANCODES; i++) {
         state->keyStates[i] = false;
     }
+    state->isSetupMidiDevicesRequired = true;
+
     state->isTrackOptionsActive = false;
     state->isProgramSelectionActive = false;
     state->isPatternAndSequenceOptionsActive = false;
@@ -127,6 +133,7 @@ void initSharedState(SharedState* state) {
     state->isTrackSelectionActive = false;
     state->isPatternSelectionActive = false;
     state->isSequenceSelectionActive = false;
+    
     state->selectedTrack = 0;
     state->selectedPattern = 0;
     state->selectedSequence = 0;
@@ -167,56 +174,17 @@ void cleanupSharedState(SharedState* state) {
     pthread_cond_destroy(&state->cond);
 }
 
-// Sequencer thread function
-void* sequencerThread(void* arg) {
+/**
+ * Thread dedicated to timing
+ */
+void* timerThread(void *arg) {
     SharedState* state = (SharedState*)arg;
 
     // Timing for sequencer:
     struct timespec prevTime, nowTime, measureTime;
     clock_gettime(CLOCK_MONOTONIC, &nowTime);
     prevTime = nowTime;
-    bool isClockResetRequired = false;
 
-    // Setup Midi:
-    PmStream *outputStream[4]; // 4 streams, for A, B, C and D
-    int midiDevice[4];          // 4 midi devices, for A, B, C and D
-
-    // Setup Midi devices:
-    for (int i=0; i<4; i++) {
-        char* midiDeviceName;
-        switch (i) {
-            case 0:
-                midiDeviceName = state->project->midiDeviceAName;
-                break;
-            case 1:
-                midiDeviceName = state->project->midiDeviceBName;
-                break;
-            case 2:
-                midiDeviceName = state->project->midiDeviceCName;
-                break;
-            case 3:
-                midiDeviceName = state->project->midiDeviceDName;
-                break;
-        }
-
-        if (strcmp(midiDeviceName, "") == 0) {
-            printLog("No midi output device set for slot %d", i);
-            continue;
-        }
-
-        midiDevice[i] = getOutputDeviceIdByDeviceName(midiDeviceName);
-        if (midiDevice[i] != -1) {
-            printLog("Configured midi output device: %d", midiDevice[i]);
-            openMidiOutput(midiDevice[i], &outputStream[i]);
-            if (outputStream[i] == NULL) {
-                printError("Unable to open output stream for this device");
-            }
-        } else {
-            printError("Midi device not found: %s", midiDeviceName);
-        }
-    }
-
-    // Sequencer logic:
     while (!state->quit) {
         // Calculate with monotonic clock:
         clock_gettime(CLOCK_MONOTONIC, &nowTime);
@@ -224,16 +192,84 @@ void* sequencerThread(void* arg) {
         int64_t startNs = elapsedNs;
 
         if (elapsedNs > state->nanoSecondsPerPulse) {
-            isClockResetRequired = true;
             pthread_mutex_lock(&state->mutex);
-            state->ppqnCounter += 1;
+            state->unprocessedPulses += 1;
+            pthread_mutex_unlock(&state->mutex);
+
+            // Reset clock:
+            clock_gettime(CLOCK_MONOTONIC, &prevTime);
+        }
+    }
+}
+
+/**
+ * Sequencer thread
+ */
+void* sequencerThread(void* arg) {
+    SharedState* state = (SharedState*)arg;
+
+    // Setup Midi:
+    PmStream *outputStream[4]; // 4 streams, for A, B, C and D
+    int midiDevice[4];          // 4 midi devices, for A, B, C and D
+
+    // Sequencer loop:
+    while (!state->quit) {
+        if (state->isSetupMidiDevicesRequired) {
+            // Setup Midi devices:
+            for (int i=0; i<4; i++) {
+                char* midiDeviceName;
+                switch (i) {
+                    case 0:
+                        midiDeviceName = state->project->midiDeviceAName;
+                        break;
+                    case 1:
+                        midiDeviceName = state->project->midiDeviceBName;
+                        break;
+                    case 2:
+                        midiDeviceName = state->project->midiDeviceCName;
+                        break;
+                    case 3:
+                        midiDeviceName = state->project->midiDeviceDName;
+                        break;
+                }
+
+                if (strcmp(midiDeviceName, "") == 0) {
+                    printLog("No midi output device set for slot %d", i);
+                    continue;
+                }
+
+                midiDevice[i] = getOutputDeviceIdByDeviceName(midiDeviceName);
+                if (midiDevice[i] != -1) {
+                    printLog("Configured midi output device: %d", midiDevice[i]);
+                    openMidiOutput(midiDevice[i], &outputStream[i]);
+                    if (outputStream[i] == NULL) {
+                        printError("Unable to open output stream for this device");
+                    }
+                } else {
+                    printError("Midi device not found: %s", midiDeviceName);
+                }
+            }
+
+            pthread_mutex_lock(&state->mutex);
+            state->isSetupMidiDevicesRequired = false;
+            pthread_mutex_unlock(&state->mutex);
+        }
+
+        if (state->unprocessedPulses > 0) {
+            pthread_mutex_lock(&state->mutex);
+            state->ppqnCounter += state->unprocessedPulses;
+            int unprocessedPulses = state->unprocessedPulses;
+            state->unprocessedPulses = 0;
             pthread_mutex_unlock(&state->mutex);
 
             // Send Midi Clock:
             for (int i=0; i<4; i++) { 
                 if (outputStream[i] != NULL) {
-                    // Calculate back using the multiplier, otherwise the clock is too fast:
-                    if (state->ppqnCounter % PPQN_MULTIPLIER == 0) {
+                    // Calculate back using the multiplier, otherwise the clock is too fast
+                    // If ppqnCounter = 24, and 24 % 24 = 0, then the midi clock will be sent.
+                    // But if step 24 was skipped, and the inprocessedPulses was +2, then it could be that ppqnCounter % 24 == 1 and still a midi clock tick is required.
+                    // So it should not be checked with 0, but with unprocessed pulses - 1, so if unprocessed pulses is 3 for example, the modulo check is (3-1) = 2.
+                    if (state->ppqnCounter % PPQN_MULTIPLIER == unprocessedPulses - 1) {
                         sendMidiClock(outputStream[i]);
                     } 
                 }
@@ -258,15 +294,13 @@ void* sequencerThread(void* arg) {
             // Check for render trigger:
             if (state->ppqnCounter % PPQN == 0) {
                 pthread_mutex_lock(&state->mutex);
+                // Keep pulses within bounds:
                 if (state->ppqnCounter >= MAX_PULSES) {
-                    state->ppqnCounter = 0;
+                    state->ppqnCounter = state->ppqnCounter % MAX_PULSES;   // Don't basically set to 0, because we might have skipped pulses in here.
                 }
                 state->isRenderRequired = true;
                 pthread_mutex_unlock(&state->mutex);
             }
-
-            // Reset clock:
-            clock_gettime(CLOCK_MONOTONIC, &prevTime);
         }
     }
 
@@ -343,7 +377,10 @@ void* keyThread(void* arg) {
                 } else if (state->isSequenceSelectionActive) {
                     updateSequenceSelection(&state->selectedSequence, state->scanCodeKeyDown);
                 } else if (state->isConfigurationModeActive) {
-                    updateConfiguration(state->project, state->scanCodeKeyDown);
+                    bool reloadMidi = updateConfiguration(state->project, state->scanCodeKeyDown);
+                    if (reloadMidi) {
+                        state->isSetupMidiDevicesRequired = true;
+                    }
                 } else if (state->isTransportSelectionActive) {
                     // TODO
                 }
