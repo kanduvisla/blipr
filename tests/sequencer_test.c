@@ -47,6 +47,14 @@ void testCalculateTrackStepIndex() {
     assert(calculateTrackStepIndex(65, 12, 64, PAGE_PLAY_MODE_REPEAT) == 85);
 }
 
+void testTrigConditions() {
+    // What is required for a trig condition?
+    // Total steps counter
+    // Track length (so we can calculate how many times the step has been played)
+    
+}
+
 void testSequencer() {
     testCalculateTrackStepIndex();
+    testTrigConditions();
 }

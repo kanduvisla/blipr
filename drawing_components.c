@@ -33,7 +33,7 @@ void drawSequencerButton(int x, int y, int width, int height, bool isActive) {
 /**
  * Draw the BPM Blinker
  */
-void drawBPMBlinker(int *ppqnCounter) {
+void drawBPMBlinker(uint64_t *ppqnCounter) {
     float p = (float)(*ppqnCounter % (PPQN_MULTIPLIED)) / (float)(PPQN_MULTIPLIED);
     int r = 255 * (1-p);
 

@@ -2,8 +2,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-// Renderer:
+// Globals that are required for compiling (but not used in the tests):
 SDL_Renderer *renderer = NULL;
+bool isMidiDataLogged = false;
 
 // --- Assertion methods:
 

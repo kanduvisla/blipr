@@ -54,7 +54,7 @@ Basically the functionality for all programs is identical, with the following ma
     - When holding Shift3, ABCD is for different options:
         - A     : Track Options
             - 1     : Change track play mode (continuous or by page)
-            - 2     : Change poly
+            - 2     : Change track polyphony (8, 4, 2, 1)
             - 3-4   : ✅ Increase / decrease track / page length (depending on play mode)
             - 5-6   : Increase / decrease track speed (default=0 / default speed)
             - 7-8   : ✅ Set page size (1-16)

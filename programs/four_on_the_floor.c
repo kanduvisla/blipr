@@ -13,7 +13,7 @@ static bool isNotePlaying = false;
  */
 void runFourOnTheFloor(
     PmStream *outputStream,
-    int *ppqnCounter, 
+    uint64_t *ppqnCounter, 
     struct Track *selectedTrack
 ) {
     // Very basic program, just send a note every beat (whole note)
@@ -30,7 +30,7 @@ void runFourOnTheFloor(
  * Draw FOTF
  */
 void drawFourOnTheFloor(
-    int *ppqnCounter, 
+    uint64_t *ppqnCounter, 
     struct Track *track
 ) {
     // Draw foot, stomping on the floor

@@ -26,7 +26,7 @@ SRCS = print.c \
 OBJS = $(SRCS:.c=.o)
 
 TEST_TARGET = build/test_blipr
-TEST_SRCS = $(SRCS:main.c=tests/main_test.c) #project.c programs/sequencer.c tests/main_test.c
+TEST_SRCS = $(SRCS:main.c=tests/main_test.c)
 TEST_OBJS = $(TEST_SRCS:.c=.o)
 
 # Debug build settings

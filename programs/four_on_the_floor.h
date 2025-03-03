@@ -23,7 +23,7 @@
  */
 void runFourOnTheFloor(
     PmStream *outputStream,
-    int *ppqnCounter, 
+    uint64_t *ppqnCounter, 
     struct Track *selectedTrack
 );
 
@@ -31,7 +31,7 @@ void runFourOnTheFloor(
  * Draw FOTF
  */
 void drawFourOnTheFloor(
-    int *ppqnCounter, 
+    uint64_t *ppqnCounter, 
     struct Track *track
 );
 

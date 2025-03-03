@@ -16,10 +16,11 @@
 #define GRID_UNIT 1
 
 // Pulse per quarter note
-#define PPQN 24
-#define PPQN_MULTIPLIER 4                           // Multiplier for PPQN, so the in-app pulse counter can have more steps
-#define PPQN_MULTIPLIED (PPQN * PPQN_MULTIPLIER)
-#define MAX_PULSES (PPQN_MULTIPLIED * 512)          // Max amount of steps in a track can be 512
+#define PPQN 24                                     // Pulses per quarter note, so this is 1 - 5 - 9 - 13
+#define PPQN_MULTIPLIER 1                           // Multiplier for PPQN, so the in-app pulse counter can have more steps
+#define PPQN_MULTIPLIED (PPQN * PPQN_MULTIPLIER)    // Multiplied PPQN (higher resolution)
+#define PP16N (PPQN_MULTIPLIED / 4)                 // Pulses per 16th note (1 step)
+#define MAX_PULSES (PP16N * 512)                    // Max amount of steps in a track can be 512
 
 // Macros
 #define MAX(a,b) ((a) > (b) ? (a) : (b))

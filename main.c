@@ -49,14 +49,14 @@ PmStream *input_stream;
 // PmStream *outputStream[4]; // 4 streams, for A, B, C and D
 // int midiDevice[4];          // 4 midi devices, for A, B, C and D
 
-int64_t calculateMicroSecondsPerPulse(int bpm) {
+uint64_t calculateMicroSecondsPerPulse(int bpm) {
     double beatsPerSecond = bpm / 60.0;
     double secondsPerQuarterNote = 1.0 / beatsPerSecond;
-    int64_t nanoSecondsPerQuarterNote = secondsPerQuarterNote * NANOS_PER_SEC;
+    uint64_t nanoSecondsPerQuarterNote = secondsPerQuarterNote * NANOS_PER_SEC;
     return nanoSecondsPerQuarterNote / PPQN_MULTIPLIED;
 }
 
-int64_t getTimespecDiffInNanoSeconds(struct timespec *start, struct timespec *end) {
+uint64_t getTimespecDiffInNanoSeconds(struct timespec *start, struct timespec *end) {
     struct timespec temp;
     if ((end->tv_nsec - start->tv_nsec) < 0) {
         temp.tv_sec = end->tv_sec - start->tv_sec - 1;
@@ -85,7 +85,7 @@ typedef struct {
     struct Project *project;
     struct Track* track;
     int unprocessedPulses;              // Pulses are count with unprocessed pulses in the clock thread.
-    int ppqnCounter;                    // The ppqn counter is kept in the sequencer track in conjunction with the unprocessedPulses counter. This way skipped pulses can be caught.
+    uint64_t ppqnCounter;                    // The ppqn counter is kept in the sequencer track in conjunction with the unprocessedPulses counter. This way skipped pulses can be caught.
     bool isRenderRequired;
     bool keyStates[SDL_NUM_SCANCODES];
     bool isSetupMidiDevicesRequired;    // Boolean flag to determine if midi devices needs to be set-up (required after changing midi assignment)
@@ -100,7 +100,7 @@ typedef struct {
     bool isPatternSelectionActive;
     bool isSequenceSelectionActive;
     bool quit;
-    int64_t nanoSecondsPerPulse;
+    uint64_t nanoSecondsPerPulse;
     SDL_Scancode scanCodeKeyDown;
     SDL_Scancode scanCodeKeyUp;
 
@@ -295,9 +295,11 @@ void* sequencerThread(void* arg) {
             if (state->ppqnCounter % PPQN == 0) {
                 pthread_mutex_lock(&state->mutex);
                 // Keep pulses within bounds:
+                /*
                 if (state->ppqnCounter >= MAX_PULSES) {
                     state->ppqnCounter = state->ppqnCounter % MAX_PULSES;   // Don't basically set to 0, because we might have skipped pulses in here.
                 }
+                */
                 state->isRenderRequired = true;
                 pthread_mutex_unlock(&state->mutex);
             }

@@ -30,7 +30,7 @@
 // Bit 1:   Enabled / Disabled
 // Bit 2:   Inversed / Not inversed (for example, Trig 4-4 = ...x, inversed = xxx.)
 // Bit 3-8: Mode (see list below, 64 modes in total)
-#define TRIG_1_2 0 // TRIG_2_1 is TRIG_1_1 inversed
+#define TRIG_1_2 0 // TRIG_2_2 is TRIG_1_2 inversed
 #define TRIG_1_3 1
 #define TRIG_2_3 2
 #define TRIG_3_3 3
@@ -84,6 +84,8 @@
 #define TRIG_LOWER_TRANSITION 51        // When transitioning to a lower pattern
 #define TRIG_LOWER_FIRST_PAGE 52       // When first entering a lower page
 #define TRIG_LOWER_TRANSITION_PAGE 53  // When transitioning to a lower page
+#define TRIG_FIRST_PAGE_PLAY 54         // Trigged when the page is played the 1st time (does not re-trig when the page is played a second time when coming back from another page)
+#define TRIG_FIRST_PATTERN_PLAY 55      // Trigged when the pattern is played the 1st time (does not re-trig when the pattern is played a second time when coming back from another pattern)
 
 /**
  * Update the sequencer according to user input
@@ -107,7 +109,7 @@ void checkSequencerForKeyRepeats(
  */
 void runSequencer(
     PmStream *outputStream,
-    int *ppqnCounter, 
+    uint64_t *ppqnCounter, 
     struct Track *selectedTrack
 );
 
@@ -115,7 +117,7 @@ void runSequencer(
  * Draw the sequencer
  */
 void drawSequencer(
-    int *ppqnCounter,
+    uint64_t *ppqnCounter,
     bool keyStates[SDL_NUM_SCANCODES],
     struct Track *track
 );
