@@ -375,9 +375,12 @@ void drawSequencerMain(
     int width = HEIGHT / 6;
     int height = width;
 
+    // print("ppqn: %d", *ppqnCounter);
+
     // Step indicator:
-    int pp16 = *ppqnCounter / 4;                            // pulses per 16th note (6 pulses idealy)
-    int stepCounter = pp16 / 6;
+    // int pp16 = *ppqnCounter / 4;                            // pulses per 16th note (6 pulses idealy)
+    // int stepCounter = pp16 / 6;
+    int stepCounter = *ppqnCounter / PP16N;
     int playingPage = 0;
 
     int trackStepIndex = calculateTrackStepIndex(

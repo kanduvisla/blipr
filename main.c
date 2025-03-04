@@ -292,7 +292,7 @@ void* sequencerThread(void* arg) {
             }
 
             // Check for render trigger:
-            if (state->ppqnCounter % PPQN == 0) {
+            if (state->ppqnCounter % PP16N == 0) {
                 pthread_mutex_lock(&state->mutex);
                 // Keep pulses within bounds:
                 /*
@@ -599,7 +599,7 @@ int main(int argc, char *argv[]) {
                         drawCenteredLine(2, 61, "(NO PROGRAM)", TITLE_WIDTH, COLOR_WHITE);      
                         break;
                     case BLIPR_PROGRAM_SEQUENCER:
-                        drawSequencer(&state.ppqnCounter, state.track, state.keyStates);
+                        drawSequencer(&state.ppqnCounter, state.keyStates, state.track);
                         break;
                     case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
                         drawFourOnTheFloor(&state.ppqnCounter, state.track);
