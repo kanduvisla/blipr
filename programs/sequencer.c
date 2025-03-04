@@ -171,9 +171,9 @@ void updateSequencer(
         } else if (selectedStep == -1) {
             // No step selected, but also no index, so this is one of the bottom buttons
             // Change selected note:
-            if (key == BLIPR_KEY_A) { 
+            if (key == BLIPR_KEY_C) { 
                 selectedNote = MAX(0, selectedNote - 1); 
-            } else if (key == BLIPR_KEY_B) { 
+            } else if (key == BLIPR_KEY_D) { 
                 selectedNote = MIN(getPolyCount(selectedTrack) - 1, selectedNote + 1); 
             }
         } else {
@@ -497,7 +497,7 @@ void runSequencer(
             struct Step *step = &selectedTrack->steps[currentTrackStepIndex];
             struct Note *note = &step->notes[i];
             // TODO: Add Trigg conditions
-            if (note->enabled && note->nudge == currentNudgeCheck) {
+            if (note->enabled && note->nudge == currentNudgeCheck && isNoteTrigged(note->trigg, selectedTrack->repeatCount)) {
                 // Play this note!
                 sendMidiNoteOn(outputStream, selectedTrack->midiChannel, note->note, note->velocity);
                 addNoteToTracker(outputStream, selectedTrack->midiChannel, note);            
@@ -508,7 +508,7 @@ void runSequencer(
                 step = &selectedTrack->steps[nextTrackStepIndex];
                 note = &step->notes[i];
                 // TODO: Add Trigg conditions
-                if (note->enabled && note->nudge == nextNudgeCheck) {
+                if (note->enabled && note->nudge == nextNudgeCheck && isNoteTrigged(note->trigg, selectedTrack->repeatCount)) {
                     // Play this note!
                     sendMidiNoteOn(outputStream, selectedTrack->midiChannel, note->note, note->velocity);
                     addNoteToTracker(outputStream, selectedTrack->midiChannel, note);
@@ -629,9 +629,9 @@ void drawSequencerMain(
             char descriptions[4][4] = {"1", "-", "-", "-"};
             drawABCDButtons(descriptions);    
         }
-    } else if (keyStates[BLIPR_KEY_SHIFT_2] && selectedStep >= 0) {
-        // Step selected, show copy paste options:
-        char descriptions[4][4] = {"-", "-", "CPY", "PST"};
+    } else if (keyStates[BLIPR_KEY_SHIFT_2]) {
+        // Note (for polyphony)
+        char descriptions[4][4] = {"-", "-", "<", ">"};
         drawABCDButtons(descriptions);
     } else {
         // Page numbers:
@@ -727,7 +727,11 @@ void drawStepEditor(struct Step *step) {
     snprintf(cc2Value, sizeof(cc2Value), "%d", note->cc2Value);
     drawCenteredLine(62, 107, cc2Value, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(14, "-");
-    drawTextOnButton(15, "+");    
+    drawTextOnButton(15, "+");
+
+    // Step selected, show copy paste options:
+    char descriptions[4][4] = {"-", "-", "CPY", "PST"};
+    drawABCDButtons(descriptions);
 }
 
 void drawSequencer(
