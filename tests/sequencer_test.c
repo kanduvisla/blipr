@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include "../programs/sequencer.h"
+#include "../utils.h"
 
 void testCalculateTrackStepIndex() {
     // Test cases, for manual testing:
@@ -51,7 +52,30 @@ void testTrigConditions() {
     // What is required for a trig condition?
     // Total steps counter
     // Track length (so we can calculate how many times the step has been played)
-    
+    struct Note note;
+    note.trigg = create2FByte(true, false, TRIG_FIRST); // This note is trigged only the first time it is played
+    assert(isNoteTrigged(note.trigg, 0) == true);
+    assert(isNoteTrigged(note.trigg, 1) == false);
+    assert(isNoteTrigged(note.trigg, 2) == false);
+    note.trigg = create2FByte(true, true, TRIG_FIRST);  // This note is trigged not the first time it is played (inversed flag)
+    assert(isNoteTrigged(note.trigg, 0) == false);
+    assert(isNoteTrigged(note.trigg, 1) == true);
+    assert(isNoteTrigged(note.trigg, 2) == true);
+    note.trigg = create2FByte(true, false, TRIG_1_2);   // This note is trigged every 1 out of 2 repeats
+    assert(isNoteTrigged(note.trigg, 0) == true);
+    assert(isNoteTrigged(note.trigg, 1) == false);
+    assert(isNoteTrigged(note.trigg, 2) == true);
+    assert(isNoteTrigged(note.trigg, 3) == false);
+    note.trigg = create2FByte(true, false, TRIG_2_3);   // This note is trigged every 2 out of 3 repeats
+    assert(isNoteTrigged(note.trigg, 0) == false);
+    assert(isNoteTrigged(note.trigg, 1) == true);
+    assert(isNoteTrigged(note.trigg, 2) == false);
+    assert(isNoteTrigged(note.trigg, 3) == false);
+    note.trigg = create2FByte(true, true, TRIG_2_3);   // This note is not trigged every 2 out of 3 repeats (inversed flag)
+    assert(isNoteTrigged(note.trigg, 0) == true);
+    assert(isNoteTrigged(note.trigg, 1) == false);
+    assert(isNoteTrigged(note.trigg, 2) == true);
+    assert(isNoteTrigged(note.trigg, 3) == true);
 }
 
 void testSequencer() {

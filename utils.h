@@ -2,6 +2,8 @@
 #define UTILS_H
 
 #include <SDL.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 /**
  * Convert a scancode to a step index
@@ -12,5 +14,25 @@ int scancodeToStep(SDL_Scancode key);
  * Uppercase a string
  */
 void upperCase(char *str);
+
+/**
+ * Create a byte that stores 2 boolean flags and a value of 0-63
+ */
+uint8_t create2FByte(bool flag1, bool flag2, uint8_t value);
+
+/**
+ * Get flag 1 from a byte with 2 flags
+ */
+bool get2FByteFlag1(uint8_t byte);
+
+/**
+ * Get flag 2 from a byte with 2 flags
+ */
+bool get2FByteFlag2(uint8_t byte);
+
+/**
+ * Get value from a byte with 2 flags
+ */
+uint8_t get2FByteValue(uint8_t byte);
 
 #endif

@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <portmidi.h>
 #include <string.h>
+#include "sequencer.h"
 #include "../project.h"
 #include "../constants.h"
 #include "../colors.h"
@@ -244,6 +245,154 @@ int calculateTrackStepIndex(int ppqnStep, int pageSize, int totalTrackLength, in
 }
 
 /**
+ * Check if the note is triggered according to the trigg condition
+ * @param triggValue    The Trigg value
+ * @param repeatCount   How many times this note has already been played (determined by tracklength or page size)
+ */
+bool isNoteTrigged(int triggValue, int repeatCount) {
+    bool isEnabled = get2FByteFlag1(triggValue);
+    if (!isEnabled) {
+        // If a trig condition is not enabled it will always pass:
+        return true;
+    }
+
+    bool isTrigged = true;
+    bool isInversed = get2FByteFlag2(triggValue);
+    int value = get2FByteValue(triggValue);
+    
+    switch (value) {
+        case TRIG_1_2:
+            isTrigged = repeatCount % 2 == 0;
+            break;
+        case TRIG_1_3:
+            isTrigged = repeatCount % 3 == 0;
+            break;
+        case TRIG_2_3:
+            isTrigged = repeatCount % 3 == 1;
+            break;
+        case TRIG_3_3:
+            isTrigged = repeatCount % 3 == 2;
+            break;
+        case TRIG_1_4:
+            isTrigged = repeatCount % 4 == 0;
+            break;
+        case TRIG_2_4:
+            isTrigged = repeatCount % 4 == 1;
+            break;
+        case TRIG_3_4:
+            isTrigged = repeatCount % 4 == 2;
+            break;
+        case TRIG_4_4:
+            isTrigged = repeatCount % 4 == 3;
+            break;
+        case TRIG_1_5:
+            isTrigged = repeatCount % 5 == 0;
+            break;
+        case TRIG_2_5:
+            isTrigged = repeatCount % 5 == 1;
+            break;
+        case TRIG_3_5:
+            isTrigged = repeatCount % 5 == 2;
+            break;
+        case TRIG_4_5:
+            isTrigged = repeatCount % 5 == 3;
+            break;
+        case TRIG_5_5:
+            isTrigged = repeatCount % 5 == 4;
+            break;
+        case TRIG_1_6:
+            isTrigged = repeatCount % 6 == 0;
+            break;
+        case TRIG_2_6:
+            isTrigged = repeatCount % 6 == 1;
+            break;
+        case TRIG_3_6:
+            isTrigged = repeatCount % 6 == 2;
+            break;
+        case TRIG_4_6:
+            isTrigged = repeatCount % 6 == 3;
+            break;
+        case TRIG_5_6:
+            isTrigged = repeatCount % 6 == 4;
+            break;
+        case TRIG_6_6:
+            isTrigged = repeatCount % 6 == 5;
+            break;
+        case TRIG_1_7:
+            isTrigged = repeatCount % 7 == 0;
+            break;
+        case TRIG_2_7:
+            isTrigged = repeatCount % 7 == 1;
+            break;
+        case TRIG_3_7:
+            isTrigged = repeatCount % 7 == 2;
+            break;
+        case TRIG_4_7:
+            isTrigged = repeatCount % 7 == 3;
+            break;
+        case TRIG_5_7:
+            isTrigged = repeatCount % 7 == 4;
+            break;
+        case TRIG_6_7:
+            isTrigged = repeatCount % 7 == 5;
+            break;
+        case TRIG_7_7:
+            isTrigged = repeatCount % 7 == 6;
+            break;
+        case TRIG_1_8:
+            isTrigged = repeatCount % 8 == 0;
+            break;
+        case TRIG_2_8:
+            isTrigged = repeatCount % 8 == 1;
+            break;
+        case TRIG_3_8:
+            isTrigged = repeatCount % 8 == 2;
+            break;
+        case TRIG_4_8:
+            isTrigged = repeatCount % 8 == 3;
+            break;
+        case TRIG_5_8:
+            isTrigged = repeatCount % 8 == 4;
+            break;
+        case TRIG_6_8:
+            isTrigged = repeatCount % 8 == 5;
+            break;
+        case TRIG_7_8:
+            isTrigged = repeatCount % 8 == 6;
+            break;
+        case TRIG_8_8:
+            isTrigged = repeatCount % 8 == 7;
+            break;
+        case TRIG_1_PERCENT:
+            isTrigged = rand() % 100 == 0;
+            break;
+        case TRIG_2_PERCENT:
+            isTrigged = rand() % 50 == 0;
+            break;
+        case TRIG_5_PERCENT:
+            isTrigged = rand() % 20 == 0;
+            break;
+        case TRIG_10_PERCENT:
+            isTrigged = rand() % 10 == 0;
+            break;
+        case TRIG_25_PERCENT:
+            isTrigged = rand() % 4 == 0;
+            break;
+        case TRIG_33_PERCENT:
+            isTrigged = rand() % 3 == 0;
+            break;
+        case TRIG_50_PERCENT:
+            isTrigged = rand() % 2 == 0;
+            break;
+        case TRIG_FIRST:
+            isTrigged = repeatCount == 0;
+            break;
+    }
+
+    return isInversed ? !isTrigged : isTrigged;
+}
+
+/**
  * Run the sequencer
  */
 void runSequencer(
@@ -269,6 +418,10 @@ void runSequencer(
     if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
         clampedCounter = *ppqnCounter % (PP16N * (selectedTrack->trackLength + 1));
         nextStepClampedCounter = (*ppqnCounter + PP16N) % (PP16N * (selectedTrack->trackLength + 1));
+        // Repeat count is bound per track:
+        if (clampedCounter == 0) {
+            selectedTrack->repeatCount += 1;
+        }
     } else {
         // By page:
         int pageLength = selectedTrack->pageLength + 1; // 1-16
@@ -277,10 +430,15 @@ void runSequencer(
         // Check for queued page:
         if (clampedCounter % (PP16N * pageLength) == 0 && selectedTrack->selectedPage != selectedTrack->queuedPage) {
             selectedTrack->selectedPage = selectedTrack->queuedPage;
+            // Reset repeat count, since we're switching pages:
+            selectedTrack->repeatCount = 0;
         }
         // Increase clamped counter with selected page:
         clampedCounter += (selectedTrack->selectedPage * (PP16N * pageLength));
         nextStepClampedCounter += (selectedTrack->selectedPage * (PP16N * pageLength));
+        if (clampedCounter == 0) {
+            selectedTrack->repeatCount += 1;
+        }
     }
 
     // Check for current step:
@@ -375,11 +533,7 @@ void drawSequencerMain(
     int width = HEIGHT / 6;
     int height = width;
 
-    // print("ppqn: %d", *ppqnCounter);
-
     // Step indicator:
-    // int pp16 = *ppqnCounter / 4;                            // pulses per 16th note (6 pulses idealy)
-    // int stepCounter = pp16 / 6;
     int stepCounter = *ppqnCounter / PP16N;
     int playingPage = 0;
 

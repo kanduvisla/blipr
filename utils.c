@@ -1,4 +1,6 @@
 #include <SDL.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include "utils.h"
 #include "constants.h"
 
@@ -51,4 +53,50 @@ void upperCase(char *str) {
     for (int i = 0; str[i]; i++) {
         str[i] = toupper((unsigned char) str[i]);
     }
+}
+
+/**
+ * Create a byte that stores 2 boolean flags and a value of 0-63
+ */
+uint8_t create2FByte(bool flag1, bool flag2, uint8_t value) {
+    uint8_t result = 0;
+    
+    // Set flag1 at bit 0
+    if (flag1) {
+        result |= 0x01;  // Set bit 0
+    }
+    
+    // Set flag2 at bit 1
+    if (flag2) {
+        result |= 0x02;  // Set bit 1
+    }
+    
+    // Ensure value is in range 0-63 (6 bits)
+    value &= 0x3F;
+    
+    // Shift value to bits 2-7 and combine with flags
+    result |= (value << 2);
+    
+    return result;
+}
+
+/**
+ * Get flag 1 from a byte with 2 flags
+ */
+bool get2FByteFlag1(uint8_t byte) {
+    return (byte & 0x01) != 0;
+}
+
+/**
+ * Get flag 2 from a byte with 2 flags
+ */
+bool get2FByteFlag2(uint8_t byte) {
+    return (byte & 0x02) != 0;
+}
+
+/**
+ * Get value from a byte with 2 flags
+ */
+uint8_t get2FByteValue(uint8_t byte) {
+    return (byte >> 2) & 0x3F;
 }

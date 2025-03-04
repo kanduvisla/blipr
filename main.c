@@ -374,10 +374,22 @@ void* keyThread(void* arg) {
                     state->track = &state->project->sequences[state->selectedSequence]
                         .patterns[state->selectedPattern]
                         .tracks[state->selectedTrack];
+                    // Reset repeat counter:
+                    // state->track->repeatCount = 0;
                 } else if (state->isPatternSelectionActive) {
-                    updateTrackSelection(&state->selectedPattern, state->scanCodeKeyDown);
+                    updatePatternSelection(&state->selectedPattern, state->scanCodeKeyDown);
+                    // Set proper track + reset repeat count
+                    state->track = &state->project->sequences[state->selectedSequence]
+                        .patterns[state->selectedPattern]
+                        .tracks[state->selectedTrack];
+                    state->track->repeatCount = 0;
                 } else if (state->isSequenceSelectionActive) {
                     updateSequenceSelection(&state->selectedSequence, state->scanCodeKeyDown);
+                    // Set proper pattern, track + reset repeat count
+                    state->track = &state->project->sequences[state->selectedSequence]
+                        .patterns[state->selectedPattern]
+                        .tracks[state->selectedTrack];
+                    state->track->repeatCount = 0;
                 } else if (state->isConfigurationModeActive) {
                     bool reloadMidi = updateConfiguration(state->project, state->scanCodeKeyDown);
                     if (reloadMidi) {
@@ -619,7 +631,7 @@ int main(int argc, char *argv[]) {
             }
 
             // Render:
-            SDL_RenderPresent(renderer);
+            // SDL_RenderPresent(renderer);
             
             // Reset flag:
             pthread_mutex_lock(&state.mutex);

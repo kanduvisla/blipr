@@ -71,7 +71,7 @@
 #define TRIG_25_PERCENT 38
 #define TRIG_33_PERCENT 39
 #define TRIG_50_PERCENT 40  // Higher than 50% are the inversed versions of these
-#define TRIG_FILL 41        // When fill is trigged
+// #define TRIG_FILL 41        // When fill is trigged (TODO: determine how "FILL" is used)
 #define TRIG_FIRST 42       // When first entering a pattern
 #define TRIG_TRANSITION 43  // When transitioning to another pattern
 #define TRIG_FIRST_PAGE 44          // When first entering a page
@@ -136,5 +136,10 @@ int calculateTrackStepIndex(
  * Reset the selected step
  */
 void resetSequencerSelectedStep();
+
+/**
+ * Determine if a note is trigged according to it's TRIG condition
+ */
+bool isNoteTrigged(int triggValue, int repeatCount);
 
 #endif

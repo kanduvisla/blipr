@@ -71,12 +71,18 @@ struct Track {
     unsigned char selectedPage;
     unsigned char selectedPageBank;
     unsigned char queuedPage; 
+    unsigned int repeatCount;
     // Steps are only used for the "Sequencer"-program
     struct Step steps[64];
 };
 
 void trackToByteArray(const struct Track *track, unsigned char bytes[TRACK_BYTE_SIZE]);
 struct Track* byteArrayToTrack(const unsigned char bytes[TRACK_BYTE_SIZE]);
+
+/**
+ * Reset internal, locally track data (like counters, etc)
+ */
+void resetTrack(struct Track *track);
 
 /**
  * A pattern contains 16 tracks

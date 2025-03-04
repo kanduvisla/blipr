@@ -114,8 +114,7 @@ struct Track* byteArrayToTrack(const unsigned char bytes[TRACK_BYTE_SIZE]) {
     track->cc2Assignment = bytes[39];
     track->pagePlayMode = bytes[40];
     track->speed = bytes[41];
-    track->selectedPage = 0;
-    track->queuedPage = 0;
+    resetTrack(track);
     for (int i = 0; i < 64; i++) {
         unsigned char arr[STEP_BYTE_SIZE];
         // Copy part of byte array into arr
@@ -123,6 +122,16 @@ struct Track* byteArrayToTrack(const unsigned char bytes[TRACK_BYTE_SIZE]) {
         track->steps[i] = byteArrayToStep(arr);
     }
     return track;
+}
+
+/**
+ * Reset the track
+ */
+void resetTrack(struct Track *track) {
+    track->selectedPage = 0;
+    track->selectedPageBank = 0;
+    track->queuedPage = 0;
+    track->repeatCount = 0;
 }
 
 /**
