@@ -123,16 +123,6 @@ void drawSequencer(
 );
 
 /**
- * Calculate the step index
- */
-int calculateTrackStepIndex(
-    int ppqnStep, 
-    int pageSize, 
-    int totalTrackLength,
-    int pagePlayMode
-);
-
-/**
  * Reset the selected step
  */
 void resetSequencerSelectedStep();
@@ -143,18 +133,9 @@ void resetSequencerSelectedStep();
 bool isNoteTrigged(int triggValue, int repeatCount);
 
 /**
- * Find matching notes according to PPQN
- */
-int findMatchingNotes(
-    struct Track* track, 
-    uint64_t ppqn, 
-    MatchingNote* matchingNotes
-);
-
-/**
  * Get track step index - this is the index in the steps-array on the track
  */
-int getTrackStepIndex(const uint64_t *ppqnCounter, const struct Track *track);
+int getTrackStepIndex(const uint64_t *ppqnCounter, const struct Track *track, bool *isFirstPulse);
 
 /**
  * Get notes at a given track index - this takes into account the polyphony sacrifice for more steps

@@ -6,52 +6,6 @@
 #include "../constants.h"
 #include "../print.h"
 
-void testCalculateTrackStepIndex() {
-    // Test cases, for manual testing:
-    /*
-    printf("Page size 12, total length 64:\n");
-    for (int i = 0; i < 170; i++) {
-        printf("PPQN Step: %d, Track Step Index: %d\n", i, calculateTrackStepIndex(i, 12, 64));
-    }
-
-    printf("\nPage size 4, total length 64:\n");
-    for (int i = 0; i < 120; i++) {
-        printf("PPQN Step: %d, Track Step Index: %d\n", i, calculateTrackStepIndex(i, 4, 64));
-    }
-
-    printf("\nPage size 12, total length 44:\n");
-    for (int i = 0; i < 150; i++) {
-        printf("PPQN Step: %d, Track Step Index: %d\n", i, calculateTrackStepIndex(i, 12, 44));
-    }
-
-    printf("\nPage size 16, total length 44:\n");
-    for (int i = 0; i < 150; i++) {
-        printf("PPQN Step: %d, Track Step Index: %d\n", i, calculateTrackStepIndex(i, 16, 44));
-    }
-    */
-
-    // In continuous mode, page length is ignored
-    assert(calculateTrackStepIndex(0, 12, 64, PAGE_PLAY_MODE_CONTINUOUS) == 0);
-    assert(calculateTrackStepIndex(12, 12, 64, PAGE_PLAY_MODE_CONTINUOUS) == 12);
-    assert(calculateTrackStepIndex(24, 12, 64, PAGE_PLAY_MODE_CONTINUOUS) == 24);
-    assert(calculateTrackStepIndex(36, 12, 32, PAGE_PLAY_MODE_CONTINUOUS) == 4);
-    assert(calculateTrackStepIndex(48, 12, 32, PAGE_PLAY_MODE_CONTINUOUS) == 16);
-    assert(calculateTrackStepIndex(64, 12, 64, PAGE_PLAY_MODE_CONTINUOUS) == 0);
-    assert(calculateTrackStepIndex(65, 12, 64, PAGE_PLAY_MODE_CONTINUOUS) == 1);
-
-    // In page repeat mode, track length is ignored
-    assert(calculateTrackStepIndex(0, 12, 64, PAGE_PLAY_MODE_REPEAT) == 0);
-    assert(calculateTrackStepIndex(12, 12, 64, PAGE_PLAY_MODE_REPEAT) == 16);
-    assert(calculateTrackStepIndex(13, 12, 64, PAGE_PLAY_MODE_REPEAT) == 17);
-    assert(calculateTrackStepIndex(13, 14, 64, PAGE_PLAY_MODE_REPEAT) == 13);
-    assert(calculateTrackStepIndex(24, 12, 64, PAGE_PLAY_MODE_REPEAT) == 32);
-    assert(calculateTrackStepIndex(24, 16, 64, PAGE_PLAY_MODE_REPEAT) == 24);
-    assert(calculateTrackStepIndex(36, 12, 32, PAGE_PLAY_MODE_REPEAT) == 48);
-    assert(calculateTrackStepIndex(48, 12, 32, PAGE_PLAY_MODE_REPEAT) == 64);
-    assert(calculateTrackStepIndex(64, 12, 64, PAGE_PLAY_MODE_REPEAT) == 84);
-    assert(calculateTrackStepIndex(65, 12, 64, PAGE_PLAY_MODE_REPEAT) == 85);
-}
-
 void testTrigConditions() {
     // What is required for a trig condition?
     // Total steps counter
@@ -87,28 +41,36 @@ void testGetTrackStepIndexForContinuousPlay() {
     track->pagePlayMode = PAGE_PLAY_MODE_CONTINUOUS;
     track->trackLength = 43; // =0-based
     u_int64_t ppqnCounter = 0;
+    bool isFirstPulse;
 
-    assert(getTrackStepIndex(&ppqnCounter, track) == 0);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
+    assert(isFirstPulse == true);
     // For each pulse in this 16th note, the track step should still remain the same:
     for (int i=0; i<PP16N - 1; i++) {
         ppqnCounter++;
-        assert(getTrackStepIndex(&ppqnCounter, track) == 0);
+        assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
+        assert(isFirstPulse == false);
     }
     // Next pulse should increase the step:
     ppqnCounter++;
-    assert(getTrackStepIndex(&ppqnCounter, track) == 1);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 1);
+    assert(isFirstPulse == false);
     // Add 15 steps - 1 pulse:
     ppqnCounter += (PP16N * 15) -1;
-    assert(getTrackStepIndex(&ppqnCounter, track) == 15);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 15);
+    assert(isFirstPulse == false);
     // Add 1 pulse:
     ppqnCounter++;
-    assert(getTrackStepIndex(&ppqnCounter, track) == 16);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 16);
+    assert(isFirstPulse == false);
     // Add steps up to the track length, -1 pulse:
     ppqnCounter += (PP16N * (44 - 16)) - 1;
-    assert(getTrackStepIndex(&ppqnCounter, track) == 43);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 43);
+    assert(isFirstPulse == false);
     // Add 1 pulse:
     ppqnCounter++;
-    assert(getTrackStepIndex(&ppqnCounter, track) == 0);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
+    assert(isFirstPulse == true);
 }
 
 void testGetTrackStepIndexForRepeatPlay() {
@@ -118,61 +80,82 @@ void testGetTrackStepIndexForRepeatPlay() {
     track->selectedPage = 0;
     track->selectedPageBank = 0;
     u_int64_t ppqnCounter = 0;
+    bool isFirstPulse;
 
-    assert(getTrackStepIndex(&ppqnCounter, track) == 0);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
+    assert(isFirstPulse == true);
     // For each pulse in this 16th note, the track step should still remain the same:
     for (int i=0; i<PP16N - 1; i++) {
         ppqnCounter++;
-        assert(getTrackStepIndex(&ppqnCounter, track) == 0);
+        assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
+        assert(isFirstPulse == false);
     }
     // Next pulse should increase the step:
     ppqnCounter++;
-    assert(getTrackStepIndex(&ppqnCounter, track) == 1);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 1);
+    assert(isFirstPulse == false);
     // Add 15 steps - 1 pulse:
     ppqnCounter += (PP16N * 15) -1;
-    assert(getTrackStepIndex(&ppqnCounter, track) == 15);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 15);
+    assert(isFirstPulse == false);
     // Add 1 pulse:
     ppqnCounter++;
-    assert(getTrackStepIndex(&ppqnCounter, track) == 0);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
+    assert(isFirstPulse == true);
 
     // Test different page:
     track->selectedPage = 1;
-    assert(getTrackStepIndex(&ppqnCounter, track) == 16);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 16);
+    assert(isFirstPulse == true);
     track->selectedPage = 2;
-    assert(getTrackStepIndex(&ppqnCounter, track) == 32);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 32);
+    assert(isFirstPulse == true);
     track->selectedPage = 3;
-    assert(getTrackStepIndex(&ppqnCounter, track) == 48);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 48);
+    assert(isFirstPulse == true);
     track->selectedPage = 4; // overflow
-    assert(getTrackStepIndex(&ppqnCounter, track) == 0);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
+    assert(isFirstPulse == true);
 
     // Test different page bank (page bank doesn't affect step, but note (in conjunction with poly)):
     track->selectedPage = 0;
     track->selectedPageBank = 0;
-    assert(getTrackStepIndex(&ppqnCounter, track) == 0);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
+    assert(isFirstPulse == true);
     track->selectedPage = 1;
-    assert(getTrackStepIndex(&ppqnCounter, track) == 16);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 16);
+    assert(isFirstPulse == true);
     track->selectedPage = 2;
-    assert(getTrackStepIndex(&ppqnCounter, track) == 32);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 32);
+    assert(isFirstPulse == true);
     track->selectedPage = 3;
-    assert(getTrackStepIndex(&ppqnCounter, track) == 48);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 48);
+    assert(isFirstPulse == true);
     track->selectedPage = 4; // overflow
-    assert(getTrackStepIndex(&ppqnCounter, track) == 0);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
+    assert(isFirstPulse == true);
 
     // Test different page lengths:
     track->selectedPage = 0;
     track->pageLength = 11; // 0-based
     ppqnCounter = 0;
-    assert(getTrackStepIndex(&ppqnCounter, track) == 0);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
+    assert(isFirstPulse == true);
     ppqnCounter += (PP16N * 12) - 1;
-    assert(getTrackStepIndex(&ppqnCounter, track) == 11);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 11);
+    assert(isFirstPulse == false);
     ppqnCounter += 1;
-    assert(getTrackStepIndex(&ppqnCounter, track) == 0);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
+    assert(isFirstPulse == true);
     track->selectedPage = 1;
-    assert(getTrackStepIndex(&ppqnCounter, track) == 16);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 16);
+    assert(isFirstPulse == true);
     ppqnCounter += (PP16N * 12) - 1;
-    assert(getTrackStepIndex(&ppqnCounter, track) == 27);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 27);
+    assert(isFirstPulse == false);
     ppqnCounter += 1;
-    assert(getTrackStepIndex(&ppqnCounter, track) == 16);
+    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 16);
+    assert(isFirstPulse == true);
 }
 
 void assertEnabledNotesCount(const struct Note **notes, int expectedCount) {
@@ -331,39 +314,9 @@ void testGetNotesAtTrackStepIndex() {
     memset(notes, 0, NOTE_BYTE_SIZE * 8);
 }
 
-void testFindMatchingNotes() {
-    // Find matching notes:
-    struct Track *track = malloc(TRACK_BYTE_SIZE);
-    for (int s = 0; s < 64; s++) {
-        struct Step step;
-        for (int n = 0; n < NOTES_IN_STEP; n++) {
-            struct Note note;
-            step.notes[n] = note;
-        }
-        track->steps[s] = step;
-    }
-    // Polycount: 0=8, 1=4, 2=2, 3=1
-    track->polyCount = 0;   // 8 polyphony
-    track->steps[0].notes[0].enabled = true;
-    track->steps[0].notes[0].note = 60;
-    track->steps[0].notes[0].nudge = 0;
-
-    // Run tests:
-    MatchingNote matches[8] = {NULL};
-    int numMatches = findMatchingNotes(track, 0, matches);  // Check for PPQN 0
-    assert(numMatches == 1);
-    /*
-    matches[] = NULL;
-    numMatches = findMatchingNotes(track, PPQN * 1, matches);  // Check for PPQN 0
-    assert(numMatches == 0);
-    */
-}
-
 void testSequencer() {
-    testCalculateTrackStepIndex();
     testTrigConditions();
     testGetTrackStepIndexForContinuousPlay();
     testGetTrackStepIndexForRepeatPlay();
     testGetNotesAtTrackStepIndex();
-    // testFindMatchingNotes();
 }

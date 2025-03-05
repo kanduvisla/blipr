@@ -225,26 +225,6 @@ void checkSequencerForKeyRepeats(
 }
 
 /**
- * Returns the index of the step in the track.steps array
- */
-int calculateTrackStepIndex(int ppqnStep, int pageSize, int totalTrackLength, int pagePlayMode) {
-    // Note: this might change sometimes if I decide to include page length into the continuous play mode, 
-    //       but that seems not required for now (makes no sense anyway, why would you want that?)
-
-    // Ensure pageSize is between 1 and 16
-    pageSize = (pageSize < 1) ? 1 : (pageSize > 16) ? 16 : pageSize;
-
-    if (pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
-        // Continuous Mode, this ignores page length
-        return ppqnStep % totalTrackLength;
-    } else {
-        // Page Repeat Mode, this ignores track length
-        int pageNumber = ppqnStep / pageSize;
-        return (16 * pageNumber) + (ppqnStep % pageSize);
-    }
-}
-
-/**
  * Check if the note is triggered according to the trigg condition
  * @param triggValue    The Trigg value
  * @param repeatCount   How many times this note has already been played (determined by tracklength or page size)
@@ -393,99 +373,22 @@ bool isNoteTrigged(int triggValue, int repeatCount) {
 }
 
 /**
- * Find all notes that match the given PPQN position, considering track polyphony and note nudge
- * 
- * @param track Pointer to the track structure
- * @param ppqn Current PPQN position
- * @param ppqnPerStep Number of PPQN units per step
- * @param matchingNotes Array to store the matching notes (should be pre-allocated)
- * @param maxMatches Maximum number of matches to return
- * @return Number of matching notes found
+ * Get track step index - this is the index in the steps-array on the track
+ * The property "isFirstPulse" is set to true if this is the first pulse of the step
  */
-int findMatchingNotes(
-    struct Track* track, 
-    uint64_t ppqn, 
-    MatchingNote* matchingNotes
-) {
-    int matchCount = 0;
-    int polyphony = getPolyCount(&track->polyCount);
-
-    // Calculate the maximum track length based on polyphony
-    uint16_t maxTrackLength = 64 * (8 / polyphony);
-
-    // Calculate the current step based on the PPQN
-    uint16_t currentStep = (ppqn / PP16N) % maxTrackLength;
-
-    // Calculate the PPQN position within the current step
-    uint16_t ppqnWithinStep = ppqn % PP16N;
-
-    // Determine which physical step and note range to check based on polyphony
-    uint16_t physicalStepIndex = currentStep % 64;
-    uint8_t noteStartIndex = 0;
-    uint8_t noteEndIndex = 8;
-
-    if (polyphony < 8) {
-        // Calculate which segment of notes to use based on the extended step
-        uint16_t stepSegment = currentStep / 8;
-
-        switch (polyphony) {
-            case 4:
-                // For polyphony 4, we have 2 segments (0-63, 64-127)
-                noteStartIndex = (stepSegment % 2) * 4;
-                noteEndIndex = noteStartIndex + 4;
-                break;
-            case 2:
-                // For polyphony 2, we have 4 segments (0-63, 64-127, 128-191, 192-255)
-                noteStartIndex = (stepSegment % 4) * 2;
-                noteEndIndex = noteStartIndex + 2;
-                break;
-            case 1:
-                // For polyphony 1, we have 8 segments (0-63, 64-127, ..., 448-511)
-                noteStartIndex = stepSegment % 8;
-                noteEndIndex = noteStartIndex + 1;
-                break;
-        }
-    }
-
-    // Get the physical step
-    struct Step* step = &track->steps[physicalStepIndex];
-
-    // Check each note in the appropriate range
-    for (uint8_t i = noteStartIndex; i < noteEndIndex && matchCount < polyphony; i++) {
-        struct Note* note = &step->notes[i];
-
-        // Skip inactive notes
-        if (!note->enabled) {
-            continue;
-        }
-
-        // Calculate the effective PPQN position with nudge
-        int32_t effectivePpqn = ppqnWithinStep + note->nudge;
-
-        // Check if this note should trigger at the current PPQN
-        // A note triggers when the effective PPQN is 0
-        // (or negative, which means it should have triggered earlier in this step)
-        if (effectivePpqn == 0 || (effectivePpqn < 0 && ppqnWithinStep == 0)) {
-            // Add this note to the matching notes
-            matchingNotes[matchCount].note = note;
-            matchingNotes[matchCount].stepIndex = currentStep;
-            matchingNotes[matchCount].noteIndex = i;
-            matchCount++;
-        }
-    }
-
-    return matchCount;
-}
-
-int getTrackStepIndex(const uint64_t *ppqnCounter, const struct Track *track) {
+int getTrackStepIndex(const uint64_t *ppqnCounter, const struct Track *track, bool *isFirstPulse) {
     uint64_t clampedCounter;
     if (track->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
         // By track:
         clampedCounter = *ppqnCounter % (PP16N * (track->trackLength + 1));
+        // Set isFirstPulse-flag
+        *isFirstPulse = (clampedCounter == 0);
     } else {
         // By page:
         int pageLength = track->pageLength + 1; // 1-16
         clampedCounter = *ppqnCounter % (PP16N * pageLength);
+        // Set isFirstPulse-flag
+        *isFirstPulse = (clampedCounter == 0);
         // Increase clamped counter with selected page:
         clampedCounter += ((track->selectedPage % 4) * (PP16N * 16));   // 16 steps
     }
@@ -493,6 +396,9 @@ int getTrackStepIndex(const uint64_t *ppqnCounter, const struct Track *track) {
     return clampedCounter / PP16N;
 }
 
+/**
+ * Get notes at a given track index - this takes into account the polyphony sacrifice for more steps
+ */
 void getNotesAtTrackStepIndex(int trackStepIndex, const struct Track *track, struct Note **notes) {
     switch (getPolyCount(track)) {
         case 8:
@@ -572,23 +478,36 @@ void runSequencer(
     }
 
     // Check for current step:
-    int currentTrackStepIndex = calculateTrackStepIndex(
-        clampedCounter / PP16N, 
-        selectedTrack->pageLength + 1,
-        selectedTrack->trackLength + 1,
-        selectedTrack->pagePlayMode
-    );
+    bool isFirstPulse;
+    int currentTrackStepIndex = getTrackStepIndex(ppqnCounter, selectedTrack, &isFirstPulse);
+    int nextTrackStepIndex = getTrackStepIndex(ppqnCounter + PP16N, selectedTrack, &isFirstPulse);
+
+    // Check for repeats:
+    if (isFirstPulse) {
+        selectedTrack->repeatCount += 1;
+    }
+
+    // if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS && currentTrackStepIndex == 0) {
+
+    // }
+
+    // int currentTrackStepIndex = calculateTrackStepIndex(
+    //     clampedCounter / PP16N, 
+    //     selectedTrack->pageLength + 1,
+    //     selectedTrack->trackLength + 1,
+    //     selectedTrack->pagePlayMode
+    // );
 
     // Nudge value to check on:
     int currentNudgeCheck = clampedCounter % PP16N;
 
     // Check for next step:
-    int nextTrackStepIndex = calculateTrackStepIndex(
-        nextStepClampedCounter / PP16N, 
-        selectedTrack->pageLength + 1,
-        selectedTrack->trackLength + 1,
-        selectedTrack->pagePlayMode
-    );
+    // int nextTrackStepIndex = calculateTrackStepIndex(
+    //     nextStepClampedCounter / PP16N, 
+    //     selectedTrack->pageLength + 1,
+    //     selectedTrack->trackLength + 1,
+    //     selectedTrack->pagePlayMode
+    // );
 
     // Ignore next nudge check of it's equal to PP16N * -1
     int nextNudgeCheck = (PP16N * -1) + (clampedCounter % PP16N);
@@ -669,15 +588,18 @@ void drawSequencerMain(
     int height = width;
 
     // Step indicator:
-    int stepCounter = *ppqnCounter / PP16N;
+    // int stepCounter = *ppqnCounter / PP16N;
     int playingPage = 0;
+    bool isFirstPulse;
 
-    int trackStepIndex = calculateTrackStepIndex(
-        stepCounter, 
-        selectedTrack->pageLength + 1,
-        selectedTrack->trackLength + 1,
-        selectedTrack->pagePlayMode
-    );
+    int trackStepIndex = getTrackStepIndex(ppqnCounter, selectedTrack, &isFirstPulse);
+    
+    // int trackStepIndex = calculateTrackStepIndex(
+    //     stepCounter, 
+    //     selectedTrack->pageLength + 1,
+    //     selectedTrack->trackLength + 1,
+    //     selectedTrack->pagePlayMode
+    // );
 
     if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
         playingPage = trackStepIndex / 16;
@@ -688,8 +610,6 @@ void drawSequencerMain(
         // Outline queued page:
         drawHighlightedGridTile(selectedTrack->queuedPage + 16);
     }
-
-    
 
     // Draw outline on currently playing note:
     if (
