@@ -393,6 +393,96 @@ bool isNoteTrigged(int triggValue, int repeatCount) {
 }
 
 /**
+ * Find all notes that match the given PPQN position, considering track polyphony and note nudge
+ * 
+ * @param track Pointer to the track structure
+ * @param ppqn Current PPQN position
+ * @param ppqnPerStep Number of PPQN units per step
+ * @param matchingNotes Array to store the matching notes (should be pre-allocated)
+ * @param maxMatches Maximum number of matches to return
+ * @return Number of matching notes found
+ */
+int findMatchingNotes(
+    struct Track* track, 
+    uint64_t ppqn, 
+    MatchingNote* matchingNotes
+) {
+    int matchCount = 0;
+    int polyphony = getPolyCount(&track->polyCount);
+
+    // Calculate the maximum track length based on polyphony
+    uint16_t maxTrackLength = 64 * (8 / polyphony);
+
+    // Calculate the current step based on the PPQN
+    uint16_t currentStep = (ppqn / PP16N) % maxTrackLength;
+
+    // Calculate the PPQN position within the current step
+    uint16_t ppqnWithinStep = ppqn % PP16N;
+
+    // Determine which physical step and note range to check based on polyphony
+    uint16_t physicalStepIndex = currentStep % 64;
+    uint8_t noteStartIndex = 0;
+    uint8_t noteEndIndex = 8;
+
+    if (polyphony < 8) {
+        // Calculate which segment of notes to use based on the extended step
+        uint16_t stepSegment = currentStep / 8;
+
+        switch (polyphony) {
+            case 4:
+                // For polyphony 4, we have 2 segments (0-63, 64-127)
+                noteStartIndex = (stepSegment % 2) * 4;
+                noteEndIndex = noteStartIndex + 4;
+                break;
+            case 2:
+                // For polyphony 2, we have 4 segments (0-63, 64-127, 128-191, 192-255)
+                noteStartIndex = (stepSegment % 4) * 2;
+                noteEndIndex = noteStartIndex + 2;
+                break;
+            case 1:
+                // For polyphony 1, we have 8 segments (0-63, 64-127, ..., 448-511)
+                noteStartIndex = stepSegment % 8;
+                noteEndIndex = noteStartIndex + 1;
+                break;
+        }
+    }
+
+    // Get the physical step
+    struct Step* step = &track->steps[physicalStepIndex];
+
+    // Check each note in the appropriate range
+    for (uint8_t i = noteStartIndex; i < noteEndIndex && matchCount < polyphony; i++) {
+        struct Note* note = &step->notes[i];
+
+        // Skip inactive notes
+        if (!note->enabled) {
+            continue;
+        }
+
+        // Calculate the effective PPQN position with nudge
+        int32_t effectivePpqn = ppqnWithinStep + note->nudge;
+
+        // Check if this note should trigger at the current PPQN
+        // A note triggers when the effective PPQN is 0
+        // (or negative, which means it should have triggered earlier in this step)
+        if (effectivePpqn == 0 || (effectivePpqn < 0 && ppqnWithinStep == 0)) {
+            // Add this note to the matching notes
+            matchingNotes[matchCount].note = note;
+            matchingNotes[matchCount].stepIndex = currentStep;
+            matchingNotes[matchCount].noteIndex = i;
+            matchCount++;
+        }
+    }
+
+    return matchCount;
+}
+
+
+int getTrackStepIndex(uint64_t *ppqnCounter, const struct Track *track) {
+    
+}
+
+/**
  * Run the sequencer
  */
 void runSequencer(
@@ -463,12 +553,12 @@ void runSequencer(
     // Ignore next nudge check of it's equal to PP16N * -1
     int nextNudgeCheck = (PP16N * -1) + (clampedCounter % PP16N);
 
-    // Then calculate the step index, according to the clamped counter:
-    // if (strcmp(selectedTrack->name, "Track 1") == 0) {
+    if (strcmp(selectedTrack->name, "Track 1") == 0 && currentNudgeCheck == 0) {
     //     print("clamped counter: %d, current step index: %d, current step nudge check: %d, next step clamped counter: %d, next step index: %d, next step nudge check: %d", 
     //         clampedCounter, currentTrackStepIndex, currentNudgeCheck, nextStepClampedCounter, nextTrackStepIndex, nextNudgeCheck
     //     );
-    // }
+        print("Current Track Step Index: %d", currentTrackStepIndex);
+    }
 
     // Depending on polyphony, iterate over notes:
     int poly = getPolyCount(selectedTrack);
@@ -476,7 +566,11 @@ void runSequencer(
         // No polyphony, each note in this step is concidered to be a "page"
         // So:  Track step 0-63     is step 0-63 note 0
         //      Track step 64-127   is step 0-63 note 1
+        //      Track step 128-195  is step 0-63 note 2
         //      etc.
+        // struct Step *step = &selectedTrack->steps[currentTrackStepIndex];
+        // struct Note *note = &step->notes[i];
+
     } else if (poly == 2) {
         // 2 voice polyphony
         // notes are linked with index 1-2, 3-4, 5-6, 7-8
@@ -489,8 +583,9 @@ void runSequencer(
         // So:  Track step 0-63     is step 0-63 note 0,1,2 and 3
         //      Track step 64-127   is step 0-63 note 4,5,6 and 7
         //      no etc... ;-)
+        for (int i=0; i<4; i++) {
 
-
+        }
     } else if (poly == 8) {
         // 8 voice polyphony, iterate over all notes:
         for (int i=0; i<8; i++) {
@@ -553,6 +648,8 @@ void drawSequencerMain(
         // Outline queued page:
         drawHighlightedGridTile(selectedTrack->queuedPage + 16);
     }
+
+    
 
     // Draw outline on currently playing note:
     if (

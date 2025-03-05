@@ -39,6 +39,15 @@ struct Note {
     unsigned char cc2Value;     // CC2 Value
 };
 
+/**
+ * Structure to hold a matching note and its information
+ */
+typedef struct {
+    struct Note *note;          // Pointer to the matching note
+    uint16_t stepIndex;  // The extended step index (0-511)
+    uint8_t noteIndex;   // The note index within the step (0-7)
+} MatchingNote;
+
 void noteToByteArray(const struct Note *note, unsigned char bytes[NOTE_BYTE_SIZE]);
 struct Note byteArrayToNote(const unsigned char bytes[NOTE_BYTE_SIZE]);
 

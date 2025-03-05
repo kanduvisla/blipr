@@ -1,6 +1,9 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include "../programs/sequencer.h"
 #include "../utils.h"
+#include "../constants.h"
 
 void testCalculateTrackStepIndex() {
     // Test cases, for manual testing:
@@ -78,7 +81,35 @@ void testTrigConditions() {
     assert(isNoteTrigged(note.trigg, 3) == true);
 }
 
+void testFindMatchingNotes() {
+    // Find matching notes:
+    struct Track *track = malloc(TRACK_BYTE_SIZE);
+    for (int s = 0; s < 64; s++) {
+        struct Step step;
+        for (int n = 0; n < NOTES_IN_STEP; n++) {
+            struct Note note;
+            step.notes[n] = note;
+        }
+        track->steps[s] = step;
+    }
+    // Polycount: 0=8, 1=4, 2=2, 3=1
+    track->polyCount = 0;   // 8 polyphony
+    track->steps[0].notes[0].enabled = true;
+    track->steps[0].notes[0].note = 60;
+    track->steps[0].notes[0].nudge = 0;
+
+    // Run tests:
+    MatchingNote matches[8] = {NULL};
+    int numMatches = findMatchingNotes(track, 0, matches);  // Check for PPQN 0
+    assert(numMatches == 1);
+
+    matches[] = NULL;
+    numMatches = findMatchingNotes(track, PPQN * 1, matches);  // Check for PPQN 0
+    assert(numMatches == 0);
+}
+
 void testSequencer() {
     testCalculateTrackStepIndex();
     testTrigConditions();
+    testFindMatchingNotes();
 }

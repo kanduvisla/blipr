@@ -142,4 +142,13 @@ void resetSequencerSelectedStep();
  */
 bool isNoteTrigged(int triggValue, int repeatCount);
 
+/**
+ * Find matching notes according to PPQN
+ */
+int findMatchingNotes(
+    struct Track* track, 
+    uint64_t ppqn, 
+    MatchingNote* matchingNotes
+);
+
 #endif
