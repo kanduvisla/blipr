@@ -487,7 +487,7 @@ int getTrackStepIndex(const uint64_t *ppqnCounter, const struct Track *track) {
         int pageLength = track->pageLength + 1; // 1-16
         clampedCounter = *ppqnCounter % (PP16N * pageLength);
         // Increase clamped counter with selected page:
-        clampedCounter += ((track->selectedPage % 4) * (PP16N * pageLength));
+        clampedCounter += ((track->selectedPage % 4) * (PP16N * 16));   // 16 steps
     }
 
     return clampedCounter / PP16N;

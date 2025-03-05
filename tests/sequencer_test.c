@@ -167,6 +167,12 @@ void testGetTrackStepIndexForRepeatPlay() {
     assert(getTrackStepIndex(&ppqnCounter, track) == 11);
     ppqnCounter += 1;
     assert(getTrackStepIndex(&ppqnCounter, track) == 0);
+    track->selectedPage = 1;
+    assert(getTrackStepIndex(&ppqnCounter, track) == 16);
+    ppqnCounter += (PP16N * 12) - 1;
+    assert(getTrackStepIndex(&ppqnCounter, track) == 27);
+    ppqnCounter += 1;
+    assert(getTrackStepIndex(&ppqnCounter, track) == 16);
 }
 
 void assertEnabledNotesCount(const struct Note **notes, int expectedCount) {
