@@ -6,12 +6,16 @@ These are observations done while testing Blipr with real hardware.
 
 --- Bugs:
 
+- Switching to next note crashes
+- Opening midi configuration crashes
+- Trigg is not working as expected. It does something, but it takes the wrong one
 - It still appears that something goes wrong when setting steps in the sequencer; other pages seem affected.
 - Roland SH-4d was not detected by Linux. Not sure if this is a Blipr problem, since `amidi -l` also didn't show it.
 - (requires re-test) Midi configuration with multiple device is not working properly. Was unable to set proper midi device for A.
 - (requires re-test) When configuring midi device, configuration is not directly applied, restart of the program is required.
 - (requires testing) Same goes for when changing midi device for track, it is not applied, only after restart.
 - Got an error with invalid device Id (probably the Midi Through Port), blipr won't start
+- Other pages is not working
 
 --- Improvements:
 
@@ -25,6 +29,10 @@ These are observations done while testing Blipr with real hardware.
 - Same for last set velocity.
 - When track has no program, shift 3 should start on program selection
 - Show default note, length + velocity in sidebar
+- Mute Track
+- Solo Track
+- Utilities (clear track)
+- Save / Remember last note / velocity / etc. per track
 
 --- Fixed
 

@@ -650,10 +650,10 @@ int main(int argc, char *argv[]) {
                 // Render in bottom right:
                 char seqText[10];
                 snprintf(seqText, 10, "S:%.2f%%", state.seqPerformance);
-                drawText(WIDTH - 40, HEIGHT - 12, seqText, 40, COLOR_YELLOW);
+                drawText(WIDTH - 45, HEIGHT - 12, seqText, 45, COLOR_YELLOW);
                 char renText[10];
                 snprintf(renText, 10, "R:%.2f%%", state.renPerformance);
-                drawText(WIDTH - 40, HEIGHT - 6, renText, 40, COLOR_YELLOW);
+                drawText(WIDTH - 45, HEIGHT - 6, renText, 45, COLOR_YELLOW);
             }
 
             // Clear the renderer:

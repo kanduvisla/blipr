@@ -12,7 +12,7 @@
 #define SPACE_WIDTH 6
 #define LINE_SPACING 2
 
-#define NUM_CHARACTERS 53  // A-Z, 0-9, and special characters
+#define NUM_CHARACTERS 54  // A-Z, 0-9, and special characters
 
 SDL_Texture* charTextures[NUM_CHARACTERS] = {NULL};
 
