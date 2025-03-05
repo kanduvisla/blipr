@@ -157,6 +157,16 @@ void testGetTrackStepIndexForRepeatPlay() {
     assert(getTrackStepIndex(&ppqnCounter, track) == 48);
     track->selectedPage = 4; // overflow
     assert(getTrackStepIndex(&ppqnCounter, track) == 0);
+
+    // Test different page lengths:
+    track->selectedPage = 0;
+    track->pageLength = 11; // 0-based
+    ppqnCounter = 0;
+    assert(getTrackStepIndex(&ppqnCounter, track) == 0);
+    ppqnCounter += (PP16N * 12) - 1;
+    assert(getTrackStepIndex(&ppqnCounter, track) == 11);
+    ppqnCounter += 1;
+    assert(getTrackStepIndex(&ppqnCounter, track) == 0);
 }
 
 void assertEnabledNotesCount(const struct Note **notes, int expectedCount) {
