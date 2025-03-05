@@ -436,139 +436,51 @@ void runSequencer(
     uint64_t *ppqnCounter, 
     struct Track *selectedTrack
 ) {
-    // ppqn is actually pulse counter
-    // - 1 quarter note has 96 pulses in this program
-    // - 1 eight note has 48 pulses
-    // - 1 sixteenth note has 24 pulses
-    // - nudge on a note is used to offset the modulo to determine if a step is trigged
-    //   nudge can be -5 to +5. 0=no nudge (maybe increase this when resolution is higher?)
-
-    // What we need to do:
-    // - Calculate the current step, according to the ppqnCounter
-    // - Check for positive nudges
-    // - Also check the next step, for negative nudges
-
-    // First clamp the ppqn counter, according to track page play mode:
-    uint64_t clampedCounter;
-    uint64_t nextStepClampedCounter;    // Clamped counter for the next step, to deal with negative nudge
-    if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
-        clampedCounter = *ppqnCounter % (PP16N * (selectedTrack->trackLength + 1));
-        nextStepClampedCounter = (*ppqnCounter + PP16N) % (PP16N * (selectedTrack->trackLength + 1));
-        // Repeat count is bound per track:
-        if (clampedCounter == 0) {
-            selectedTrack->repeatCount += 1;
-        }
-    } else {
-        // By page:
-        int pageLength = selectedTrack->pageLength + 1; // 1-16
-        clampedCounter = *ppqnCounter % (PP16N * pageLength);
-        nextStepClampedCounter = (*ppqnCounter + PP16N) % (PP16N * pageLength);
-        // Check for queued page:
-        if (clampedCounter % (PP16N * pageLength) == 0 && selectedTrack->selectedPage != selectedTrack->queuedPage) {
-            selectedTrack->selectedPage = selectedTrack->queuedPage;
-            // Reset repeat count, since we're switching pages:
-            selectedTrack->repeatCount = 0;
-        }
-        // Increase clamped counter with selected page:
-        clampedCounter += (selectedTrack->selectedPage * (PP16N * pageLength));
-        nextStepClampedCounter += (selectedTrack->selectedPage * (PP16N * pageLength));
-        if (clampedCounter == 0) {
-            selectedTrack->repeatCount += 1;
-        }
-    }
-
     // Check for current step:
     bool isFirstPulse;
     int currentTrackStepIndex = getTrackStepIndex(ppqnCounter, selectedTrack, &isFirstPulse);
-    int nextTrackStepIndex = getTrackStepIndex(ppqnCounter + PP16N, selectedTrack, &isFirstPulse);
 
     // Check for repeats:
     if (isFirstPulse) {
         selectedTrack->repeatCount += 1;
     }
 
-    // if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS && currentTrackStepIndex == 0) {
+    // Nudge values to check on:
+    int currentNudgeCheck = *ppqnCounter % PP16N;
 
-    // }
-
-    // int currentTrackStepIndex = calculateTrackStepIndex(
-    //     clampedCounter / PP16N, 
-    //     selectedTrack->pageLength + 1,
-    //     selectedTrack->trackLength + 1,
-    //     selectedTrack->pagePlayMode
-    // );
-
-    // Nudge value to check on:
-    int currentNudgeCheck = clampedCounter % PP16N;
-
-    // Check for next step:
-    // int nextTrackStepIndex = calculateTrackStepIndex(
-    //     nextStepClampedCounter / PP16N, 
-    //     selectedTrack->pageLength + 1,
-    //     selectedTrack->trackLength + 1,
-    //     selectedTrack->pagePlayMode
-    // );
-
-    // Ignore next nudge check of it's equal to PP16N * -1
-    int nextNudgeCheck = (PP16N * -1) + (clampedCounter % PP16N);
-
-    if (strcmp(selectedTrack->name, "Track 1") == 0 && currentNudgeCheck == 0) {
-    //     print("clamped counter: %d, current step index: %d, current step nudge check: %d, next step clamped counter: %d, next step index: %d, next step nudge check: %d", 
-    //         clampedCounter, currentTrackStepIndex, currentNudgeCheck, nextStepClampedCounter, nextTrackStepIndex, nextNudgeCheck
-    //     );
-        print("Current Track Step Index: %d", currentTrackStepIndex);
+    // Get notes & play them:
+    struct Note *currentStepNotes[NOTES_IN_STEP];
+    getNotesAtTrackStepIndex(currentTrackStepIndex, selectedTrack, currentStepNotes);
+    for (int i  = 0; i < NOTES_IN_STEP; i++) {
+        // Get the note:
+        struct Note *note = currentStepNotes[i];
+        
+        // If it's not null then send it to the output stream.
+        if  (note!= NULL && note->enabled && note->nudge == currentNudgeCheck && isNoteTrigged(note->trigg, selectedTrack->repeatCount)) {
+            // Play this note!
+            sendMidiNoteOn(outputStream, selectedTrack->midiChannel, note->note, note->velocity);
+            addNoteToTracker(outputStream, selectedTrack->midiChannel, note);
+        }
     }
 
-    // Depending on polyphony, iterate over notes:
-    int poly = getPolyCount(selectedTrack);
-    if (poly == 1) {
-        // No polyphony, each note in this step is concidered to be a "page"
-        // So:  Track step 0-63     is step 0-63 note 0
-        //      Track step 64-127   is step 0-63 note 1
-        //      Track step 128-195  is step 0-63 note 2
-        //      etc.
-        // struct Step *step = &selectedTrack->steps[currentTrackStepIndex];
-        // struct Note *note = &step->notes[i];
+    // Do the same for the next step for next step:
+    int nextNudgeCheck = (PP16N * -1) + (*ppqnCounter % PP16N);
+    // Ignore next nudge check of it's equal to PP16N * -1, because that equals the current step and would send a double note
+    if (nextNudgeCheck != PP16N * -1) {
+        int nextTrackStepIndex = getTrackStepIndex(ppqnCounter + PP16N, selectedTrack, &isFirstPulse);
+        struct Note *nextStepNotes[NOTES_IN_STEP];
+        getNotesAtTrackStepIndex(nextTrackStepIndex, selectedTrack, nextStepNotes);
 
-    } else if (poly == 2) {
-        // 2 voice polyphony
-        // notes are linked with index 1-2, 3-4, 5-6, 7-8
-        // So:  Track step 0-63     is step 0-63 note 0 & 1
-        //      Track step 64-127   is step 0-63 note 2 & 3
-        //      etc.
-    } else if (poly == 4) {
-        // 4 voice polyphony
-        // notes are linked with index 1-4 and 5-6
-        // So:  Track step 0-63     is step 0-63 note 0,1,2 and 3
-        //      Track step 64-127   is step 0-63 note 4,5,6 and 7
-        //      no etc... ;-)
-        for (int i=0; i<4; i++) {
-
-        }
-    } else if (poly == 8) {
-        // 8 voice polyphony, iterate over all notes:
-        for (int i=0; i<8; i++) {
-            struct Step *step = &selectedTrack->steps[currentTrackStepIndex];
-            struct Note *note = &step->notes[i];
-            // TODO: Add Trigg conditions
-            if (note->enabled && note->nudge == currentNudgeCheck && isNoteTrigged(note->trigg, selectedTrack->repeatCount)) {
+        for (int i  = 0; i < NOTES_IN_STEP; i++) {
+            // Get the note:
+            struct Note *note = nextStepNotes[i];
+            // If it's not null then send it to the output stream.
+            if (note!= NULL && note->enabled && note->nudge == nextNudgeCheck && isNoteTrigged(note->trigg, selectedTrack->repeatCount)) {
                 // Play this note!
                 sendMidiNoteOn(outputStream, selectedTrack->midiChannel, note->note, note->velocity);
-                addNoteToTracker(outputStream, selectedTrack->midiChannel, note);            
-            }
-            
-            // Check for next note for negative nudges:
-            if (nextNudgeCheck != PP16N * -1) {
-                step = &selectedTrack->steps[nextTrackStepIndex];
-                note = &step->notes[i];
-                // TODO: Add Trigg conditions
-                if (note->enabled && note->nudge == nextNudgeCheck && isNoteTrigged(note->trigg, selectedTrack->repeatCount)) {
-                    // Play this note!
-                    sendMidiNoteOn(outputStream, selectedTrack->midiChannel, note->note, note->velocity);
-                    addNoteToTracker(outputStream, selectedTrack->midiChannel, note);
-                }
-            }
-        }
+                addNoteToTracker(outputStream, selectedTrack->midiChannel, note);
+            }   
+        }    
     }
 
     // Decrease note-off counters:
