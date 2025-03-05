@@ -11,9 +11,9 @@ void drawConfigSelection(struct Project *project);
 
 /**
  * Process a key during configuration mode
- * Returns TRUE of a midi device reload is required
+ * Has some additional boolean flags that can affect the state
  */
-bool updateConfiguration(struct Project *project, SDL_Scancode key);
+void updateConfiguration(struct Project *project, SDL_Scancode key, bool *reloadMidi, bool *quit);
 
 /**
  * Reset configuration screen to start state

@@ -29,14 +29,12 @@
 // Renderer:
 SDL_Renderer *renderer = NULL;
 
-// For debugging:
+// For debugging & monitoring:
 bool isMidiDataLogged = false;
+bool isTimeMeasured = false;
 
-// The initial BPM:
-// double bpm = 120.0;
-
-// Used for delay calculations:
-// int64_t nanoSecondsPerPulse = 0;
+struct timespec seqStartTime, seqEndTime;   // To monitor sequencer performance
+struct timespec renStartTime, renEndTime;   // To monitor renderer performance
 
 // Project file
 char *projectFile = "data.blipr";
@@ -44,11 +42,9 @@ char *projectFile = "data.blipr";
 #define INPUT_BUFFER_SIZE 100
 #define OUTPUT_BUFFER_SIZE 100
 
-// For Midi:
-PmStream *input_stream;
-// PmStream *outputStream[4]; // 4 streams, for A, B, C and D
-// int midiDevice[4];          // 4 midi devices, for A, B, C and D
-
+/**
+ * Calculate microseconds per pulse for a given BPM
+ */
 uint64_t calculateMicroSecondsPerPulse(int bpm) {
     double beatsPerSecond = bpm / 60.0;
     double secondsPerQuarterNote = 1.0 / beatsPerSecond;
@@ -56,6 +52,9 @@ uint64_t calculateMicroSecondsPerPulse(int bpm) {
     return nanoSecondsPerQuarterNote / PPQN_MULTIPLIED;
 }
 
+/**
+ * Get the time difference between 2 times
+ */
 uint64_t getTimespecDiffInNanoSeconds(struct timespec *start, struct timespec *end) {
     struct timespec temp;
     if ((end->tv_nsec - start->tv_nsec) < 0) {
@@ -107,7 +106,11 @@ typedef struct {
     int selectedTrack;
     int selectedPattern;
     int selectedSequence;
-    
+
+    // For monitoring:
+    double seqPerformance;
+    double renPerformance;
+
     // Synchronization primitives
     pthread_mutex_t mutex;
     pthread_cond_t cond;
@@ -140,6 +143,8 @@ void initSharedState(SharedState* state) {
     state->quit = false;
     state->scanCodeKeyDown = SDL_SCANCODE_UNKNOWN;
     state->scanCodeKeyUp = SDL_SCANCODE_UNKNOWN;
+    state->seqPerformance = 0.0;
+    state->renPerformance = 0.0;
 
     // Project file:
     print("Loading project file: %s", projectFile);
@@ -181,7 +186,7 @@ void* timerThread(void *arg) {
     SharedState* state = (SharedState*)arg;
 
     // Timing for sequencer:
-    struct timespec prevTime, nowTime, measureTime;
+    struct timespec prevTime, nowTime;
     clock_gettime(CLOCK_MONOTONIC, &nowTime);
     prevTime = nowTime;
 
@@ -192,12 +197,12 @@ void* timerThread(void *arg) {
         int64_t startNs = elapsedNs;
 
         if (elapsedNs > state->nanoSecondsPerPulse) {
+            // Reset clock:
+            clock_gettime(CLOCK_MONOTONIC, &prevTime);
+
             pthread_mutex_lock(&state->mutex);
             state->unprocessedPulses += 1;
             pthread_mutex_unlock(&state->mutex);
-
-            // Reset clock:
-            clock_gettime(CLOCK_MONOTONIC, &prevTime);
         }
     }
 }
@@ -256,6 +261,11 @@ void* sequencerThread(void* arg) {
         }
 
         if (state->unprocessedPulses > 0) {
+            // Do the work!
+            if (isTimeMeasured) {
+                clock_gettime(CLOCK_MONOTONIC, &seqStartTime);
+            }
+
             pthread_mutex_lock(&state->mutex);
             state->ppqnCounter += state->unprocessedPulses;
             int unprocessedPulses = state->unprocessedPulses;
@@ -291,17 +301,21 @@ void* sequencerThread(void* arg) {
                 }
             }
 
-            // Check for render trigger:
+            // Check for render trigger (typically every step):
             if (state->ppqnCounter % PP16N == 0) {
                 pthread_mutex_lock(&state->mutex);
-                // Keep pulses within bounds:
-                /*
-                if (state->ppqnCounter >= MAX_PULSES) {
-                    state->ppqnCounter = state->ppqnCounter % MAX_PULSES;   // Don't basically set to 0, because we might have skipped pulses in here.
-                }
-                */
                 state->isRenderRequired = true;
                 pthread_mutex_unlock(&state->mutex);
+            }
+
+            if (isTimeMeasured) {
+                clock_gettime(CLOCK_MONOTONIC, &seqEndTime);
+                int64_t elapsedNs = getTimespecDiffInNanoSeconds(&seqStartTime, &seqEndTime);
+                double percentage = ((double)elapsedNs / state->nanoSecondsPerPulse) * 100.0;
+                pthread_mutex_lock(&state->mutex);
+                state->seqPerformance = percentage;
+                pthread_mutex_unlock(&state->mutex);
+                print("Sequencer took %dns to run (%.2f%%)", elapsedNs, percentage);
             }
         }
     }
@@ -391,10 +405,11 @@ void* keyThread(void* arg) {
                         .tracks[state->selectedTrack];
                     state->track->repeatCount = 0;
                 } else if (state->isConfigurationModeActive) {
-                    bool reloadMidi = updateConfiguration(state->project, state->scanCodeKeyDown);
-                    if (reloadMidi) {
-                        state->isSetupMidiDevicesRequired = true;
-                    }
+                    bool reloadMidi = false;
+                    bool quit = false;
+                    updateConfiguration(state->project, state->scanCodeKeyDown, &reloadMidi, &quit);
+                    if (reloadMidi) { state->isSetupMidiDevicesRequired = true; }
+                    if (quit) { state->quit = true; }
                 } else if (state->isTransportSelectionActive) {
                     // TODO
                 }
@@ -490,7 +505,15 @@ void* keyThread(void* arg) {
 int main(int argc, char *argv[]) {
     bool isScreenRotated = checkFlag(argc, argv, "--rotate180");
     isMidiDataLogged = checkFlag(argc, argv, "--logMidiData");
-    bool isTimeMeasured = checkFlag(argc, argv, "--measureTime");
+    isTimeMeasured = checkFlag(argc, argv, "--measureTime");
+
+    if (checkFlag(argc, argv, "--help") == true) {
+        // Print Help:
+        printf("Optional arguments:\n\n");
+        printf("  --rotate180       Rotate the screen 180 degrees\n");
+        printf("  --logMidiData     Log the MIDI data to the terminal\n");
+        printf("  --measureTime     Measure time for actions");
+    }
 
     printLog("Screen rotated: %s", isScreenRotated ? "true" : "false");
 
@@ -541,16 +564,16 @@ int main(int argc, char *argv[]) {
 
     initializeTextures();
 
-    // Multi threading:
+    // Multi threading :-)
     SharedState state;
     initSharedState(&state);
 
     pthread_t timerThreadId, seqThreadId, keyThreadId;
 
     // Create threads for sequencer and key input
-    pthread_create(&timerThreadId, NULL, timerThread, &state);
     pthread_create(&seqThreadId, NULL, sequencerThread, &state);
     pthread_create(&keyThreadId, NULL, keyThread, &state);
+    pthread_create(&timerThreadId, NULL, timerThread, &state);  // start the timer thread last
 
     // Event handler
     SDL_Event e;
@@ -572,6 +595,10 @@ int main(int argc, char *argv[]) {
 
         // Determine if rendering should take place:
         if (state.isRenderRequired) {
+            if (isTimeMeasured) {
+                clock_gettime(CLOCK_MONOTONIC, &renStartTime);
+            }
+
             // Set the render target to our texture
             SDL_SetRenderTarget(renderer, renderTarget);
             // Clear the render target
@@ -619,6 +646,16 @@ int main(int argc, char *argv[]) {
                 }
             }
 
+            if (isTimeMeasured) {
+                // Render in bottom right:
+                char seqText[10];
+                snprintf(seqText, 10, "S:%.2f%%", state.seqPerformance);
+                drawText(WIDTH - 40, HEIGHT - 12, seqText, 40, COLOR_YELLOW);
+                char renText[10];
+                snprintf(renText, 10, "R:%.2f%%", state.renPerformance);
+                drawText(WIDTH - 40, HEIGHT - 6, renText, 40, COLOR_YELLOW);
+            }
+
             // Clear the renderer:
             SDL_SetRenderTarget(renderer, NULL);
 
@@ -631,12 +668,22 @@ int main(int argc, char *argv[]) {
             }
 
             // Render:
-            SDL_RenderPresent(renderer);
+            // SDL_RenderPresent(renderer);
             
             // Reset flag:
             pthread_mutex_lock(&state.mutex);
             state.isRenderRequired = false;
             pthread_mutex_unlock(&state.mutex);
+
+            if (isTimeMeasured) {
+                clock_gettime(CLOCK_MONOTONIC, &renEndTime);
+                int64_t elapsedNs = getTimespecDiffInNanoSeconds(&renStartTime, &renEndTime);
+                double percentage = ((double)elapsedNs / state.nanoSecondsPerPulse) * 100.0;
+                pthread_mutex_lock(&state.mutex);
+                state.renPerformance = percentage;
+                pthread_mutex_unlock(&state.mutex);
+                print("Renderer took %dns to run (%.2f%%)", elapsedNs, percentage);
+            }
         }
     }
 

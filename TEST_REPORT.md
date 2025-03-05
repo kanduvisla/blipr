@@ -20,7 +20,7 @@ These are observations done while testing Blipr with real hardware.
 - Add indicator on CPU% - separation in calculations + rendering time
 - (requires testing) Midi configuration: No option to select "no device"
 - Add `--help` option
-- Missing escape option from conf menu
+- (requires testing) Missing escape option from conf menu
 - Last set length is not remembered when editing track.
 - Same for last set velocity.
 - When track has no program, shift 3 should start on program selection

@@ -26,6 +26,7 @@ void resetConfigurationScreen() {
 void drawConfigSelection(struct Project *project) {
     if (isMainScreen()) {
         drawIconOnIndex(0, BLIPR_ICON_MIDI);
+        drawTextOnButton(15, "Q");  // Quit
         drawCenteredLine(2, 133, "CONFIGURATION", TITLE_WIDTH, COLOR_WHITE);       
     } else {
         if (isMidiConfigActive) {
@@ -122,36 +123,33 @@ void setMidiDeviceName(struct Project *project, int deviceOnProject, int indexIn
     }
 }
 
-bool updateConfiguration(struct Project *project, SDL_Scancode key) {
+void updateConfiguration(struct Project *project, SDL_Scancode key, bool *reloadMidi, bool *quit) {
     if (isMainScreen()) {
         // No config selected, so we're on the main screen
-        if (key == BLIPR_KEY_1) {
-            isMidiConfigActive = true;
-        }
+        if (key == BLIPR_KEY_1) { isMidiConfigActive = true; } else 
+        if (key == BLIPR_KEY_16) { *quit = (true); }
     } else {
         if (isMidiConfigActive) {
             if (key == BLIPR_KEY_A) { selectedMidiDevice = BLIPR_MIDI_DEVICE_A; }
             else if (key == BLIPR_KEY_B) { selectedMidiDevice = BLIPR_MIDI_DEVICE_B; }
             else if (key == BLIPR_KEY_C) { selectedMidiDevice = BLIPR_MIDI_DEVICE_C; }
             else if (key == BLIPR_KEY_D) { selectedMidiDevice = BLIPR_MIDI_DEVICE_D; }
-            else if (key == BLIPR_KEY_1) { setMidiDeviceName (project, selectedMidiDevice, 99); return true; }
-            else if (key == BLIPR_KEY_2) { setMidiDeviceName (project, selectedMidiDevice, 0); return true; }
-            else if (key == BLIPR_KEY_3) { setMidiDeviceName (project, selectedMidiDevice, 1); return true; }
-            else if (key == BLIPR_KEY_4) { setMidiDeviceName (project, selectedMidiDevice, 2); return true; }
-            else if (key == BLIPR_KEY_5) { setMidiDeviceName (project, selectedMidiDevice, 3); return true; }
-            else if (key == BLIPR_KEY_6) { setMidiDeviceName (project, selectedMidiDevice, 4); return true; }
-            else if (key == BLIPR_KEY_7) { setMidiDeviceName (project, selectedMidiDevice, 5); return true; }
-            else if (key == BLIPR_KEY_8) { setMidiDeviceName (project, selectedMidiDevice, 6); return true; }
-            else if (key == BLIPR_KEY_9) { setMidiDeviceName (project, selectedMidiDevice, 7); return true; }
-            else if (key == BLIPR_KEY_10) { setMidiDeviceName (project, selectedMidiDevice, 8); return true; }
-            else if (key == BLIPR_KEY_11) { setMidiDeviceName (project, selectedMidiDevice, 9); return true; }
-            else if (key == BLIPR_KEY_12) { setMidiDeviceName (project, selectedMidiDevice, 10); return true; }
-            else if (key == BLIPR_KEY_13) { setMidiDeviceName (project, selectedMidiDevice, 11); return true; }
-            else if (key == BLIPR_KEY_14) { setMidiDeviceName (project, selectedMidiDevice, 12); return true; }
-            else if (key == BLIPR_KEY_15) { setMidiDeviceName (project, selectedMidiDevice, 13); return true; }
-            else if (key == BLIPR_KEY_16) { setMidiDeviceName (project, selectedMidiDevice, 14); return true; }
+            else if (key == BLIPR_KEY_1) { setMidiDeviceName (project, selectedMidiDevice, 99); *reloadMidi = (true); }
+            else if (key == BLIPR_KEY_2) { setMidiDeviceName (project, selectedMidiDevice, 0); *reloadMidi = (true); }
+            else if (key == BLIPR_KEY_3) { setMidiDeviceName (project, selectedMidiDevice, 1); *reloadMidi = (true); }
+            else if (key == BLIPR_KEY_4) { setMidiDeviceName (project, selectedMidiDevice, 2); *reloadMidi = (true); }
+            else if (key == BLIPR_KEY_5) { setMidiDeviceName (project, selectedMidiDevice, 3); *reloadMidi = (true); }
+            else if (key == BLIPR_KEY_6) { setMidiDeviceName (project, selectedMidiDevice, 4); *reloadMidi = (true); }
+            else if (key == BLIPR_KEY_7) { setMidiDeviceName (project, selectedMidiDevice, 5); *reloadMidi = (true); }
+            else if (key == BLIPR_KEY_8) { setMidiDeviceName (project, selectedMidiDevice, 6); *reloadMidi = (true); }
+            else if (key == BLIPR_KEY_9) { setMidiDeviceName (project, selectedMidiDevice, 7); *reloadMidi = (true); }
+            else if (key == BLIPR_KEY_10) { setMidiDeviceName (project, selectedMidiDevice, 8); *reloadMidi = (true); }
+            else if (key == BLIPR_KEY_11) { setMidiDeviceName (project, selectedMidiDevice, 9); *reloadMidi = (true); }
+            else if (key == BLIPR_KEY_12) { setMidiDeviceName (project, selectedMidiDevice, 10); *reloadMidi = (true); }
+            else if (key == BLIPR_KEY_13) { setMidiDeviceName (project, selectedMidiDevice, 11); *reloadMidi = (true); }
+            else if (key == BLIPR_KEY_14) { setMidiDeviceName (project, selectedMidiDevice, 12); *reloadMidi = (true); }
+            else if (key == BLIPR_KEY_15) { setMidiDeviceName (project, selectedMidiDevice, 13); *reloadMidi = (true); }
+            else if (key == BLIPR_KEY_16) { setMidiDeviceName (project, selectedMidiDevice, 14); *reloadMidi = (true); }
         }
     }
-
-    return false;
 }
