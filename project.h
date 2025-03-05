@@ -73,7 +73,7 @@ struct Track {
     short int trackLength;   // 2 bytes, since track length can be up to 512
     unsigned char cc1Assignment;
     unsigned char cc2Assignment;
-    unsigned char polyCount; // 1, 2, 4 or 8
+    unsigned char polyCount; // 0=8, 1=4, 2=2, 3=1
     unsigned char pagePlayMode;
     unsigned char speed;
     // Not saved, used internally:

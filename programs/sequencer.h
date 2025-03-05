@@ -151,4 +151,14 @@ int findMatchingNotes(
     MatchingNote* matchingNotes
 );
 
+/**
+ * Get track step index - this is the index in the steps-array on the track
+ */
+int getTrackStepIndex(const uint64_t *ppqnCounter, const struct Track *track);
+
+/**
+ * Get notes at a given track index - this takes into account the polyphony sacrifice for more steps
+ */
+void getNotesAtTrackStepIndex(int trackStepIndex, const struct Track *track, struct Note **notes);
+
 #endif

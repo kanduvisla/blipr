@@ -477,9 +477,49 @@ int findMatchingNotes(
     return matchCount;
 }
 
+int getTrackStepIndex(const uint64_t *ppqnCounter, const struct Track *track) {
+    uint64_t clampedCounter;
+    if (track->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
+        // By track:
+        clampedCounter = *ppqnCounter % (PP16N * (track->trackLength + 1));
+    } else {
+        // By page:
+        int pageLength = track->pageLength + 1; // 1-16
+        clampedCounter = *ppqnCounter % (PP16N * pageLength);
+        // Increase clamped counter with selected page:
+        clampedCounter += ((track->selectedPage % 4) * (PP16N * pageLength));
+    }
 
-int getTrackStepIndex(uint64_t *ppqnCounter, const struct Track *track) {
-    
+    return clampedCounter / PP16N;
+}
+
+void getNotesAtTrackStepIndex(int trackStepIndex, const struct Track *track, struct Note **notes) {
+    switch (getPolyCount(track)) {
+        case 8:
+            // All enabled notes for this step
+            for (int i=0; i<8; i++) {
+                notes[i] = &track->steps[trackStepIndex].notes[i];
+            }
+            break;
+        case 4:
+            for (int i=0; i<4; i++) {
+                int targetIndex = (track->selectedPageBank * 4) + (i % 4);
+                notes[i] = &track->steps[trackStepIndex].notes[targetIndex];
+            }
+            break;
+        case 2:
+            for (int i=0; i<2; i++) {
+                int targetIndex = (track->selectedPageBank * 2) + (i % 2);
+                notes[i] = &track->steps[trackStepIndex].notes[targetIndex];
+            }
+            break;
+        case 1:
+            for (int i=0; i<1; i++) {
+                int targetIndex = track->selectedPageBank;
+                notes[0] = &track->steps[trackStepIndex].notes[targetIndex];
+            }
+            break;
+    }
 }
 
 /**
