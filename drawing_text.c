@@ -336,7 +336,13 @@ const int characters[][CHAR_HEIGHT][CHAR_WIDTH] = {
      {1,1,1,1,1},
      {0,1,0,1,0},
      {1,1,1,1,1},
-     {0,1,0,1,0}}
+     {0,1,0,1,0}},
+    // - %
+    {{1,0,0,1,1},
+     {0,0,0,1,1},
+     {0,0,1,0,0},
+     {1,1,0,0,0},
+     {1,0,0,0,1}}
 };
 
 void initializeTextures() {
@@ -409,6 +415,7 @@ void drawCharacter(int startX, int startY, char character, SDL_Color color) {
             case '>': charIndex = 50; break;
             case '+': charIndex = 51; break;
             case '#': charIndex = 52; break;
+            case '%': charIndex = 53; break;
             default: return;  // Unsupported character
         }
     }

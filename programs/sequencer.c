@@ -112,8 +112,8 @@ static void handleKey(
     if (key == BLIPR_KEY_6) { note->velocity = MIN(127, note->velocity + 1); } else 
     if (key == BLIPR_KEY_7) { note->length = MAX(0, note->length - 1); } else 
     if (key == BLIPR_KEY_8) { note->length = MIN(127, note->length + 1); } else 
-    if (key == BLIPR_KEY_9) { note->nudge = MAX(0, note->nudge - 1); } else 
-    if (key == BLIPR_KEY_10) { note->nudge = MIN(127, note->nudge + 1); } else 
+    if (key == BLIPR_KEY_9) { note->nudge = MAX(PP16N * -1, note->nudge - 1); } else 
+    if (key == BLIPR_KEY_10) { note->nudge = MIN(PP16N, note->nudge + 1); } else 
     if (key == BLIPR_KEY_11) { note->trigg = MAX(0, note->trigg - 1); } else 
     if (key == BLIPR_KEY_12) { note->trigg = MIN(127, note->trigg + 1); } else 
     if (key == BLIPR_KEY_13) { note->cc1Value = MAX(0, note->cc1Value - 1); } else 
@@ -241,6 +241,9 @@ bool isNoteTrigged(int triggValue, int repeatCount) {
     int value = get2FByteValue(triggValue);
     
     switch (value) {
+        case TRIG_DISABLED:
+            isTrigged = true;
+            break;
         case TRIG_1_2:
             isTrigged = repeatCount % 2 == 0;
             break;
@@ -373,6 +376,197 @@ bool isNoteTrigged(int triggValue, int repeatCount) {
 }
 
 /**
+ * Set the trigg text to a given string
+ */
+void setTriggText(int triggValue, char *text) {
+    bool isEnabled = get2FByteFlag1(triggValue);
+    if (!isEnabled) {
+        sprintf(text, "OFF");
+        return;
+    }
+
+    bool isTrigged = true;
+    bool isInversed = get2FByteFlag2(triggValue);
+    int value = get2FByteValue(triggValue);
+
+    switch (value) {
+        case TRIG_DISABLED:
+            sprintf(text, "OFF");       
+            case TRIG_1_2:
+            sprintf(text, "%s1:2", isInversed? "!" : "");
+            break;
+        case TRIG_1_3:
+            sprintf(text, "%s1:3", isInversed? "!" : "");
+            break;
+        case TRIG_2_3:
+            sprintf(text, "%s2:3", isInversed? "!" : "");
+            break;
+        case TRIG_3_3:
+            sprintf(text, "%s3:3", isInversed? "!" : "");
+            break;
+        case TRIG_1_4:
+            sprintf(text, "%s1:4", isInversed? "!" : "");
+            break;
+        case TRIG_2_4:
+            sprintf(text, "%s2:4", isInversed? "!" : "");
+            break;
+        case TRIG_3_4:
+            sprintf(text, "%s3:4", isInversed? "!" : "");
+            break;
+        case TRIG_4_4:
+            sprintf(text, "%s4:4", isInversed? "!" : "");
+            break;
+        case TRIG_1_5:
+            sprintf(text, "%s1:5", isInversed? "!" : "");
+            break;
+        case TRIG_2_5:
+            sprintf(text, "%s2:5", isInversed? "!" : "");
+            break;
+        case TRIG_3_5:
+            sprintf(text, "%s3:5", isInversed? "!" : "");
+            break;
+        case TRIG_4_5:
+            sprintf(text, "%s4:5", isInversed? "!" : "");
+            break;
+        case TRIG_5_5:
+            sprintf(text, "%s5:5", isInversed? "!" : "");
+            break;
+        case TRIG_1_6:
+            sprintf(text, "%s1:6", isInversed? "!" : "");
+            break;
+        case TRIG_2_6:
+            sprintf(text, "%s2:6", isInversed? "!" : "");
+            break;
+        case TRIG_3_6:
+            sprintf(text, "%s3:6", isInversed? "!" : "");
+            break;
+        case TRIG_4_6:
+            sprintf(text, "%s4:6", isInversed? "!" : "");
+            break;
+        case TRIG_5_6:
+            sprintf(text, "%s5:6", isInversed? "!" : "");
+            break;
+        case TRIG_6_6:
+            sprintf(text, "%s6:6", isInversed? "!" : "");
+            break;
+        case TRIG_1_7:
+            sprintf(text, "%s1:7", isInversed? "!" : "");
+            break;
+        case TRIG_2_7:
+            sprintf(text, "%s2:7", isInversed? "!" : "");
+            break;
+        case TRIG_3_7:
+            sprintf(text, "%s3:7", isInversed? "!" : "");
+            break;
+        case TRIG_4_7:
+            sprintf(text, "%s4:7", isInversed? "!" : "");
+            break;
+        case TRIG_5_7:
+            sprintf(text, "%s5:7", isInversed? "!" : "");
+            break;
+        case TRIG_6_7:
+            sprintf(text, "%s6:7", isInversed? "!" : "");
+            break;
+        case TRIG_7_7:
+            sprintf(text, "%s7:7", isInversed? "!" : "");
+            break;
+        case TRIG_1_8:
+            sprintf(text, "%s1:8", isInversed? "!" : "");
+            break;
+        case TRIG_2_8:
+            sprintf(text, "%s2:8", isInversed? "!" : "");
+            break;
+        case TRIG_3_8:
+            sprintf(text, "%s3:8", isInversed? "!" : "");
+            break;
+        case TRIG_4_8:
+            sprintf(text, "%s4:8", isInversed? "!" : "");
+            break;
+        case TRIG_5_8:
+            sprintf(text, "%s5:8", isInversed? "!" : "");
+            break;
+        case TRIG_6_8:
+            sprintf(text, "%s6:8", isInversed? "!" : "");
+            break;
+        case TRIG_7_8:
+            sprintf(text, "%s7:8", isInversed? "!" : "");
+            break;
+        case TRIG_8_8:
+            sprintf(text, "%s8:8", isInversed? "!" : "");
+            break;
+        case TRIG_1_PERCENT:
+            strcpy(text, isInversed ? "99%" : "1%");
+            break;
+        case TRIG_2_PERCENT:
+            strcpy(text, isInversed ? "98%" : "2%");
+            break;
+        case TRIG_5_PERCENT:
+            strcpy(text, isInversed ? "95%" : "5%");
+            break;
+        case TRIG_10_PERCENT:
+            strcpy(text, isInversed ? "90%" : "10%");
+            break;
+        case TRIG_25_PERCENT:
+            strcpy(text, isInversed ? "75%" : "25%");
+            break;
+        case TRIG_33_PERCENT:
+            strcpy(text, isInversed ? "66%" : "33%");
+            break;
+        case TRIG_50_PERCENT:
+            strcpy(text, "50%");
+            break;
+        case TRIG_FILL:
+            sprintf(text, "%sFILL", isInversed? "!" : "");
+            break;
+        case TRIG_FIRST:
+            sprintf(text, "%s1ST", isInversed? "!" : "");
+            break;
+        case TRIG_TRANSITION:
+            sprintf(text, "%sTRANS", isInversed? "!" : "");
+            break;
+        case TRIG_FIRST_PAGE:
+            sprintf(text, "%s1ST.P", isInversed? "!" : "");
+            break;
+        case TRIG_TRANSITION_PAGE:
+            sprintf(text, "%sTRN.P", isInversed? "!" : "");
+            break;
+        case TRIG_HIGHER_FIRST:
+            sprintf(text, "%s1ST.H", isInversed? "!" : "");
+            break;
+        case TRIG_HIGHER_TRANSITION:
+            sprintf(text, "%sTRN.H", isInversed? "!" : "");
+            break;
+        case TRIG_HIGHER_FIRST_PAGE:
+            sprintf(text, "%s1ST.HP", isInversed? "!" : "");
+            break;
+        case TRIG_HIGHER_TRANSITION_PAGE:
+            sprintf(text, "%sTRN.HP", isInversed? "!" : "");
+            break;
+        case TRIG_LOWER_FIRST:
+            sprintf(text, "%s1ST.L", isInversed? "!" : "");
+            break;
+        case TRIG_LOWER_TRANSITION:
+            sprintf(text, "%sTRN.L", isInversed? "!" : "");
+            break;
+        case TRIG_LOWER_FIRST_PAGE:
+            sprintf(text, "%s1ST.LP", isInversed? "!" : "");
+            break;
+        case TRIG_LOWER_TRANSITION_PAGE:
+            sprintf(text, "%sTRN.LP", isInversed? "!" : "");
+            break;
+        case TRIG_FIRST_PAGE_PLAY:
+            sprintf(text, "%s1ST.PG", isInversed? "!" : "");
+            break;
+        case TRIG_FIRST_PATTERN_PLAY:
+            sprintf(text, "%s1ST.PT", isInversed? "!" : "");
+            break;
+        default:
+            strcpy(text, "---");
+            break;
+    }
+}
+
+/**
  * Get track step index - this is the index in the steps-array on the track
  * The property "isFirstPulse" is set to true if this is the first pulse of the step
  */
@@ -500,18 +694,10 @@ void drawSequencerMain(
     int height = width;
 
     // Step indicator:
-    // int stepCounter = *ppqnCounter / PP16N;
     int playingPage = 0;
     bool isFirstPulse;
 
     int trackStepIndex = getTrackStepIndex(ppqnCounter, selectedTrack, &isFirstPulse);
-    
-    // int trackStepIndex = calculateTrackStepIndex(
-    //     stepCounter, 
-    //     selectedTrack->pageLength + 1,
-    //     selectedTrack->trackLength + 1,
-    //     selectedTrack->pagePlayMode
-    // );
 
     if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
         playingPage = trackStepIndex / 16;
@@ -557,7 +743,7 @@ void drawSequencerMain(
                 ((selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) && (selectedTrack->selectedPage * 16) + i + (j * 4) > selectedTrack->trackLength) ||
                 ((selectedTrack->pagePlayMode == PAGE_PLAY_MODE_REPEAT) && (i + (j * 4)) > selectedTrack->pageLength)
             ) {
-                // Nope
+                // No note here
                 drawRect(
                     4 + i + (i * width),
                     4 + j + (j * height),
@@ -681,6 +867,10 @@ void drawStepEditor(struct Step *step) {
     drawCenteredLine(62, 77, triggChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(10, "-");
     drawTextOnButton(11, "+");
+    // Trigg description:
+    char triggText[6];
+    setTriggText(note->trigg, triggText);
+    drawCenteredLine(62, 87, triggText, BUTTON_WIDTH * 2, COLOR_WHITE);
 
     // CC1:
     drawCenteredLine(2, 97, "CC1 VALUE", BUTTON_WIDTH * 2, COLOR_WHITE);
