@@ -114,8 +114,11 @@ static void handleKey(
     if (key == BLIPR_KEY_8) { note->length = MIN(127, note->length + 1); } else 
     if (key == BLIPR_KEY_9) { note->nudge = MAX(PP16N * -1, note->nudge - 1); } else 
     if (key == BLIPR_KEY_10) { note->nudge = MIN(PP16N, note->nudge + 1); } else 
-    if (key == BLIPR_KEY_11) { note->trigg = MAX(0, note->trigg - 1); } else 
-    if (key == BLIPR_KEY_12) { note->trigg = MIN(127, note->trigg + 1); } else 
+    if (key == BLIPR_KEY_11) { 
+        note->trigg = MAX(0, note->trigg - 1);
+    } else if (key == BLIPR_KEY_12) { 
+        note->trigg = MIN(127, note->trigg + 1); 
+    } else 
     if (key == BLIPR_KEY_13) { note->cc1Value = MAX(0, note->cc1Value - 1); } else 
     if (key == BLIPR_KEY_14) { note->cc1Value = MIN(127, note->cc1Value + 1); } else 
     if (key == BLIPR_KEY_15) { note->cc2Value = MAX(0, note->cc2Value - 1); } else 
@@ -230,7 +233,7 @@ void checkSequencerForKeyRepeats(
  * @param repeatCount   How many times this note has already been played (determined by tracklength or page size)
  */
 bool isNoteTrigged(int triggValue, int repeatCount) {
-    bool isEnabled = get2FByteFlag1(triggValue);
+    bool isEnabled = triggValue > 0; // get2FByteFlag1(triggValue);
     if (!isEnabled) {
         // If a trig condition is not enabled it will always pass:
         return true;
@@ -379,7 +382,7 @@ bool isNoteTrigged(int triggValue, int repeatCount) {
  * Set the trigg text to a given string
  */
 void setTriggText(int triggValue, char *text) {
-    bool isEnabled = get2FByteFlag1(triggValue);
+    bool isEnabled = triggValue > 0; // get2FByteFlag1(triggValue);
     if (!isEnabled) {
         sprintf(text, "OFF");
         return;
