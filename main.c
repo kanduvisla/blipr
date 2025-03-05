@@ -668,7 +668,7 @@ int main(int argc, char *argv[]) {
             }
 
             // Render:
-            // SDL_RenderPresent(renderer);
+            SDL_RenderPresent(renderer);
             
             // Reset flag:
             pthread_mutex_lock(&state.mutex);
