@@ -76,6 +76,7 @@ struct Track {
     unsigned char polyCount; // 0=8, 1=4, 2=2, 3=1
     unsigned char pagePlayMode;
     unsigned char speed;
+    unsigned char shuffle;
     // Not saved, used internally:
     unsigned char selectedPage;
     unsigned char selectedPageBank;

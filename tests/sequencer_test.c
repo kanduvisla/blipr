@@ -182,6 +182,7 @@ void testGetNotesAtTrackStepIndex() {
         for (int n = 0; n < NOTES_IN_STEP; n++) {
             struct Note note;
             note.enabled = false;
+            note.nudge = PP16N; // no nudge
             step.notes[n] = note;
         }
         track->steps[s] = step;

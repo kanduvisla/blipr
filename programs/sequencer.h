@@ -110,7 +110,7 @@ void checkSequencerForKeyRepeats(
  */
 void runSequencer(
     PmStream *outputStream,
-    uint64_t *ppqnCounter, 
+    const uint64_t *ppqnCounter, 
     struct Track *selectedTrack
 );
 

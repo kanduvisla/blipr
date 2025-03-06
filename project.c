@@ -261,6 +261,7 @@ void initializeProject(struct Project* project) {
                 track.polyCount = 7;
                 track.selectedPage = 0;
                 track.queuedPage = 0;
+                track.shuffle = PP16N; // PP16N = middle, nudge 0
                 for (int s = 0; s < 64; s++) {
                     struct Step step;
                     for (int n = 0; n < NOTES_IN_STEP; n++) {

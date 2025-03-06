@@ -53,6 +53,11 @@ void drawTrackOptions(struct Track* track) {
     drawTextOnButton(4, "<");
     drawTextOnButton(5, ">");
 
+    // Shuffle:
+    drawCenteredLine(64, 37, "SHUFFLE", BUTTON_WIDTH * 2, COLOR_WHITE);
+    drawTextOnButton(6, "<");
+    drawTextOnButton(7, ">");
+
     // Midi Device: 
     char deviceChar[2] = {
         midiDeviceToCharacter(track->midiDevice),
@@ -133,6 +138,12 @@ void updateTrackOptions(struct Track* track, SDL_Scancode key) {
             break;
         case BLIPR_KEY_6:
             track->speed = MIN(TRACK_SPEED_TIMES_EIGHT, track->speed + 1);
+            break;
+        case BLIPR_KEY_7:
+            track->shuffle = MAX(0, track->shuffle - 1);
+            break;
+        case BLIPR_KEY_8:
+            track->shuffle = MIN(PP16N * 2, track->shuffle + 1);
             break;
         case BLIPR_KEY_9:
             track->midiDevice = track->midiDevice + 1;

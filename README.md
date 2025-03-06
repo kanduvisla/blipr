@@ -57,7 +57,7 @@ Basically the functionality for all programs is identical, with the following ma
             - 2     : ✅ Change track polyphony (8, 4, 2, 1)
             - 3-4   : ✅ Increase / decrease track / page length (depending on play mode)
             - 5-6   : Increase / decrease track speed (default=0 / default speed)
-            - 7-8   : ✅ Set page size (1-16)
+            - 7-8   : Set shuffle
             - 9     : ✅ Set Midi Device
             - 10    : ✅ Set Midi Channel
             - 11    : Change page repeat (how many times repeat a page before the transition happens?)
@@ -148,14 +148,16 @@ Each pattern has 64 steps, divided in 4 pages. Each step can have up to 8 notes.
     - ✅ Toggle on/off
     - ✅ Shift1: Half velocity
     - Shift2: Select note
+        - When no note selected:
+            - 1-16  : ✅ Select note
+            - C-D   : ✅ (For polyphony) Channel -/+
         - 1-4   : ✅ Transpose -12 / -1 / +1 / +12
         - 5-6   : ✅ Increase / decrease velocity
         - 7-8   : ✅ Increase / decrease length
-        - 9-10  : Increase / decrease nudge
+        - 9-10  : ✅ Increase / decrease nudge
         - 11-12 : Increase / decrease trig condition
         - 13-14 : Increase / decrease CC1 value
         - 15-16 : Increase / decrease CC2 value
-        - A-B   : (For polyphony) Channel -/+
         - C     : Copy Note (2x to copy entire step/all notes on step)
         - D     : Paste Note/Step
 - ABCD  : ✅ Select page for playing (or next in queue, depending on page play mode)

@@ -112,9 +112,11 @@ static void handleKey(
     if (key == BLIPR_KEY_6) { note->velocity = MIN(127, note->velocity + 1); } else 
     if (key == BLIPR_KEY_7) { note->length = MAX(0, note->length - 1); } else 
     if (key == BLIPR_KEY_8) { note->length = MIN(127, note->length + 1); } else 
-    if (key == BLIPR_KEY_9) { note->nudge = MAX(PP16N * -1, note->nudge - 1); } else 
-    if (key == BLIPR_KEY_10) { note->nudge = MIN(PP16N, note->nudge + 1); } else 
-    if (key == BLIPR_KEY_11) { 
+    if (key == BLIPR_KEY_9) { 
+        note->nudge = MAX(0, note->nudge - 1); 
+    } else if (key == BLIPR_KEY_10) { 
+        note->nudge = MIN(PP16N * 2, note->nudge + 1); 
+    } else if (key == BLIPR_KEY_11) { 
         note->trigg = MAX(0, note->trigg - 1);
     } else if (key == BLIPR_KEY_12) { 
         note->trigg = MIN(127, note->trigg + 1); 
@@ -630,7 +632,7 @@ void getNotesAtTrackStepIndex(int trackStepIndex, const struct Track *track, str
  */
 void runSequencer(
     PmStream *outputStream,
-    uint64_t *ppqnCounter, 
+    const uint64_t *ppqnCounter, 
     struct Track *selectedTrack
 ) {
     // Check for current step:
@@ -642,7 +644,7 @@ void runSequencer(
         selectedTrack->repeatCount += 1;
     }
 
-    // Nudge values to check on:
+    // Nudge values to check on (PP16N is in the middle):
     int currentNudgeCheck = *ppqnCounter % PP16N;
 
     // Get notes & play them:
@@ -651,9 +653,8 @@ void runSequencer(
     for (int i  = 0; i < NOTES_IN_STEP; i++) {
         // Get the note:
         struct Note *note = currentStepNotes[i];
-        
         // If it's not null then send it to the output stream.
-        if  (note!= NULL && note->enabled && note->nudge == currentNudgeCheck && isNoteTrigged(note->trigg, selectedTrack->repeatCount)) {
+        if  (note!= NULL && note->enabled && (note->nudge - PP16N) == currentNudgeCheck && isNoteTrigged(note->trigg, selectedTrack->repeatCount)) {
             // Play this note!
             sendMidiNoteOn(outputStream, selectedTrack->midiChannel, note->note, note->velocity);
             addNoteToTracker(outputStream, selectedTrack->midiChannel, note);
@@ -672,7 +673,7 @@ void runSequencer(
             // Get the note:
             struct Note *note = nextStepNotes[i];
             // If it's not null then send it to the output stream.
-            if (note!= NULL && note->enabled && note->nudge == nextNudgeCheck && isNoteTrigged(note->trigg, selectedTrack->repeatCount)) {
+            if (note!= NULL && note->enabled && (note->nudge - PP16N) == nextNudgeCheck && isNoteTrigged(note->trigg, selectedTrack->repeatCount)) {
                 // Play this note!
                 sendMidiNoteOn(outputStream, selectedTrack->midiChannel, note->note, note->velocity);
                 addNoteToTracker(outputStream, selectedTrack->midiChannel, note);

@@ -16,6 +16,7 @@ These are observations done while testing Blipr with real hardware.
 - Page bank is pickable, even if it's not allowed or visible
 - Steps are set on disabled tiles (takes not in account page length (possible also track length))
 - (requires re-testing) It appears that the note off is not properly send when changing the note tone
+- (requires re-testing) Nudge cannnot go negative
 
 --- Improvements:
 
