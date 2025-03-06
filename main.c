@@ -194,7 +194,6 @@ void* timerThread(void *arg) {
         // Calculate with monotonic clock:
         clock_gettime(CLOCK_MONOTONIC, &nowTime);
         int64_t elapsedNs = getTimespecDiffInNanoSeconds(&prevTime, &nowTime);
-        int64_t startNs = elapsedNs;
 
         if (elapsedNs > state->nanoSecondsPerPulse) {
             // Reset clock:

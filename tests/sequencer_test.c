@@ -315,15 +315,15 @@ void testGetNotesAtTrackStepIndex() {
     memset(notes, 0, NOTE_BYTE_SIZE * 8);
 }
 
-bool isFirstPulse = false;
-void processPulseCallback() {
-    isFirstPulse = true;
+bool testIsFirstPulse = false;
+void testProcessPulseCallback() {
+    testIsFirstPulse = true;
 }
 
 // Reference to the last played note, for testing
 struct Note playedNotes[NOTES_IN_STEP];
 int playedNoteCount;
-void playNoteCallback(const struct Note *note) {
+void testPlayNoteCallback(const struct Note *note) {
     playedNotes[playedNoteCount] = *note;
     playedNoteCount++;
 }
@@ -364,30 +364,35 @@ void testProcessPulseNudge() {
     track->steps[0].notes[4].nudge = PP16N - 2;
 
     // Nudge test:
+    int ppqnCounter = 0;
     playedNoteCount = 0;
-    processPulse(0, track, processPulseCallback, playNoteCallback);
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
     assert(playedNoteCount == 2);
     assert(playedNotes[0].note == 60);
     assert(playedNotes[1].note == 62);
     
     playedNoteCount = 0;
-    processPulse(1, track, processPulseCallback, playNoteCallback);
+    ppqnCounter = 1;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
     assert(playedNoteCount == 1);
     assert(playedNotes[0].note == 61);
     
     playedNoteCount = 0;
-    processPulse(2, track, processPulseCallback, playNoteCallback);
+    ppqnCounter = 2;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
     assert(playedNoteCount == 1);
     assert(playedNotes[0].note == 63);
 
     // Negative nudge:
     playedNoteCount = 0;
-    processPulse(PP16N - 2, track, processPulseCallback, playNoteCallback);
+    ppqnCounter = PP16N - 2;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
     assert(playedNoteCount == 1);
     assert(playedNotes[0].note == 64);
 
     playedNoteCount = 0;
-    processPulse((PP16N * 64) - 2, track, processPulseCallback, playNoteCallback);
+    ppqnCounter = (PP16N * 64) - 2;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
     assert(playedNoteCount == 1);
     assert(playedNotes[0].note == 65);
 }

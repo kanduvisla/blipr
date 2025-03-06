@@ -646,22 +646,22 @@ bool isNotePlayed(
  * Standalone method to process a pulse
  */
 void processPulse(
-    const uint64_t currentPulse,
+    const uint64_t *currentPulse,
     const struct Track *track,
     void (*isFirstPulseCallback)(void),
     void (*playNoteCallback)(const struct Note *note)
 ) {
     // Get the index for the current step
-    bool *isFirstPulse;
-    int trackStepIndex = getTrackStepIndex(&currentPulse, track, &isFirstPulse);
+    bool *p;
+    int trackStepIndex = getTrackStepIndex(currentPulse, track, &p);
     
     // First pulse callback:
-    if (isFirstPulse) {
+    if (p) {
         isFirstPulseCallback();
     }
 
     // Get the nudge value that needs to be applied:
-    int nudgeCheck = currentPulse % PP16N;
+    int nudgeCheck = *currentPulse % PP16N;
 
     // Get all notes that are in this step
     struct Note *notes[NOTES_IN_STEP];
@@ -679,11 +679,11 @@ void processPulse(
     }
 
     // Check next step as well, because there might be notes with negative nudges:
-    int nextNudgeCheck = (PP16N * -1) + (currentPulse % PP16N);
+    int nextNudgeCheck = (PP16N * -1) + (*currentPulse % PP16N);
     // Ignore next nudge check of it's equal to PP16N * -1, because that equals the current step and would send a double note
     if (nextNudgeCheck != PP16N * -1) {
-        uint64_t nextStepPulse = currentPulse + PP16N;
-        int nextTrackStepIndex = getTrackStepIndex(&nextStepPulse, track, &isFirstPulse);
+        uint64_t nextStepPulse = *currentPulse + PP16N;
+        int nextTrackStepIndex = getTrackStepIndex(&nextStepPulse, track, &p);
         struct Note *nextStepNotes[NOTES_IN_STEP];
         getNotesAtTrackStepIndex(nextTrackStepIndex, track, nextStepNotes);
         for (int i=0; i < NOTES_IN_STEP; i++) {
@@ -697,6 +697,26 @@ void processPulse(
     }
 }
 
+// Global properties used in callbacks:
+static bool isFirstPulse = false;
+static PmStream *tmpStream;
+static struct Track *tmpTrack;
+
+/**
+ * Callback when the first pulse of a page/track is played
+ */
+void isFirstPulseCallback() {
+    isFirstPulse = true;
+}
+
+/**
+ * Callback when a note is played
+ */
+void playNoteCallback(const struct Note *note) {
+    sendMidiNoteOn(tmpStream, tmpTrack->midiChannel, note->note, note->velocity);
+    addNoteToTracker(tmpStream, tmpTrack->midiChannel, note);
+}
+
 /**
  * Run the sequencer
  * @todo refactor this so it can be testable
@@ -706,50 +726,17 @@ void runSequencer(
     const uint64_t *ppqnCounter, 
     struct Track *selectedTrack
 ) {
-    // Check for current step:
-    bool isFirstPulse;
-    int currentTrackStepIndex = getTrackStepIndex(ppqnCounter, selectedTrack, &isFirstPulse);
+    // Reset global properties:
+    isFirstPulse = false;
+    tmpStream = outputStream;
+    tmpTrack = selectedTrack;
+
+    // Process pulse
+    processPulse(ppqnCounter, selectedTrack, isFirstPulseCallback, playNoteCallback);
 
     // Check for repeats:
     if (isFirstPulse) {
         selectedTrack->repeatCount += 1;
-    }
-
-    // Nudge values to check on (PP16N is in the middle):
-    int currentNudgeCheck = *ppqnCounter % PP16N;
-
-    // Get notes & play them:
-    struct Note *currentStepNotes[NOTES_IN_STEP];
-    getNotesAtTrackStepIndex(currentTrackStepIndex, selectedTrack, currentStepNotes);
-    for (int i=0; i < NOTES_IN_STEP; i++) {
-        // Get the note:
-        struct Note *note = currentStepNotes[i];
-        // If it's not null then send it to the output stream.
-        if  (note!= NULL && note->enabled && (note->nudge - PP16N) == currentNudgeCheck && isNoteTrigged(note->trigg, selectedTrack->repeatCount)) {
-            // Play this note!
-            sendMidiNoteOn(outputStream, selectedTrack->midiChannel, note->note, note->velocity);
-            addNoteToTracker(outputStream, selectedTrack->midiChannel, note);
-        }
-    }
-
-    // Do the same for the next step for next step:
-    int nextNudgeCheck = (PP16N * -1) + (*ppqnCounter % PP16N);
-    // Ignore next nudge check of it's equal to PP16N * -1, because that equals the current step and would send a double note
-    if (nextNudgeCheck != PP16N * -1) {
-        int nextTrackStepIndex = getTrackStepIndex(ppqnCounter + PP16N, selectedTrack, &isFirstPulse);
-        struct Note *nextStepNotes[NOTES_IN_STEP];
-        getNotesAtTrackStepIndex(nextTrackStepIndex, selectedTrack, nextStepNotes);
-
-        for (int i=0; i < NOTES_IN_STEP; i++) {
-            // Get the note:
-            struct Note *note = nextStepNotes[i];
-            // If it's not null then send it to the output stream.
-            if (note!= NULL && note->enabled && (note->nudge - PP16N) == nextNudgeCheck && isNoteTrigged(note->trigg, selectedTrack->repeatCount)) {
-                // Play this note!
-                sendMidiNoteOn(outputStream, selectedTrack->midiChannel, note->note, note->velocity);
-                addNoteToTracker(outputStream, selectedTrack->midiChannel, note);
-            }   
-        }    
     }
 
     // Decrease note-off counters:
