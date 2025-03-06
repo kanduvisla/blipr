@@ -108,7 +108,7 @@ int getOutputDeviceIdByDeviceName(char* deviceName) {
  * Tracker to keep track of note off calls
  */
 typedef struct {
-    const struct Note* note;  // Pointer to the original note
+    struct Note note;  // Pointer to the original note
     PmStream* outputStream;   // The MIDI output stream
     int midiChannel;          // The MIDI channel
     int counter;              // Counter for pulses
@@ -119,7 +119,6 @@ NoteTracker activeNotes[MAX_NOTES];
 
 void initializeNoteTracker() {
     for (int i = 0; i < MAX_NOTES; i++) {
-        activeNotes[i].note = NULL;
         activeNotes[i].outputStream = NULL;
         activeNotes[i].midiChannel = 0;
         activeNotes[i].counter = 0;
@@ -128,9 +127,10 @@ void initializeNoteTracker() {
 }
 
 void addNoteToTracker(PmStream* outputStream, int midiChannel, const struct Note* note) {
+    // Create a copy of the struct, because when using a pointer the note off can be missed if the MIDI note byte is changed:
     for (int i = 0; i < MAX_NOTES; i++) {
         if (!activeNotes[i].active) {
-            activeNotes[i].note = note;
+            activeNotes[i].note = *note;
             activeNotes[i].outputStream = outputStream;
             activeNotes[i].midiChannel = midiChannel;
             activeNotes[i].counter = MAX(1, note->length) * 6;  // TODO: Make a proper calculation for length here.
@@ -147,9 +147,8 @@ void updateNotesAndSendOffs() {
             if (activeNotes[i].counter <= 0) {
                 sendMidiNoteOff(activeNotes[i].outputStream, 
                                 activeNotes[i].midiChannel, 
-                                activeNotes[i].note->note);
+                                activeNotes[i].note.note);
                 activeNotes[i].active = false;
-                activeNotes[i].note = NULL;
                 activeNotes[i].outputStream = NULL;
             }
         }

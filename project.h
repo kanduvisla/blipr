@@ -32,7 +32,7 @@ struct Note {
     bool enabled;               // If this note is enabled
     unsigned char note;         // byte representation of note C-5, D#3, etc.
     unsigned char velocity;     // 0-127          
-    char nudge;                 // -23 - +23
+    unsigned char nudge;        // 0 - (PP16N * 2) (where 1*PP16N equals 0 nudge)
     unsigned char trigg;        // Trigg condition
     unsigned char length;       // Length
     unsigned char cc1Value;     // CC1 Value

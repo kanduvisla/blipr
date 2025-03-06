@@ -269,7 +269,7 @@ void initializeProject(struct Project* project) {
                         note.note = 0;
                         note.velocity = 0;
                         note.length = 0;
-                        note.nudge = 0;
+                        note.nudge = PP16N; // PP16N = middle, nudge 0
                         note.trigg = 0;
                         note.cc1Value = 0;
                         note.cc2Value = 0;
