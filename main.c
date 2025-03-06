@@ -43,9 +43,9 @@ char *projectFile = "data.blipr";
 #define OUTPUT_BUFFER_SIZE 100
 
 /**
- * Calculate microseconds per pulse for a given BPM
+ * Calculate nano seconds per pulse for a given BPM
  */
-uint64_t calculateMicroSecondsPerPulse(int bpm) {
+uint64_t calculateNanoSecondsPerPulse(int bpm) {
     double beatsPerSecond = bpm / 60.0;
     double secondsPerQuarterNote = 1.0 / beatsPerSecond;
     uint64_t nanoSecondsPerQuarterNote = secondsPerQuarterNote * NANOS_PER_SEC;
@@ -65,6 +65,10 @@ uint64_t getTimespecDiffInNanoSeconds(struct timespec *start, struct timespec *e
         temp.tv_nsec = end->tv_nsec - start->tv_nsec;
     }
     return temp.tv_sec * 1000000000LL + temp.tv_nsec;
+}
+
+uint64_t timespecToNs(struct timespec *ts) {
+    return (uint64_t)ts->tv_sec * 1000000000LL + (uint64_t)ts->tv_nsec;
 }
 
 /**
@@ -166,7 +170,7 @@ void initSharedState(SharedState* state) {
     }
     
     // TODO: Should be fetched from current pattern:
-    state->nanoSecondsPerPulse = calculateMicroSecondsPerPulse(120);
+    state->nanoSecondsPerPulse = calculateNanoSecondsPerPulse(120);
     state->track = &state->project->sequences[0].patterns[0].tracks[0];
 
     pthread_mutex_init(&state->mutex, NULL);
@@ -186,23 +190,23 @@ void* timerThread(void *arg) {
     SharedState* state = (SharedState*)arg;
 
     // Timing for sequencer:
-    struct timespec prevTime, nowTime;
+    struct timespec nowTime;
+    uint64_t modulo, prevModulo = 0;
     clock_gettime(CLOCK_MONOTONIC, &nowTime);
-    prevTime = nowTime;
 
     while (!state->quit) {
         // Calculate with monotonic clock:
         clock_gettime(CLOCK_MONOTONIC, &nowTime);
-        int64_t elapsedNs = getTimespecDiffInNanoSeconds(&prevTime, &nowTime);
+        modulo = timespecToNs(&nowTime) % state->nanoSecondsPerPulse;
 
-        if (elapsedNs > state->nanoSecondsPerPulse) {
-            // Reset clock:
-            clock_gettime(CLOCK_MONOTONIC, &prevTime);
-
+        // if the module is smaller, we now we've passed a new pulse:
+        if (modulo < prevModulo) {
             pthread_mutex_lock(&state->mutex);
             state->unprocessedPulses += 1;
             pthread_mutex_unlock(&state->mutex);
         }
+
+        prevModulo = modulo;
     }
 }
 
