@@ -40,6 +40,7 @@ void testGetTrackStepIndexForContinuousPlay() {
     struct Track *track = malloc(TRACK_BYTE_SIZE);
     track->pagePlayMode = PAGE_PLAY_MODE_CONTINUOUS;
     track->trackLength = 43; // =0-based
+    track->shuffle = PP16N;
     u_int64_t ppqnCounter = 0;
     bool isFirstPulse;
 
@@ -77,6 +78,7 @@ void testGetTrackStepIndexForRepeatPlay() {
     struct Track *track = malloc(TRACK_BYTE_SIZE);
     track->pagePlayMode = PAGE_PLAY_MODE_REPEAT;
     track->pageLength = 15; // =0-based
+    track->shuffle = PP16N;
     track->selectedPage = 0;
     track->selectedPageBank = 0;
     u_int64_t ppqnCounter = 0;
@@ -176,6 +178,7 @@ void testGetNotesAtTrackStepIndex() {
     struct Track *track = malloc(TRACK_BYTE_SIZE);
     track->pagePlayMode = PAGE_PLAY_MODE_CONTINUOUS;
     track->trackLength = 63; // =0-based
+    track->shuffle = PP16N;
     track->polyCount = 0;   // 8 voice polyphony
     for (int s = 0; s < 64; s++) {
         struct Step step;
@@ -333,6 +336,7 @@ void testProcessPulseNudge() {
     struct Track *track = malloc(TRACK_BYTE_SIZE);
     track->pagePlayMode = PAGE_PLAY_MODE_CONTINUOUS;
     track->trackLength = 63; // =0-based
+    track->shuffle = PP16N;
     track->polyCount = 0;   // 8 voice polyphony
     for (int s = 0; s < 64; s++) {
         struct Step step;
@@ -402,6 +406,7 @@ void testProcessPulseShuffle() {
     struct Track *track = malloc(TRACK_BYTE_SIZE);
     track->pagePlayMode = PAGE_PLAY_MODE_CONTINUOUS;
     track->trackLength = 63; // =0-based
+    track->shuffle = PP16N + 2; // shuffle of 2
     track->polyCount = 0;   // 8 voice polyphony
     for (int s = 0; s < 64; s++) {
         struct Step step;
@@ -412,8 +417,184 @@ void testProcessPulseShuffle() {
             note.trigg = create2FByte(false, false, TRIG_DISABLED); // no trigg condition
             step.notes[n] = note;
         }
+        // Enable all first notes:
+        step.notes[0].enabled = true;
         track->steps[s] = step;
     }
+
+    // Special case: step 5 also has note nudge:
+    track->steps[5].notes[0].nudge = PP16N + 2;
+    // Special case #2: step 7 has a negative nudge:
+    track->steps[7].notes[0].nudge = PP16N - 2;
+    // Special case #3: step 9 has a more negative nudge:
+    track->steps[9].notes[0].nudge = PP16N - 4;
+    // Special case $4: step 11 has a more positive nudge:
+    track->steps[11].notes[0].nudge = PP16N + 4;
+
+    int ppqnCounter = 0;    // step 0
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 1);
+
+    ppqnCounter = PP16N;    // step 1
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 0);
+
+    ppqnCounter = PP16N + 2;
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 1);
+
+    ppqnCounter = PP16N * 2;    // step 2
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 1);
+
+    ppqnCounter = PP16N * 3;    // step 3
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 0);
+
+    ppqnCounter = (PP16N * 3) + 2;
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 1);
+
+    ppqnCounter = PP16N * 4;    // step 4
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 1);
+
+    // Note with additional nudge:
+    ppqnCounter = PP16N * 5;    // step 5
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 0);
+
+    ppqnCounter = (PP16N * 5) + 2;    // step 5 + 2 pulses (does not trigger because of additional note nudge)
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 0);
+
+    ppqnCounter = (PP16N * 5) + 4;    // step 5 + 4 pulses (does trigger because of additional note nudge)
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 1);
+
+    ppqnCounter = PP16N * 7;    // step 7 (note has -2 negative nudge, so this should cancel the shuffle out)
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 1);
+
+    ppqnCounter = PP16N * 9;    // step 9 (note has -4 negative nudge)
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 0);
+
+    ppqnCounter = (PP16N * 9) - 2;    // step 9 (note has -4 negative nudge)
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 1);
+
+    ppqnCounter = (PP16N * 11);    // step 11 (note has +4 nudge)
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 0);
+
+    ppqnCounter = (PP16N * 11) + 6;    // step 11 (note has +4 nudge)
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 1);
+
+    // Negative shuffle tests:
+    track->shuffle = PP16N - 2; // shuffle of 2
+
+    ppqnCounter = 0;    // step 0
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 1);
+
+    ppqnCounter = PP16N;    // step 1
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 0);
+
+    ppqnCounter = PP16N - 2;
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 1);
+
+    ppqnCounter = PP16N * 2;    // step 2
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 1);
+
+    ppqnCounter = PP16N * 3;    // step 3
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 0);
+
+    ppqnCounter = (PP16N * 3) - 2;
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 1);
+
+    ppqnCounter = PP16N * 4;    // step 4
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 1);
+
+    // Note with additional nudge:
+    ppqnCounter = PP16N * 5;    // step 5 will trigger because of additional +2 nudge
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 1);
+
+    ppqnCounter = (PP16N * 5) - 2;    // step 5 - 2 pulses (does not trigger because of additional note nudge)
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 0);
+
+    ppqnCounter = (PP16N * 5) + 2;    // step 5 + 2 pulses (does not trigger because of additional note nudge)
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 0);
+
+    ppqnCounter = PP16N * 7;    // step 7 (note has -2 negative nudge)
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 0);
+
+    ppqnCounter = (PP16N * 7) - 2;    // step 7 (note has -2 negative nudge)
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 0);
+
+    ppqnCounter = (PP16N * 7) - 4;    // step 7 (note has -2 negative nudge)
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 1);
+
+    ppqnCounter = PP16N * 9;    // step 9 (note has -4 negative nudge)
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 0);
+
+    ppqnCounter = (PP16N * 9) - 6;    // step 9 (note has -4 negative nudge)
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 1);
+
+    ppqnCounter = (PP16N * 11);    // step 11 (note has +4 nudge)
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 0);
+
+    ppqnCounter = (PP16N * 11) + 2;    // step 11 (note has +4 nudge)
+    playedNoteCount = 0;
+    processPulse(&ppqnCounter, track, testProcessPulseCallback, testPlayNoteCallback);
+    assert(playedNoteCount == 1);
 }
 
 void testSequencer() {
@@ -422,4 +603,5 @@ void testSequencer() {
     testGetTrackStepIndexForRepeatPlay();
     testGetNotesAtTrackStepIndex();
     testProcessPulseNudge();
+    testProcessPulseShuffle();
 }

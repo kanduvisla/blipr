@@ -663,6 +663,11 @@ void processPulse(
     // Get the nudge value that needs to be applied:
     int nudgeCheck = *currentPulse % PP16N;
 
+    // Check for shuffle:
+    if (trackStepIndex % 2 == 1) {
+        nudgeCheck -= (track->shuffle - PP16N);
+    }
+
     // Get all notes that are in this step
     struct Note *notes[NOTES_IN_STEP];
     getNotesAtTrackStepIndex(trackStepIndex, track, notes);
@@ -684,6 +689,12 @@ void processPulse(
     if (nextNudgeCheck != PP16N * -1) {
         uint64_t nextStepPulse = *currentPulse + PP16N;
         int nextTrackStepIndex = getTrackStepIndex(&nextStepPulse, track, &p);
+
+        // Check for shuffle:
+        if (nextTrackStepIndex % 2 == 1) {
+            nextNudgeCheck -= (track->shuffle - PP16N);
+        }
+
         struct Note *nextStepNotes[NOTES_IN_STEP];
         getNotesAtTrackStepIndex(nextTrackStepIndex, track, nextStepNotes);
         for (int i=0; i < NOTES_IN_STEP; i++) {
