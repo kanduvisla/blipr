@@ -627,8 +627,40 @@ void getNotesAtTrackStepIndex(int trackStepIndex, const struct Track *track, str
     }
 }
 
+/*
+void processPulse(
+    const uint64_t currentPulse,
+    const struct Track *track,
+    bool *isFirstPulse
+) {
+    // Get the index for the current step
+    int trackStepIndex = getTrackStepIndex(&currentPulse, track, &isFirstPulse);
+
+    // Todo: first pulse callback?
+
+    // Get the nudge value that needs to be applied:
+    int nudgeCheck = currentPulse % PP16N;
+
+    // Get all notes that are in this step
+    struct Note *notes[NOTES_IN_STEP];
+    getNotesAtTrackStepIndex(trackStepIndex, track, notes);
+
+    // Iterate over all notes in this step:
+    for (int i=0; i < NOTES_IN_STEP; i++) {
+        // Get the note:
+        struct Note *note = notes[i];
+
+        // If it's not null and matches the note boundaries it's viable for playing:
+        if  (note!= NULL && note->enabled && (note->nudge - PP16N) == nudgeCheck && isNoteTrigged(note->trigg, track->repeatCount)) {
+            // Todo: callback function?
+        }
+    }
+}
+*/
+
 /**
  * Run the sequencer
+ * @todo refactor this so it can be testable
  */
 void runSequencer(
     PmStream *outputStream,
@@ -650,7 +682,7 @@ void runSequencer(
     // Get notes & play them:
     struct Note *currentStepNotes[NOTES_IN_STEP];
     getNotesAtTrackStepIndex(currentTrackStepIndex, selectedTrack, currentStepNotes);
-    for (int i  = 0; i < NOTES_IN_STEP; i++) {
+    for (int i=0; i < NOTES_IN_STEP; i++) {
         // Get the note:
         struct Note *note = currentStepNotes[i];
         // If it's not null then send it to the output stream.
@@ -669,7 +701,7 @@ void runSequencer(
         struct Note *nextStepNotes[NOTES_IN_STEP];
         getNotesAtTrackStepIndex(nextTrackStepIndex, selectedTrack, nextStepNotes);
 
-        for (int i  = 0; i < NOTES_IN_STEP; i++) {
+        for (int i=0; i < NOTES_IN_STEP; i++) {
             // Get the note:
             struct Note *note = nextStepNotes[i];
             // If it's not null then send it to the output stream.
