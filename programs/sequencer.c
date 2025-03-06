@@ -627,16 +627,38 @@ void getNotesAtTrackStepIndex(int trackStepIndex, const struct Track *track, str
     }
 }
 
-/*
+/**
+ * Helper method to contain all the conditions that define if a note is played or not
+ */
+bool isNotePlayed(
+    const struct Note *note,
+    const struct Track *track,
+    int nudgeCheck
+) {
+    return 
+        note!= NULL && 
+        note->enabled && 
+        (note->nudge - PP16N) == nudgeCheck && 
+        isNoteTrigged(note->trigg, track->repeatCount);
+}
+
+/**
+ * Standalone method to process a pulse
+ */
 void processPulse(
     const uint64_t currentPulse,
     const struct Track *track,
-    bool *isFirstPulse
+    void (*isFirstPulseCallback)(void),
+    void (*playNoteCallback)(const struct Note *note)
 ) {
     // Get the index for the current step
+    bool *isFirstPulse;
     int trackStepIndex = getTrackStepIndex(&currentPulse, track, &isFirstPulse);
-
-    // Todo: first pulse callback?
+    
+    // First pulse callback:
+    if (isFirstPulse) {
+        isFirstPulseCallback();
+    }
 
     // Get the nudge value that needs to be applied:
     int nudgeCheck = currentPulse % PP16N;
@@ -651,12 +673,29 @@ void processPulse(
         struct Note *note = notes[i];
 
         // If it's not null and matches the note boundaries it's viable for playing:
-        if  (note!= NULL && note->enabled && (note->nudge - PP16N) == nudgeCheck && isNoteTrigged(note->trigg, track->repeatCount)) {
-            // Todo: callback function?
+        if (isNotePlayed(note, track, nudgeCheck)) {
+            playNoteCallback(note);
+        }
+    }
+
+    // Check next step as well, because there might be notes with negative nudges:
+    int nextNudgeCheck = (PP16N * -1) + (currentPulse % PP16N);
+    // Ignore next nudge check of it's equal to PP16N * -1, because that equals the current step and would send a double note
+    if (nextNudgeCheck != PP16N * -1) {
+        uint64_t nextStepPulse = currentPulse + PP16N;
+        int nextTrackStepIndex = getTrackStepIndex(&nextStepPulse, track, &isFirstPulse);
+        struct Note *nextStepNotes[NOTES_IN_STEP];
+        getNotesAtTrackStepIndex(nextTrackStepIndex, track, nextStepNotes);
+        for (int i=0; i < NOTES_IN_STEP; i++) {
+            // Get the note:
+            struct Note *note = nextStepNotes[i];
+
+            if (isNotePlayed(note, track, nextNudgeCheck)) {
+                playNoteCallback(note);
+            }
         }
     }
 }
-*/
 
 /**
  * Run the sequencer

@@ -315,9 +315,106 @@ void testGetNotesAtTrackStepIndex() {
     memset(notes, 0, NOTE_BYTE_SIZE * 8);
 }
 
+bool isFirstPulse = false;
+void processPulseCallback() {
+    isFirstPulse = true;
+}
+
+// Reference to the last played note, for testing
+struct Note playedNotes[NOTES_IN_STEP];
+int playedNoteCount;
+void playNoteCallback(const struct Note *note) {
+    playedNotes[playedNoteCount] = *note;
+    playedNoteCount++;
+}
+
+void testProcessPulseNudge() {
+    // Setup:
+    struct Track *track = malloc(TRACK_BYTE_SIZE);
+    track->pagePlayMode = PAGE_PLAY_MODE_CONTINUOUS;
+    track->trackLength = 63; // =0-based
+    track->polyCount = 0;   // 8 voice polyphony
+    for (int s = 0; s < 64; s++) {
+        struct Step step;
+        for (int n = 0; n < NOTES_IN_STEP; n++) {
+            struct Note note;
+            note.enabled = false;
+            note.nudge = PP16N; // no nudge
+            note.trigg = create2FByte(false, false, TRIG_DISABLED); // no trigg condition
+            step.notes[n] = note;
+        }
+        track->steps[s] = step;
+    }
+    
+    track->steps[0].notes[0].enabled = true; // Note 0, no nudge
+    track->steps[0].notes[0].note = 60;
+    track->steps[0].notes[1].enabled = true; // Note 1, nudge +1
+    track->steps[0].notes[1].nudge = PP16N + 1;
+    track->steps[0].notes[1].note = 61;
+    track->steps[0].notes[2].enabled = true; // Note 2, no nudge
+    track->steps[0].notes[2].note = 62;
+    track->steps[0].notes[3].enabled = true; // Note 1, nudge +2
+    track->steps[0].notes[3].nudge = PP16N + 2;
+    track->steps[0].notes[3].note = 63;
+    track->steps[1].notes[0].enabled = true; // Next step has negative nudge, so it should be played earlier
+    track->steps[1].notes[0].note = 64;
+    track->steps[1].notes[0].nudge = PP16N - 2;
+    track->steps[0].notes[4].enabled = true; // Note with negative nudge on step 0. So this needs to be triggered on step 63 + (PP16N - 2)
+    track->steps[0].notes[4].note = 65;
+    track->steps[0].notes[4].nudge = PP16N - 2;
+
+    // Nudge test:
+    playedNoteCount = 0;
+    processPulse(0, track, processPulseCallback, playNoteCallback);
+    assert(playedNoteCount == 2);
+    assert(playedNotes[0].note == 60);
+    assert(playedNotes[1].note == 62);
+    
+    playedNoteCount = 0;
+    processPulse(1, track, processPulseCallback, playNoteCallback);
+    assert(playedNoteCount == 1);
+    assert(playedNotes[0].note == 61);
+    
+    playedNoteCount = 0;
+    processPulse(2, track, processPulseCallback, playNoteCallback);
+    assert(playedNoteCount == 1);
+    assert(playedNotes[0].note == 63);
+
+    // Negative nudge:
+    playedNoteCount = 0;
+    processPulse(PP16N - 2, track, processPulseCallback, playNoteCallback);
+    assert(playedNoteCount == 1);
+    assert(playedNotes[0].note == 64);
+
+    playedNoteCount = 0;
+    processPulse((PP16N * 64) - 2, track, processPulseCallback, playNoteCallback);
+    assert(playedNoteCount == 1);
+    assert(playedNotes[0].note == 65);
+}
+
+void testProcessPulseShuffle() {
+    // Setup:
+    struct Track *track = malloc(TRACK_BYTE_SIZE);
+    track->pagePlayMode = PAGE_PLAY_MODE_CONTINUOUS;
+    track->trackLength = 63; // =0-based
+    track->polyCount = 0;   // 8 voice polyphony
+    for (int s = 0; s < 64; s++) {
+        struct Step step;
+        for (int n = 0; n < NOTES_IN_STEP; n++) {
+            struct Note note;
+            note.enabled = false;
+            note.nudge = PP16N; // no nudge
+            note.trigg = create2FByte(false, false, TRIG_DISABLED); // no trigg condition
+            step.notes[n] = note;
+        }
+        track->steps[s] = step;
+    }
+}
+
 void testSequencer() {
     testTrigConditions();
     testGetTrackStepIndexForContinuousPlay();
     testGetTrackStepIndexForRepeatPlay();
     testGetNotesAtTrackStepIndex();
+    testProcessPulseNudge();
 }

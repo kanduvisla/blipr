@@ -143,4 +143,14 @@ int getTrackStepIndex(const uint64_t *ppqnCounter, const struct Track *track, bo
  */
 void getNotesAtTrackStepIndex(int trackStepIndex, const struct Track *track, struct Note **notes);
 
+/**
+ * Process a single pulse - keeps track of things like trigg, nudge, length, speed, shuffle, etc.
+ */
+void processPulse(
+    const uint64_t currentPulse,
+    const struct Track *track,
+    void (*isFirstPulseCallback)(void),
+    void (*playNoteCallback)(const struct Note *note)
+);
+
 #endif
