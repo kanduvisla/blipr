@@ -89,7 +89,8 @@ void trackToByteArray(const struct Track *track, unsigned char bytes[TRACK_BYTE_
     bytes[40] = track->pagePlayMode;
     bytes[41] = track->speed;
     bytes[42] = track->shuffle;
-    memset(bytes + 43, 0, TRACK_BYTE_SIZE - 43);
+    bytes[43] = track->polyCount;
+    memset(bytes + 44, 0, TRACK_BYTE_SIZE - 44);
     for (int i = 0; i < 64; i++) {
         stepToByteArray(&track->steps[i], bytes + 64 + (i * STEP_BYTE_SIZE));
     }
@@ -116,6 +117,7 @@ struct Track* byteArrayToTrack(const unsigned char bytes[TRACK_BYTE_SIZE]) {
     track->pagePlayMode = bytes[40];
     track->speed = bytes[41];
     track->shuffle = bytes[42];
+    track->polyCount = bytes[43];
     resetTrack(track);
     for (int i = 0; i < 64; i++) {
         unsigned char arr[STEP_BYTE_SIZE];
@@ -261,7 +263,7 @@ void initializeProject(struct Project* project) {
                 track.pagePlayMode = PAGE_PLAY_MODE_REPEAT;
                 track.pageLength = 15;
                 track.trackLength = 63;
-                track.polyCount = 7;
+                track.polyCount = 0;
                 track.selectedPage = 0;
                 track.queuedPage = 0;
                 track.shuffle = PP16N; // PP16N = middle, nudge 0

@@ -155,7 +155,7 @@ static void handleKey(
         // TODO: Copy (once=copy note, twice=copy step)
     } else if (key == BLIPR_KEY_D) {
         // TODO: Paste
-    }
+    } 
 }
 
 /**
