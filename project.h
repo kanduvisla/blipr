@@ -82,6 +82,8 @@ struct Track {
     unsigned char selectedPageBank;
     unsigned char queuedPage; 
     unsigned int repeatCount;
+    bool isFirstPulse;
+    
     // Steps are only used for the "Sequencer"-program
     struct Step steps[64];
 };

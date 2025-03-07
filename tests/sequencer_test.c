@@ -36,6 +36,12 @@ void testTrigConditions() {
     assert(isNoteTrigged(note.trigg, 3) == true);
 }
 
+static bool testIsFirstPulse = false;
+
+static void testProcessPulseCallback() {
+    testIsFirstPulse = true;
+}
+
 void testGetTrackStepIndexForContinuousPlay() {
     struct Track *track = malloc(TRACK_BYTE_SIZE);
     track->pagePlayMode = PAGE_PLAY_MODE_CONTINUOUS;
@@ -43,36 +49,43 @@ void testGetTrackStepIndexForContinuousPlay() {
     track->shuffle = PP16N;
     track->speed = TRACK_SPEED_NORMAL;
     u_int64_t ppqnCounter = 0;
-    bool isFirstPulse;
 
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
-    assert(isFirstPulse == true);
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 0);
+    assert(testIsFirstPulse == true);
+    testIsFirstPulse = false;
     // For each pulse in this 16th note, the track step should still remain the same:
     for (int i=0; i<PP16N - 1; i++) {
         ppqnCounter++;
-        assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
-        assert(isFirstPulse == false);
+        testIsFirstPulse = false;
+        assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 0);
+        assert(testIsFirstPulse == false);
     }
+    
     // Next pulse should increase the step:
     ppqnCounter++;
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 1);
-    assert(isFirstPulse == false);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 1);
+    assert(testIsFirstPulse == false);
     // Add 15 steps - 1 pulse:
     ppqnCounter += (PP16N * 15) -1;
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 15);
-    assert(isFirstPulse == false);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 15);
+    assert(testIsFirstPulse == false);
     // Add 1 pulse:
     ppqnCounter++;
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 16);
-    assert(isFirstPulse == false);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 16);
+    assert(testIsFirstPulse == false);
     // Add steps up to the track length, -1 pulse:
     ppqnCounter += (PP16N * (44 - 16)) - 1;
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 43);
-    assert(isFirstPulse == false);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 43);
+    assert(testIsFirstPulse == false);
     // Add 1 pulse:
     ppqnCounter++;
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
-    assert(isFirstPulse == true);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 0);
+    assert(testIsFirstPulse == true);
 }
 
 void testGetTrackStepIndexForRepeatPlay() {
@@ -84,82 +97,100 @@ void testGetTrackStepIndexForRepeatPlay() {
     track->selectedPageBank = 0;
     track->speed = TRACK_SPEED_NORMAL;
     u_int64_t ppqnCounter = 0;
-    bool isFirstPulse;
-
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
-    assert(isFirstPulse == true);
+    
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 0);
+    assert(testIsFirstPulse == true);
     // For each pulse in this 16th note, the track step should still remain the same:
     for (int i=0; i<PP16N - 1; i++) {
         ppqnCounter++;
-        assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
-        assert(isFirstPulse == false);
+        testIsFirstPulse = false;
+        assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 0);
+        assert(testIsFirstPulse == false);
     }
     // Next pulse should increase the step:
     ppqnCounter++;
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 1);
-    assert(isFirstPulse == false);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 1);
+    assert(testIsFirstPulse == false);
     // Add 15 steps - 1 pulse:
     ppqnCounter += (PP16N * 15) -1;
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 15);
-    assert(isFirstPulse == false);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 15);
+    assert(testIsFirstPulse == false);
     // Add 1 pulse:
     ppqnCounter++;
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
-    assert(isFirstPulse == true);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 0);
+    assert(testIsFirstPulse == true);
 
     // Test different page:
     track->selectedPage = 1;
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 16);
-    assert(isFirstPulse == true);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 16);
+    assert(testIsFirstPulse == true);
     track->selectedPage = 2;
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 32);
-    assert(isFirstPulse == true);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 32);
+    assert(testIsFirstPulse == true);
     track->selectedPage = 3;
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 48);
-    assert(isFirstPulse == true);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 48);
+    assert(testIsFirstPulse == true);
     track->selectedPage = 4; // overflow
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
-    assert(isFirstPulse == true);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 0);
+    assert(testIsFirstPulse == true);
 
     // Test different page bank (page bank doesn't affect step, but note (in conjunction with poly)):
     track->selectedPage = 0;
     track->selectedPageBank = 0;
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
-    assert(isFirstPulse == true);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 0);
+    assert(testIsFirstPulse == true);
     track->selectedPage = 1;
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 16);
-    assert(isFirstPulse == true);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 16);
+    assert(testIsFirstPulse == true);
     track->selectedPage = 2;
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 32);
-    assert(isFirstPulse == true);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 32);
+    assert(testIsFirstPulse == true);
     track->selectedPage = 3;
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 48);
-    assert(isFirstPulse == true);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 48);
+    assert(testIsFirstPulse == true);
     track->selectedPage = 4; // overflow
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
-    assert(isFirstPulse == true);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 0);
+    assert(testIsFirstPulse == true);
 
     // Test different page lengths:
     track->selectedPage = 0;
     track->pageLength = 11; // 0-based
     ppqnCounter = 0;
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
-    assert(isFirstPulse == true);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 0);
+    assert(testIsFirstPulse == true);
     ppqnCounter += (PP16N * 12) - 1;
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 11);
-    assert(isFirstPulse == false);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 11);
+    assert(testIsFirstPulse == false);
     ppqnCounter += 1;
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 0);
-    assert(isFirstPulse == true);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 0);
+    assert(testIsFirstPulse == true);
     track->selectedPage = 1;
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 16);
-    assert(isFirstPulse == true);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 16);
+    assert(testIsFirstPulse == true);
     ppqnCounter += (PP16N * 12) - 1;
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 27);
-    assert(isFirstPulse == false);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 27);
+    assert(testIsFirstPulse == false);
     ppqnCounter += 1;
-    assert(getTrackStepIndex(&ppqnCounter, track, &isFirstPulse) == 16);
-    assert(isFirstPulse == true);
+    testIsFirstPulse = false;
+    assert(getTrackStepIndex(&ppqnCounter, track, testProcessPulseCallback) == 16);
+    assert(testIsFirstPulse == true);
 }
 
 void assertEnabledNotesCount(const struct Note **notes, int expectedCount) {
@@ -319,11 +350,6 @@ void testGetNotesAtTrackStepIndex() {
     getNotesAtTrackStepIndex(5, track, notes);
     assertEnabledNotesCount(notes, 0);
     memset(notes, 0, NOTE_BYTE_SIZE * 8);
-}
-
-bool testIsFirstPulse = false;
-void testProcessPulseCallback() {
-    testIsFirstPulse = true;
 }
 
 // Reference to the last played note, for testing

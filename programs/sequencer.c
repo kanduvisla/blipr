@@ -599,21 +599,30 @@ void setTriggText(int triggValue, char *text) {
 
 /**
  * Get track step index - this is the index in the steps-array on the track
- * The property "isFirstPulse" is set to true if this is the first pulse of the step
+ * The property "isFirstPulseCallback" is called the first pulse of the step
  */
-int getTrackStepIndex(const uint64_t *ppqnCounter, const struct Track *track, bool *isFirstPulse) {
+int getTrackStepIndex(
+    const uint64_t *ppqnCounter, 
+    const struct Track *track, 
+    void (*isFirstPulseCallback)(void)
+) {
     uint64_t clampedCounter;
     if (track->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
         // By track:
         clampedCounter = *ppqnCounter % (PP16N * (track->trackLength + 1));
         // Set isFirstPulse-flag
-        *isFirstPulse = (clampedCounter == 0);
+        if (isFirstPulseCallback != NULL && clampedCounter == 0) {
+            isFirstPulseCallback();
+        }
     } else {
         // By page:
         int pageLength = track->pageLength + 1; // 1-16
         clampedCounter = *ppqnCounter % (PP16N * pageLength);
-        // Set isFirstPulse-flag
-        *isFirstPulse = (clampedCounter == 0);
+        // We need a callback here, because selectedPage might be changed to queued page, affecting the next note to be played
+        if (isFirstPulseCallback != NULL && clampedCounter == 0) {
+            isFirstPulseCallback();
+        }
+
         // Increase clamped counter with selected page:
         clampedCounter += ((track->selectedPage % 4) * (PP16N * 16));   // 16 steps
     }
@@ -678,13 +687,7 @@ void processPulse(
     void (*playNoteCallback)(const struct Note *note)
 ) {
     // Get the index for the current step
-    bool *p;
-    int trackStepIndex = getTrackStepIndex(currentPulse, track, &p);
-
-    // First pulse callback:
-    if (p) {
-        isFirstPulseCallback();
-    }
+    int trackStepIndex = getTrackStepIndex(currentPulse, track, isFirstPulseCallback);
 
     // Get the nudge value that needs to be applied:
     int nudgeCheck = *currentPulse % PP16N;
@@ -715,7 +718,7 @@ void processPulse(
     // Ignore next nudge check of it's equal to PP16N * -1, because that equals the current step and would send a double note
     if (nextNudgeCheck != PP16N * -1) {
         uint64_t nextStepPulse = *currentPulse + PP16N;
-        int nextTrackStepIndex = getTrackStepIndex(&nextStepPulse, track, &p);
+        int nextTrackStepIndex = getTrackStepIndex(&nextStepPulse, track, NULL);
 
         // Check for shuffle:
         if (nextTrackStepIndex % 2 == 1) {
@@ -736,15 +739,26 @@ void processPulse(
 }
 
 // Global properties used in callbacks:
-static bool isFirstPulse = false;
 static PmStream *tmpStream;
 static struct Track *tmpTrack;
 
 /**
  * Callback when the first pulse of a page/track is played
+ * Note that this is AFTER the note has already played
  */
 void isFirstPulseCallback() {
-    isFirstPulse = true;
+    tmpTrack->isFirstPulse = true;
+    if (tmpTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
+        tmpTrack->repeatCount += 1;
+    } else {
+        if (tmpTrack->selectedPage != tmpTrack->queuedPage) {
+            tmpTrack->selectedPage = tmpTrack->queuedPage;
+            // Reset repeat count, since we're switching pages:
+            tmpTrack->repeatCount = 0;
+        } else {
+            tmpTrack->repeatCount += 1;
+        }
+    }
 }
 
 /**
@@ -812,7 +826,7 @@ void runSequencer(
     struct Track *selectedTrack
 ) {
     // Reset global properties:
-    isFirstPulse = false;
+    selectedTrack->isFirstPulse = false;
     tmpStream = outputStream;
     tmpTrack = selectedTrack;
 
@@ -827,9 +841,20 @@ void runSequencer(
     processPulse(&pulse, selectedTrack, isFirstPulseCallback, playNoteCallback);
 
     // Check for repeats:
-    if (isFirstPulse) {
-        selectedTrack->repeatCount += 1;
-    }
+    // if (selectedTrack->isFirstPulse) {
+    //     selectedTrack->repeatCount += 1;
+        // if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
+        //     selectedTrack->repeatCount += 1;
+        // } else {
+        //     if (selectedTrack->selectedPage != selectedTrack->queuedPage) {
+        //         selectedTrack->selectedPage = selectedTrack->queuedPage;
+        //         // Reset repeat count, since we're switching pages:
+        //         selectedTrack->repeatCount = 0;
+        //     } else {
+        //         selectedTrack->repeatCount += 1;
+        //     }
+        // }
+    // }
 
     // Decrease note-off counters:
     updateNotesAndSendOffs(outputStream, selectedTrack->midiChannel);
@@ -849,12 +874,11 @@ void drawSequencerMain(
 
     // Step indicator:
     int playingPage = 0;
-    bool isFirstPulse;
 
     // Check track speed (we do this by manupulating the pulse):
     uint64_t pulse = *ppqnCounter;
     applySpeedToPulse(selectedTrack, &pulse);
-    int trackStepIndex = getTrackStepIndex(&pulse, selectedTrack, &isFirstPulse);
+    int trackStepIndex = getTrackStepIndex(&pulse, selectedTrack, NULL);
 
     if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
         playingPage = trackStepIndex / 16;

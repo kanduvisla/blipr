@@ -138,7 +138,11 @@ bool isNoteTrigged(int triggValue, int repeatCount);
 /**
  * Get track step index - this is the index in the steps-array on the track
  */
-int getTrackStepIndex(const uint64_t *ppqnCounter, const struct Track *track, bool *isFirstPulse);
+int getTrackStepIndex(
+    const uint64_t *ppqnCounter, 
+    const struct Track *track, 
+    void (*isFirstPulseCallback)(void)
+);
 
 /**
  * Get notes at a given track index - this takes into account the polyphony sacrifice for more steps
