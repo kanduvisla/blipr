@@ -258,6 +258,7 @@ void initializeProject(struct Project* project) {
                 track.midiDevice = 0;
                 track.midiChannel = 0;
                 track.program = BLIPR_PROGRAM_NONE;
+                track.pagePlayMode = PAGE_PLAY_MODE_REPEAT;
                 track.pageLength = 15;
                 track.trackLength = 63;
                 track.polyCount = 7;

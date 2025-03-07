@@ -661,12 +661,8 @@ bool isNotePlayed(
     const struct Track *track,
     int nudgeCheck
 ) {
-    // if (note != NULL && note->enabled) {        
-    //     print("nudge: %d, check: %d", note->nudge, nudgeCheck);
-    // }
-
     return 
-        note != NULL && 
+        note != NULL &&
         note->enabled && 
         (note->nudge - PP16N) == nudgeCheck && 
         isNoteTrigged(note->trigg, track->repeatCount);
@@ -684,7 +680,7 @@ void processPulse(
     // Get the index for the current step
     bool *p;
     int trackStepIndex = getTrackStepIndex(currentPulse, track, &p);
-    
+
     // First pulse callback:
     if (p) {
         isFirstPulseCallback();
@@ -699,11 +695,12 @@ void processPulse(
     }
 
     // Get all notes that are in this step
-    struct Note *notes[NOTES_IN_STEP];
+    int polyCount = getPolyCount(track);
+    struct Note *notes[polyCount];
     getNotesAtTrackStepIndex(trackStepIndex, track, notes);
 
     // Iterate over all notes in this step:
-    for (int i=0; i < NOTES_IN_STEP; i++) {
+    for (int i=0; i < polyCount; i++) {
         // Get the note:
         struct Note *note = notes[i];
 
@@ -725,9 +722,9 @@ void processPulse(
             nextNudgeCheck -= (track->shuffle - PP16N);
         }
 
-        struct Note *nextStepNotes[NOTES_IN_STEP];
+        struct Note *nextStepNotes[polyCount];
         getNotesAtTrackStepIndex(nextTrackStepIndex, track, nextStepNotes);
-        for (int i=0; i < NOTES_IN_STEP; i++) {
+        for (int i=0; i < polyCount; i++) {
             // Get the note:
             struct Note *note = nextStepNotes[i];
 

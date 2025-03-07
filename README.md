@@ -56,7 +56,7 @@ Basically the functionality for all programs is identical, with the following ma
             - 1     : ✅ Change track play mode (continuous or by page)
             - 2     : ✅ Change track polyphony (8, 4, 2, 1)
             - 3-4   : ✅ Increase / decrease track / page length (depending on play mode)
-            - 5-6   : Increase / decrease track speed (default=0 / default speed)
+            - 5-6   : ✅ Increase / decrease track speed (default=0 / default speed)
             - 7-8   : ✅ Set shuffle
             - 9     : ✅ Set Midi Device
             - 10    : ✅ Set Midi Channel
@@ -111,14 +111,14 @@ When entering a name, the 16-pad can be used to enter characters.
 
 ## track speed
 
-0 : Default speed
-1 : 1/2 speed
-2 : 1/4 speed
-3 : 1/8 speed
+0 : ✅ Default speed
+1 : ✅ 1/2 speed
+2 : ✅ 1/4 speed
+3 : ✅ 1/8 speed
 4 : 1/16 speed
-5 : 2/1 speed (double)
-6 : 4/1 speed
-7 : 8/1 speed
+5 : ✅ 2/1 speed (double)
+6 : ✅ 4/1 speed
+7 : ✅ 8/1 speed
 8 : 16/1 speed
 5 : 1/3 speed
 6 : 1/6 speed
@@ -155,7 +155,7 @@ Each pattern has 64 steps, divided in 4 pages. Each step can have up to 8 notes.
         - 5-6   : ✅ Increase / decrease velocity
         - 7-8   : ✅ Increase / decrease length
         - 9-10  : ✅ Increase / decrease nudge
-        - 11-12 : Increase / decrease trig condition
+        - 11-12 : ✅ Increase / decrease trig condition
         - 13-14 : Increase / decrease CC1 value
         - 15-16 : Increase / decrease CC2 value
         - C     : Copy Note (2x to copy entire step/all notes on step)
