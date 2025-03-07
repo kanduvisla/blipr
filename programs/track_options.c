@@ -48,15 +48,43 @@ void drawTrackOptions(struct Track* track) {
     drawTextOnButton(2, "<");
     drawTextOnButton(3, ">");
 
-    // Track Speed (TODO):
+    // Track Speed:
     drawCenteredLine(2, 37, "SPEED", BUTTON_WIDTH * 2, COLOR_WHITE);
     drawTextOnButton(4, "<");
     drawTextOnButton(5, ">");
+    char trackSpeed[4];
+    switch(track->speed) {
+        case TRACK_SPEED_DIV_EIGHT:
+            sprintf(trackSpeed, "1/8");
+            break;
+        case TRACK_SPEED_DIV_FOUR:
+            sprintf(trackSpeed, "1/4");
+            break;
+        case TRACK_SPEED_DIV_TWO:
+            sprintf(trackSpeed, "1/2");
+            break;
+        case TRACK_SPEED_TIMES_EIGHT:
+            sprintf(trackSpeed, "8");
+            break;
+        case TRACK_SPEED_TIMES_FOUR:
+            sprintf(trackSpeed, "4");
+            break;
+        case TRACK_SPEED_TIMES_TWO:
+            sprintf(trackSpeed, "2");
+            break;
+        default:
+            sprintf(trackSpeed, "1");
+            break;
+    }
+    drawCenteredLine(2, 47, trackSpeed, BUTTON_WIDTH * 2, COLOR_WHITE);
 
     // Shuffle:
     drawCenteredLine(64, 37, "SHUFFLE", BUTTON_WIDTH * 2, COLOR_WHITE);
     drawTextOnButton(6, "<");
     drawTextOnButton(7, ">");
+    char shuffleAmount[4];
+    sprintf(shuffleAmount, "%d", track->shuffle - PP16N);
+    drawCenteredLine(64, 47, shuffleAmount, BUTTON_WIDTH * 2, COLOR_WHITE);
 
     // Midi Device: 
     char deviceChar[2] = {
@@ -134,7 +162,7 @@ void updateTrackOptions(struct Track* track, SDL_Scancode key) {
             handleKey(track, key);
             break;
         case BLIPR_KEY_5:
-            track->speed = MAX(TRACK_SPEED_EIGHT, track->speed - 1);
+            track->speed = MAX(TRACK_SPEED_DIV_EIGHT, track->speed - 1);
             break;
         case BLIPR_KEY_6:
             track->speed = MIN(TRACK_SPEED_TIMES_EIGHT, track->speed + 1);

@@ -88,6 +88,8 @@
 #define TRIG_FIRST_PAGE_PLAY 55         // Trigged when the page is played the 1st time (does not re-trig when the page is played a second time when coming back from another page)
 #define TRIG_FIRST_PATTERN_PLAY 56      // Trigged when the pattern is played the 1st time (does not re-trig when the pattern is played a second time when coming back from another pattern)
 
+#define TRIG_HIGHEST_VALUE 56         // Used internally for decision making, make sure to change this if you add new trigg conditions
+
 /**
  * Update the sequencer according to user input
  */

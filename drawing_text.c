@@ -12,7 +12,7 @@
 #define SPACE_WIDTH 6
 #define LINE_SPACING 2
 
-#define NUM_CHARACTERS 54  // A-Z, 0-9, and special characters
+#define NUM_CHARACTERS 55  // A-Z, 0-9, and special characters
 
 SDL_Texture* charTextures[NUM_CHARACTERS] = {NULL};
 
@@ -338,11 +338,17 @@ const int characters[][CHAR_HEIGHT][CHAR_WIDTH] = {
      {1,1,1,1,1},
      {0,1,0,1,0}},
     // - %
-    {{1,0,0,1,1},
-     {0,0,0,1,1},
+    {{1,0,0,0,1},
+     {0,0,0,1,0},
      {0,0,1,0,0},
-     {1,1,0,0,0},
-     {1,0,0,0,1}}
+     {0,1,0,0,0},
+     {1,0,0,0,1}},
+    // - /
+    {{0,0,0,0,1},
+     {0,0,0,1,0},
+     {0,0,1,0,0},
+     {0,1,0,0,0},
+     {1,0,0,0,0}}
 };
 
 void initializeTextures() {
@@ -416,6 +422,7 @@ void drawCharacter(int startX, int startY, char character, SDL_Color color) {
             case '+': charIndex = 51; break;
             case '#': charIndex = 52; break;
             case '%': charIndex = 53; break;
+            case '/': charIndex = 54; break;
             default: return;  // Unsupported character
         }
     }

@@ -41,6 +41,7 @@ void testGetTrackStepIndexForContinuousPlay() {
     track->pagePlayMode = PAGE_PLAY_MODE_CONTINUOUS;
     track->trackLength = 43; // =0-based
     track->shuffle = PP16N;
+    track->speed = TRACK_SPEED_NORMAL;
     u_int64_t ppqnCounter = 0;
     bool isFirstPulse;
 
@@ -81,6 +82,7 @@ void testGetTrackStepIndexForRepeatPlay() {
     track->shuffle = PP16N;
     track->selectedPage = 0;
     track->selectedPageBank = 0;
+    track->speed = TRACK_SPEED_NORMAL;
     u_int64_t ppqnCounter = 0;
     bool isFirstPulse;
 
@@ -180,6 +182,7 @@ void testGetNotesAtTrackStepIndex() {
     track->trackLength = 63; // =0-based
     track->shuffle = PP16N;
     track->polyCount = 0;   // 8 voice polyphony
+    track->speed = TRACK_SPEED_NORMAL;
     for (int s = 0; s < 64; s++) {
         struct Step step;
         for (int n = 0; n < NOTES_IN_STEP; n++) {
@@ -338,6 +341,7 @@ void testProcessPulseNudge() {
     track->trackLength = 63; // =0-based
     track->shuffle = PP16N;
     track->polyCount = 0;   // 8 voice polyphony
+    track->speed = TRACK_SPEED_NORMAL;
     for (int s = 0; s < 64; s++) {
         struct Step step;
         for (int n = 0; n < NOTES_IN_STEP; n++) {
@@ -408,6 +412,7 @@ void testProcessPulseShuffle() {
     track->trackLength = 63; // =0-based
     track->shuffle = PP16N + 2; // shuffle of 2
     track->polyCount = 0;   // 8 voice polyphony
+    track->speed = TRACK_SPEED_NORMAL;
     for (int s = 0; s < 64; s++) {
         struct Step step;
         for (int n = 0; n < NOTES_IN_STEP; n++) {

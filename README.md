@@ -57,7 +57,7 @@ Basically the functionality for all programs is identical, with the following ma
             - 2     : ✅ Change track polyphony (8, 4, 2, 1)
             - 3-4   : ✅ Increase / decrease track / page length (depending on play mode)
             - 5-6   : Increase / decrease track speed (default=0 / default speed)
-            - 7-8   : Set shuffle
+            - 7-8   : ✅ Set shuffle
             - 9     : ✅ Set Midi Device
             - 10    : ✅ Set Midi Channel
             - 11    : Change page repeat (how many times repeat a page before the transition happens?)

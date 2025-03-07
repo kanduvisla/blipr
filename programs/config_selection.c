@@ -10,6 +10,7 @@
 #include "../utils.h"
 #include <portmidi.h>
 #include <porttime.h>
+#include "../print.h"
 
 bool isMidiConfigActive = false;
 int selectedMidiDevice = BLIPR_MIDI_DEVICE_A;
@@ -43,9 +44,9 @@ void drawConfigSelection(struct Project *project) {
                 (selectedMidiDevice == BLIPR_MIDI_DEVICE_C && strcmp(project->midiDeviceCName, "") == 0) ||
                 (selectedMidiDevice == BLIPR_MIDI_DEVICE_D && strcmp(project->midiDeviceDName, "") == 0)
             ) { 
-                drawText(4, 4, "0:*NONE", WIDTH, COLOR_WHITE);
+                drawText(4, 4, "1:*NONE", WIDTH, COLOR_WHITE);
             } else {
-                drawText(4, 4, "0: NONE", WIDTH, COLOR_WHITE);
+                drawText(4, 4, "1: NONE", WIDTH, COLOR_WHITE);
             }
 
             // List Midi Devices:
@@ -89,6 +90,7 @@ void drawConfigSelection(struct Project *project) {
  */
 void setMidiDeviceName(struct Project *project, int deviceOnProject, int indexInList) {
     if (indexInList == 99) {
+        printLog("Setting Midi Device %d to NONE", deviceOnProject);
         // Device is set to "NONE"
         if (deviceOnProject == BLIPR_MIDI_DEVICE_A) { memset(project->midiDeviceAName, 0, 32); } else
         if (deviceOnProject == BLIPR_MIDI_DEVICE_B) { memset(project->midiDeviceAName, 0, 32); } else
@@ -103,7 +105,7 @@ void setMidiDeviceName(struct Project *project, int deviceOnProject, int indexIn
         const PmDeviceInfo *info = Pm_GetDeviceInfo(i);
         if (info->input) {
             if (j == indexInList) {
-                printf("Setting Midi Device %d to %s\n", deviceOnProject, info->name);
+                printLog("Setting Midi Device %d to %s", deviceOnProject, info->name);
                 if (deviceOnProject == BLIPR_MIDI_DEVICE_A) { 
                     memcpy(project->midiDeviceAName, info->name, 32);
                 }

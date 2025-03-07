@@ -117,9 +117,35 @@ static void handleKey(
     } else if (key == BLIPR_KEY_10) { 
         note->nudge = MIN(PP16N * 2, note->nudge + 1); 
     } else if (key == BLIPR_KEY_11) { 
-        note->trigg = MAX(0, note->trigg - 1);
+        int value = get2FByteValue(note->trigg);
+        bool isInversed = get2FByteFlag2(note->trigg);
+        if (isInversed) {
+            value += TRIG_HIGHEST_VALUE;
+        }
+        if (value > 0) {
+            value--;
+            isInversed = value > TRIG_HIGHEST_VALUE;
+            note->trigg = create2FByte(
+                value > 0,
+                isInversed,
+                isInversed ? (value - TRIG_HIGHEST_VALUE) : value
+            );
+        }
     } else if (key == BLIPR_KEY_12) { 
-        note->trigg = MIN(127, note->trigg + 1); 
+        int value = get2FByteValue(note->trigg);
+        bool isInversed = get2FByteFlag2(note->trigg);
+        if (isInversed) {
+            value += TRIG_HIGHEST_VALUE;
+        }
+        if (value < TRIG_HIGHEST_VALUE * 2) {
+            value++;
+            isInversed = value > TRIG_HIGHEST_VALUE;
+            note->trigg = create2FByte(
+                value > 0,
+                isInversed,
+                isInversed ? (value - TRIG_HIGHEST_VALUE) : value
+            );
+        }
     } else 
     if (key == BLIPR_KEY_13) { note->cc1Value = MAX(0, note->cc1Value - 1); } else 
     if (key == BLIPR_KEY_14) { note->cc1Value = MIN(127, note->cc1Value + 1); } else 
@@ -384,7 +410,7 @@ bool isNoteTrigged(int triggValue, int repeatCount) {
  * Set the trigg text to a given string
  */
 void setTriggText(int triggValue, char *text) {
-    bool isEnabled = triggValue > 0; // get2FByteFlag1(triggValue);
+    bool isEnabled = get2FByteFlag1(triggValue);
     if (!isEnabled) {
         sprintf(text, "OFF");
         return;
@@ -635,8 +661,12 @@ bool isNotePlayed(
     const struct Track *track,
     int nudgeCheck
 ) {
+    // if (note != NULL && note->enabled) {        
+    //     print("nudge: %d, check: %d", note->nudge, nudgeCheck);
+    // }
+
     return 
-        note!= NULL && 
+        note != NULL && 
         note->enabled && 
         (note->nudge - PP16N) == nudgeCheck && 
         isNoteTrigged(note->trigg, track->repeatCount);
@@ -729,6 +759,53 @@ void playNoteCallback(const struct Note *note) {
 }
 
 /**
+ * Apply track speed to pulse
+ * returns FALSE if further processing is not required
+ */
+bool applySpeedToPulse(
+    const struct Track *track,
+    uint64_t *pulse
+) {
+    switch (track->speed) {
+        case TRACK_SPEED_DIV_TWO:
+            // Only process when modulo is 0 (to prevent doubles)
+            if (*pulse % 2 != 0) {
+                *pulse /= 2;
+                return false;
+            }
+            *pulse /= 2;
+            break;
+        case TRACK_SPEED_DIV_FOUR:
+            // Only process when modulo is 0 (to prevent doubles)
+            if (*pulse % 4 != 0) {
+                *pulse /= 4;
+                return false;
+            }
+            *pulse /= 4;
+            break;
+        case TRACK_SPEED_DIV_EIGHT:
+            // Only process when modulo is 0 (to prevent doubles)
+            if (*pulse % 8 != 0) {
+                *pulse /= 8;
+                return false;
+            }        
+            *pulse /= 8;
+            break;
+        case TRACK_SPEED_TIMES_TWO:
+            *pulse *= 2;
+            break;
+        case TRACK_SPEED_TIMES_FOUR:
+            *pulse *= 4;
+            break;
+        case TRACK_SPEED_TIMES_EIGHT:
+            *pulse *= 8;
+            break;
+    }
+
+    return true;
+}
+
+/**
  * Run the sequencer
  * @todo refactor this so it can be testable
  */
@@ -742,8 +819,15 @@ void runSequencer(
     tmpStream = outputStream;
     tmpTrack = selectedTrack;
 
+    // Check track speed (we do this by manupulating the pulse):
+    uint64_t pulse = *ppqnCounter;
+    bool process = applySpeedToPulse(selectedTrack, &pulse);
+    if (!process) {
+        return;
+    }
+
     // Process pulse
-    processPulse(ppqnCounter, selectedTrack, isFirstPulseCallback, playNoteCallback);
+    processPulse(&pulse, selectedTrack, isFirstPulseCallback, playNoteCallback);
 
     // Check for repeats:
     if (isFirstPulse) {
@@ -770,7 +854,10 @@ void drawSequencerMain(
     int playingPage = 0;
     bool isFirstPulse;
 
-    int trackStepIndex = getTrackStepIndex(ppqnCounter, selectedTrack, &isFirstPulse);
+    // Check track speed (we do this by manupulating the pulse):
+    uint64_t pulse = *ppqnCounter;
+    applySpeedToPulse(selectedTrack, &pulse);
+    int trackStepIndex = getTrackStepIndex(&pulse, selectedTrack, &isFirstPulse);
 
     if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
         playingPage = trackStepIndex / 16;
@@ -928,7 +1015,7 @@ void drawStepEditor(struct Step *step) {
     // Nudge:
     drawCenteredLine(2, 67, "NUDGE", BUTTON_WIDTH * 2, COLOR_WHITE);
     char nudgeChar[4];
-    snprintf(nudgeChar, sizeof(nudgeChar), "%d", note->nudge);
+    snprintf(nudgeChar, sizeof(nudgeChar), "%d", note->nudge - PP16N);
     drawCenteredLine(2, 77, nudgeChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(8, "-");
     drawTextOnButton(9, "+");
@@ -936,7 +1023,12 @@ void drawStepEditor(struct Step *step) {
     // Trig:
     drawCenteredLine(62, 67, "TRIGG", BUTTON_WIDTH * 2, COLOR_WHITE);
     char triggChar[4];
-    snprintf(triggChar, sizeof(triggChar), "%d", note->trigg);
+    snprintf(
+        triggChar, 
+        sizeof(triggChar), 
+        "%d", 
+        get2FByteValue(note->trigg) + (get2FByteFlag2(note->trigg) ? TRIG_HIGHEST_VALUE : 0)
+    );
     drawCenteredLine(62, 77, triggChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(10, "-");
     drawTextOnButton(11, "+");
