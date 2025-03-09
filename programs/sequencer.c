@@ -67,7 +67,6 @@ void setSelectedPage(
 ) {
     if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
         selectedTrack->selectedPage = index;
-        selectedStep = -1;
     } else {
         selectedTrack->queuedPage = index;
     }
@@ -167,11 +166,12 @@ void updateSequencer(
     bool keyStates[SDL_NUM_SCANCODES], 
     SDL_Scancode key
 ) {
-    int index = scancodeToStep(key) + (selectedTrack->selectedPage * 16);
+    int index = scancodeToStep(key);
+    int stepIndex = index + (selectedTrack->selectedPage * 16);
     if (keyStates[BLIPR_KEY_SHIFT_1]) {
         if (index >= 0) {
             // Toggle velocity
-            toggleVelocity(&selectedTrack->steps[index]);
+            toggleVelocity(&selectedTrack->steps[stepIndex]);
         } else {
             // this is one of the bottom buttons, change page bank, for poly 2 to 8, this is:
             // A=page 1,2,3,4       (bank 0)
@@ -224,7 +224,7 @@ void updateSequencer(
         // Default stp pressed
         if (index >= 0) {
             // Toggle key
-            toggleStep(&selectedTrack->steps[index]);
+            toggleStep(&selectedTrack->steps[stepIndex]);
         }
     }
 }
@@ -756,7 +756,6 @@ void isFirstPulseCallback() {
             tmpTrack->selectedPage = tmpTrack->queuedPage;
             // Reset repeat count, since we're switching pages:
             tmpTrack->repeatCount = 0;
-            selectedStep = -1;
         } else {
             tmpTrack->repeatCount += 1;
         }
@@ -841,22 +840,6 @@ void runSequencer(
 
     // Process pulse
     processPulse(&pulse, selectedTrack, isFirstPulseCallback, playNoteCallback);
-
-    // Check for repeats:
-    // if (selectedTrack->isFirstPulse) {
-    //     selectedTrack->repeatCount += 1;
-        // if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
-        //     selectedTrack->repeatCount += 1;
-        // } else {
-        //     if (selectedTrack->selectedPage != selectedTrack->queuedPage) {
-        //         selectedTrack->selectedPage = selectedTrack->queuedPage;
-        //         // Reset repeat count, since we're switching pages:
-        //         selectedTrack->repeatCount = 0;
-        //     } else {
-        //         selectedTrack->repeatCount += 1;
-        //     }
-        // }
-    // }
 
     // Decrease note-off counters:
     updateNotesAndSendOffs(outputStream, selectedTrack->midiChannel);
