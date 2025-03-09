@@ -67,6 +67,7 @@ void setSelectedPage(
 ) {
     if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
         selectedTrack->selectedPage = index;
+        selectedStep = -1;
     } else {
         selectedTrack->queuedPage = index;
     }
@@ -755,6 +756,7 @@ void isFirstPulseCallback() {
             tmpTrack->selectedPage = tmpTrack->queuedPage;
             // Reset repeat count, since we're switching pages:
             tmpTrack->repeatCount = 0;
+            selectedStep = -1;
         } else {
             tmpTrack->repeatCount += 1;
         }
