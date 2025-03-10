@@ -869,16 +869,6 @@ void drawSequencerMain(
     applySpeedToPulse(selectedTrack, &pulse);
     int trackStepIndex = getTrackStepIndex(&pulse, selectedTrack, NULL);
 
-    if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
-        playingPage = trackStepIndex / 16;
-        // Outline current page:
-        drawHighlightedGridTile(selectedTrack->selectedPage + 16);
-    } else {
-        playingPage = selectedTrack->selectedPage;
-        // Outline queued page:
-        drawHighlightedGridTile(selectedTrack->queuedPage + 16);
-    }
-
     // Draw outline on currently playing note:
     if (
         playingPage >= selectedTrack->selectedPage && playingPage < selectedTrack->selectedPage + 1
@@ -954,6 +944,8 @@ void drawSequencerMain(
             char descriptions[4][4] = {"1", "-", "-", "-"};
             drawABCDButtons(descriptions);    
         }
+        // Draw highlighted page banke:
+        drawHighlightedGridTile((selectedTrack->selectedPageBank % 4) + 16);
     } else if (keyStates[BLIPR_KEY_SHIFT_2]) {
         // Note (for polyphony)
         char descriptions[4][4] = {"-", "-", "<", ">"};
@@ -979,6 +971,17 @@ void drawSequencerMain(
         }
 
         drawABCDButtons(descriptions);
+
+        // Draw highlighted page:
+        if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
+            playingPage = trackStepIndex / 16;
+            // Outline current page:
+            drawHighlightedGridTile(selectedTrack->selectedPage + 16);
+        } else {
+            playingPage = selectedTrack->selectedPage;
+            // Outline queued page:
+            drawHighlightedGridTile(selectedTrack->queuedPage + 16);
+        }    
     }
 }
 
