@@ -906,6 +906,9 @@ void drawSequencerMain(
         COLOR_RED
     );
 
+    int polyCount = getPolyCount(selectedTrack);
+    int noteIndicatorOffset = 12 - polyCount;
+
     // Highlight non-empty steps:
     for (int j = 0; j < 4; j++) {
         int height = width;
@@ -936,6 +939,16 @@ void drawSequencerMain(
                             height - 4,
                             noteColor
                         );
+                        // Check if this note has a trigg condition
+                        if (note->trigg > 0) {
+                            drawSingleLineRectOutline(
+                                4 + i + (i * width),
+                                4 + j + (j * height),
+                                width - 4,
+                                height - 4,
+                                mixColors(COLOR_RED, COLOR_WHITE, 0.5f)
+                            );    
+                        }                        
                         drawTextOnButton((i + (j * 4)), getMidiNoteName(step.notes[selectedNote].note));
                     } else {
                         // Here is a note, but it is not trigged by the fill condition:
@@ -967,6 +980,23 @@ void drawSequencerMain(
                         );
                     }
                 }
+            }
+
+            drawRect(
+                5 + i + (i * width) + noteIndicatorOffset,
+                5 + j + (j * height),
+                (polyCount * 2) + 1,
+                3,
+                COLOR_GRAY
+            );
+
+            // Poly count dots:
+            for (int p=0; p<polyCount; p++) {
+                drawPixel(
+                    6 + i + (i * width) + (p * 2) + noteIndicatorOffset,
+                    6 + j + (j * height),
+                    p == selectedNote ? COLOR_WHITE : (step.notes[p].enabled ? COLOR_RED : COLOR_LIGHT_GRAY)
+                );
             }
         }
     }   

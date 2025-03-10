@@ -20,3 +20,12 @@ SDL_Color COLOR_WHITE = {0xE7, 0xFF, 0xDB, 0xFF};
 SDL_Color COLOR_BLACK = {0x01, 0x09, 0x09, 0xFF};
 SDL_Color COLOR_YELLOW = {0xFD, 0xFF, 0x99, 0xFF};
 SDL_Color COLOR_ORANGE = {0xFD, 0xFF, 0x99, 0xFF};
+
+SDL_Color mixColors(SDL_Color color1, SDL_Color color2, float weight) {
+    SDL_Color result;
+    result.r = (Uint8)(color1.r * (1 - weight) + color2.r * weight);
+    result.g = (Uint8)(color1.g * (1 - weight) + color2.g * weight);
+    result.b = (Uint8)(color1.b * (1 - weight) + color2.b * weight);
+    result.a = 0xFF;  // Usually keep alpha at maximum
+    return result;
+}

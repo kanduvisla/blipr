@@ -14,4 +14,6 @@ extern SDL_Color COLOR_BLACK;
 extern SDL_Color COLOR_YELLOW;
 extern SDL_Color COLOR_ORANGE;
 
+SDL_Color mixColors(SDL_Color color1, SDL_Color color2, float weight);
+
 #endif
