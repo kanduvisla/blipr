@@ -954,6 +954,10 @@ void drawSequencerMain(
         // Note (for polyphony)
         char descriptions[4][4] = {"-", "-", "<", ">"};
         drawABCDButtons(descriptions);
+        // Draw channel number:
+        char channelText[2];
+        sprintf(channelText, "%d", selectedNote + 1);
+        drawText(92, HEIGHT - BUTTON_HEIGHT + 2, channelText, BUTTON_WIDTH, COLOR_WHITE);
     } else {
         // Page numbers:
         char descriptions[4][4] = {"P00", "P00", "P00", "P00"};

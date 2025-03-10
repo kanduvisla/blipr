@@ -6,7 +6,6 @@ These are observations done while testing Blipr with real hardware.
 
 --- Bugs:
 
-- With a normal sequence, if I am on page 2, and try to shift2 to edit a note, i cannot select a note, it automatically shows the edit note screen. The same goes for page repeat mode
 - Channel / note number is not shown 
 - When switching to a different track, the default channel is not set back to 1
 - Poly sacrificing / correct track not playing (P01 appears to be P05?)
@@ -56,3 +55,4 @@ These are observations done while testing Blipr with real hardware.
 - Add indicator on CPU% - separation in calculations + rendering time
 - Midi configuration: No option to select "no device"
 - Set default mode to page repeat
+- With a normal sequence, if I am on page 2, and try to shift2 to edit a note, i cannot select a note, it automatically shows the edit note screen. The same goes for page repeat mode
