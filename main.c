@@ -391,8 +391,8 @@ void* keyThread(void* arg) {
                     state->track = &state->project->sequences[state->selectedSequence]
                         .patterns[state->selectedPattern]
                         .tracks[state->selectedTrack];
-                    // Reset repeat counter:
-                    // state->track->repeatCount = 0;
+                    // Set selected note to 0:
+                    resetSelectedNote();
                 } else if (state->isPatternSelectionActive) {
                     updatePatternSelection(&state->selectedPattern, state->scanCodeKeyDown);
                     // Set proper track + reset repeat count

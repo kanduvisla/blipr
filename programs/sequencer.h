@@ -131,6 +131,11 @@ void drawSequencer(
 void resetSequencerSelectedStep();
 
 /**
+ * Reset the selected note
+ */
+void resetSelectedNote();
+
+/**
  * Determine if a note is trigged according to it's TRIG condition
  */
 bool isNoteTrigged(int triggValue, int repeatCount);

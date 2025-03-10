@@ -29,6 +29,10 @@ void resetSequencerSelectedStep() {
     selectedStep = -1;
 }
 
+void resetSelectedNote() {
+    selectedNote = 0;
+}
+
 /**
  * Toggle a step
  */
