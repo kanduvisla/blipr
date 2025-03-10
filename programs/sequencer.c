@@ -105,8 +105,9 @@ static void handleKey(
     struct Track *selectedTrack,
     SDL_Scancode key
 ) {
-    struct Step *step = &selectedTrack->steps[selectedStep];
-    struct Note *note = &selectedTrack->steps[selectedStep].notes[selectedNote];
+    int stepIndex = selectedStep + (selectedTrack->selectedPage * 16);
+    struct Step *step = &selectedTrack->steps[stepIndex];
+    struct Note *note = &selectedTrack->steps[stepIndex].notes[selectedNote];
     // We're in the step editor, handle keys:
     if (key == BLIPR_KEY_1) { note->note = transposeMidiNote(note->note, -12); } else
     if (key == BLIPR_KEY_2) { note->note = transposeMidiNote(note->note, -1); } else 
@@ -925,14 +926,25 @@ void drawSequencerMain(
                 );
             } else {
                 if (step.notes[selectedNote].enabled) {
-                    drawRect(
-                        4 + i + (i * width),
-                        4 + j + (j * height),
-                        width - 4,
-                        height - 4,
-                        step.notes[selectedNote].velocity >= defaultVelocity ? COLOR_RED : COLOR_DARK_RED
-                    );
-                    drawTextOnButton((i + (j * 4)), getMidiNoteName(step.notes[selectedNote].note));
+                    if (isNoteTrigged(step.notes[selectedNote].trigg, selectedTrack->repeatCount)) {
+                        drawRect(
+                            4 + i + (i * width),
+                            4 + j + (j * height),
+                            width - 4,
+                            height - 4,
+                            step.notes[selectedNote].velocity >= defaultVelocity ? COLOR_RED : COLOR_DARK_RED
+                        );
+                        drawTextOnButton((i + (j * 4)), getMidiNoteName(step.notes[selectedNote].note));
+                    } else {
+                        // Here is a note, but it is not trigged by the fill condition:
+                        drawSingleLineRectOutline(
+                            4 + i + (i * width),
+                            4 + j + (j * height),
+                            width - 4,
+                            height - 4,
+                            step.notes[selectedNote].velocity >= defaultVelocity ? COLOR_RED : COLOR_DARK_RED
+                        );
+                    }
                 }
             }
         }
@@ -1099,7 +1111,8 @@ void drawSequencer(
     if (selectedStep == -1) {
         drawSequencerMain(ppqnCounter, keyStates, selectedTrack);
     } else {
-        drawStepEditor(&selectedTrack->steps[selectedStep]);
+        int stepIndex = selectedStep + (selectedTrack->selectedPage * 16);
+        drawStepEditor(&selectedTrack->steps[stepIndex]);
     }
 }
 

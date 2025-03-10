@@ -6,15 +6,11 @@ These are observations done while testing Blipr with real hardware.
 
 --- Bugs:
 
-- Poly sacrificing / correct track not playing (P01 appears to be P05?)
-- Poly sacrificing / cannot select pagebank 5-8 (selected page bank not highlighted)
 - It still appears that something goes wrong when setting steps in the sequencer; other pages seem affected.
 - Roland SH-4d was not detected by Linux. Not sure if this is a Blipr problem, since `amidi -l` also didn't show it.
 - (still not working) Midi configuration with multiple device is not working properly. Was unable to set proper midi device for A. Cannot set to "None"
 - (still not working) When configuring midi device, configuration is not directly applied, restart of the program is required. The current device is unassigned, but a new device is not assigned
 - Got an error with invalid device Id (probably the Midi Through Port), blipr won't start
-- Other pages is not working
-- Page bank is pickable, even if it's not allowed or visible
 - Steps are set on disabled tiles (takes not in account page length (possible also track length))
 - (requires re-testing) It appears that the note off is not properly send when changing the note tone
 - Key repeat is repeating also on steps
@@ -56,3 +52,7 @@ These are observations done while testing Blipr with real hardware.
 - With a normal sequence, if I am on page 2, and try to shift2 to edit a note, i cannot select a note, it automatically shows the edit note screen. The same goes for page repeat mode
 - Channel / note number is not shown
 - When switching to a different track, the default channel is not set back to 1
+- Poly sacrificing / correct track not playing (P01 appears to be P05?)
+- Poly sacrificing / cannot select pagebank 5-8 (selected page bank not highlighted)
+- Other pages is not working
+- Page bank is pickable, even if it's not allowed or visible
