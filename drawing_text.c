@@ -353,7 +353,7 @@ const int characters[][CHAR_HEIGHT][CHAR_WIDTH] = {
 
 void initializeTextures() {
     for (int i = 0; i < NUM_CHARACTERS; i++) {
-        SDL_Surface* surface = SDL_CreateRGBSurface(0, CHAR_WIDTH, CHAR_HEIGHT, 32, 0, 0, 0, 0);
+        SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormat(0, CHAR_WIDTH, CHAR_HEIGHT, 32, SDL_PIXELFORMAT_RGBA32);
         if (surface == NULL) {
             SDL_Log("Failed to create surface for character %d: %s", i, SDL_GetError());
             continue;
@@ -375,6 +375,7 @@ void initializeTextures() {
         SDL_UnlockSurface(surface);
 
         charTextures[i] = SDL_CreateTextureFromSurface(renderer, surface);
+        SDL_SetTextureBlendMode(charTextures[i], SDL_BLENDMODE_BLEND);
         SDL_FreeSurface(surface);
 
         if (charTextures[i] == NULL) {

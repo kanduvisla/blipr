@@ -533,6 +533,7 @@ int main(int argc, char *argv[]) {
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles2");
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
     SDL_CreateWindowAndRenderer(720, 720, 0, &win, &renderer);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
     renderTarget = SDL_CreateTexture(
         renderer,
