@@ -187,16 +187,21 @@ void updateSequencer(
             // B=page 9,10,11,12    / 13,14,15,16   (bank 1 & 5)
             // C=page 17,18,19,20   / 21,22,23,24   (bank 2 & 6)
             // D=page 25,26,27,28   / 29,30,31,32   (bank 3 & 7)
-            if (getPolyCount(selectedTrack) == 1) {
+            int polyCount = getPolyCount(selectedTrack);
+
+            if (polyCount == 1) {
                 if (key == BLIPR_KEY_A) { selectedTrack->selectedPageBank == 0 ? 4 : 0; } else
                 if (key == BLIPR_KEY_B) { selectedTrack->selectedPageBank == 1 ? 5 : 1; } else
                 if (key == BLIPR_KEY_C) { selectedTrack->selectedPageBank == 2 ? 6 : 2; } else
                 if (key == BLIPR_KEY_D) { selectedTrack->selectedPageBank == 3 ? 7 : 3; }
             } else {
+                // PolyCount 8 only allows pageBank 1
+                // PolyCount 4 only allows pageBank 1 & 2
+                // PolyCount 2 only allows pageBank 1, 2, 3 & 4
                 if (key == BLIPR_KEY_A) { selectedTrack->selectedPageBank = 0; } else
-                if (key == BLIPR_KEY_B) { selectedTrack->selectedPageBank = 1; } else
-                if (key == BLIPR_KEY_C) { selectedTrack->selectedPageBank = 2; } else
-                if (key == BLIPR_KEY_D) { selectedTrack->selectedPageBank = 3; }
+                if (key == BLIPR_KEY_B && polyCount < 8) { selectedTrack->selectedPageBank = 1; } else
+                if (key == BLIPR_KEY_C && polyCount == 2) { selectedTrack->selectedPageBank = 2; } else
+                if (key == BLIPR_KEY_D && polyCount == 2) { selectedTrack->selectedPageBank = 3; }
             }
         }
     } else if(keyStates[BLIPR_KEY_SHIFT_2]) {
@@ -217,13 +222,13 @@ void updateSequencer(
             handleKey(selectedTrack, key);
         }
     } else if(key == BLIPR_KEY_A) {
-        setSelectedPage(selectedTrack, 0);
+        setSelectedPage(selectedTrack, (selectedTrack->selectedPageBank * 4));
     } else if(key == BLIPR_KEY_B) {
-        setSelectedPage(selectedTrack, 1);
+        setSelectedPage(selectedTrack, (selectedTrack->selectedPageBank * 4) + 1);
     } else if(key == BLIPR_KEY_C) {
-        setSelectedPage(selectedTrack, 2);
+        setSelectedPage(selectedTrack, (selectedTrack->selectedPageBank * 4) + 2);
     } else if(key == BLIPR_KEY_D) {
-        setSelectedPage(selectedTrack, 3);
+        setSelectedPage(selectedTrack, (selectedTrack->selectedPageBank * 4) + 3);
     } else {
         // Default stp pressed
         if (index >= 0) {
@@ -869,6 +874,13 @@ void drawSequencerMain(
     applySpeedToPulse(selectedTrack, &pulse);
     int trackStepIndex = getTrackStepIndex(&pulse, selectedTrack, NULL);
 
+    // Get playing page:
+    if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
+        playingPage = trackStepIndex / 16;
+    } else {
+        playingPage = selectedTrack->selectedPage;
+    }    
+    
     // Draw outline on currently playing note:
     if (
         playingPage >= selectedTrack->selectedPage && playingPage < selectedTrack->selectedPage + 1
@@ -971,17 +983,21 @@ void drawSequencerMain(
         }
 
         drawABCDButtons(descriptions);
-
+    
         // Draw highlighted page:
         if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
-            playingPage = trackStepIndex / 16;
-            // Outline current page:
-            drawHighlightedGridTile(selectedTrack->selectedPage + 16);
+            if (selectedTrack->selectedPage >= selectedTrack->selectedPageBank * 4 && 
+                selectedTrack->selectedPage < (selectedTrack->selectedPageBank + 1) * 4) {
+                // Outline current page:
+                drawHighlightedGridTile((selectedTrack->selectedPage % 4) + 16);
+            }
         } else {
-            playingPage = selectedTrack->selectedPage;
-            // Outline queued page:
-            drawHighlightedGridTile(selectedTrack->queuedPage + 16);
-        }    
+            if (selectedTrack->queuedPage >= selectedTrack->selectedPageBank * 4 && 
+                selectedTrack->queuedPage < (selectedTrack->selectedPageBank + 1) * 4) {
+                // Outline queued page:
+                drawHighlightedGridTile((selectedTrack->queuedPage % 4) + 16);
+            }
+        }            
     }
 }
 
