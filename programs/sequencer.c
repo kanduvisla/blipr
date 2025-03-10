@@ -926,13 +926,15 @@ void drawSequencerMain(
                 );
             } else {
                 if (step.notes[selectedNote].enabled) {
-                    if (isNoteTrigged(step.notes[selectedNote].trigg, selectedTrack->repeatCount)) {
+                    struct Note *note = &step.notes[selectedNote];
+                    SDL_Color noteColor = note->velocity >= defaultVelocity ? COLOR_RED : COLOR_DARK_RED;
+                    if (isNoteTrigged(note->trigg, selectedTrack->repeatCount)) {
                         drawRect(
                             4 + i + (i * width),
                             4 + j + (j * height),
                             width - 4,
                             height - 4,
-                            step.notes[selectedNote].velocity >= defaultVelocity ? COLOR_RED : COLOR_DARK_RED
+                            noteColor
                         );
                         drawTextOnButton((i + (j * 4)), getMidiNoteName(step.notes[selectedNote].note));
                     } else {
@@ -942,7 +944,26 @@ void drawSequencerMain(
                             4 + j + (j * height),
                             width - 4,
                             height - 4,
-                            step.notes[selectedNote].velocity >= defaultVelocity ? COLOR_RED : COLOR_DARK_RED
+                            noteColor
+                        );
+                    }
+
+                    // Draw nudge box:
+                    if (note->nudge < PP16N) {
+                        drawRect(
+                            2 + i + (i * width),
+                            2 + j + (j * height) + (BUTTON_HEIGHT * 0.4),
+                            2,
+                            5,
+                            noteColor
+                        );
+                    } else if (note->nudge > PP16N) {
+                        drawRect(
+                            i + (i * width) + BUTTON_WIDTH,
+                            2 + j + (j * height) + (BUTTON_HEIGHT * 0.4),
+                            2,
+                            5,
+                            noteColor
                         );
                     }
                 }
