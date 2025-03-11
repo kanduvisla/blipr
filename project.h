@@ -101,6 +101,7 @@ void resetTrack(struct Track *track);
  */
 struct Pattern {
     char name[32];
+    unsigned char bpm;  // 0-255 accounts for 45-300 BPM (BPM = byte value + 45)
     struct Track tracks[16];
 };
 

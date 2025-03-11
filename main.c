@@ -46,10 +46,13 @@ char *projectFile = "data.blipr";
  * Calculate nano seconds per pulse for a given BPM
  */
 uint64_t calculateNanoSecondsPerPulse(int bpm) {
+    printLog("Calculating ns per pulse for %d BPM", bpm);
     double beatsPerSecond = bpm / 60.0;
     double secondsPerQuarterNote = 1.0 / beatsPerSecond;
     uint64_t nanoSecondsPerQuarterNote = secondsPerQuarterNote * NANOS_PER_SEC;
-    return nanoSecondsPerQuarterNote / PPQN_MULTIPLIED;
+    uint64_t ns = nanoSecondsPerQuarterNote / PPQN_MULTIPLIED;
+    printLog("ns per pulse: %d", ns);
+    return ns;
 }
 
 /**
@@ -169,8 +172,9 @@ void initSharedState(SharedState* state) {
         printLog("Loaded project: %s", state->project->name);
     }
     
-    // TODO: Should be fetched from current pattern:
-    state->nanoSecondsPerPulse = calculateNanoSecondsPerPulse(120);
+    // Get the BPM from the current pattern:
+    int bpm = state->project->sequences[0].patterns[0].bpm;
+    state->nanoSecondsPerPulse = calculateNanoSecondsPerPulse(bpm + 45);
     state->track = &state->project->sequences[0].patterns[0].tracks[0];
 
     pthread_mutex_init(&state->mutex, NULL);
