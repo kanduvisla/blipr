@@ -11,6 +11,16 @@ void drawNoteCounter(int noteCounter);
 void drawPageCounter(int pageCounter);
 
 /**
+ * Draw the sidebar
+ */
+void drawSideBar();
+
+/**
+ * Draw the current track indicator
+ */
+void drawCurrentTrackIndicator(int sequenceNr, int patternNr, int trackNr);
+
+/**
  * Draw a basic 4x6 grid
  */
 void drawBasicGrid(bool keyStates[SDL_NUM_SCANCODES]);

@@ -612,8 +612,13 @@ int main(int argc, char *argv[]) {
             // BPM Blinker:
             drawBPMBlinker(&state.ppqnCounter);
 
-            // Sequence, pattern and track number (replace with real numbers):
-            drawText(WIDTH - 54, 4, "S00P00T00", 60, COLOR_GRAY);
+            // Sidebar:
+            drawSideBar();
+            drawCurrentTrackIndicator(
+                state.selectedSequence + 1,
+                state.selectedPattern + 1,
+                state.selectedTrack + 1
+            );
 
             // Basic Grid:
             drawBasicGrid(state.keyStates);

@@ -15,6 +15,18 @@
 #define TITLE_WIDTH ((BUTTON_WIDTH * 4) + 3)
 #define GRID_UNIT 1
 
+// Constants for measurement:
+#define SIDEBAR_OFFSET (2 + (BUTTON_WIDTH * 4) + 4)
+#define SIDEBAR_WIDTH (WIDTH - SIDEBAR_OFFSET - 2)
+#define SIDEBAR_HEIGHT (HEIGHT - 4)
+
+// For text:
+#define CHAR_WIDTH 5
+#define CHAR_HEIGHT 5
+#define CHAR_SPACING 1
+#define SPACE_WIDTH 6
+#define LINE_SPACING 2
+
 // Pulse per quarter note
 #define PPQN 24                                     // Pulses per quarter note, so this is 1 - 5 - 9 - 13
 #define PPQN_MULTIPLIER 1                           // Multiplier for PPQN, so the in-app pulse counter can have more steps

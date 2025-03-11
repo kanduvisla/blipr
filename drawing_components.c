@@ -42,6 +42,31 @@ void drawBPMBlinker(uint64_t *ppqnCounter) {
 }
 
 /**
+ * Draw the sidebar
+ */
+void drawSideBar() {
+    drawRect(SIDEBAR_OFFSET, 2, SIDEBAR_WIDTH, SIDEBAR_HEIGHT, COLOR_GRAY);
+}
+
+/**
+ * Draw the current track indicator
+ */
+void drawCurrentTrackIndicator(int sequenceNr, int patternNr, int trackNr) {
+    drawRect(SIDEBAR_OFFSET + 1, 3, SIDEBAR_WIDTH - 2, CHAR_HEIGHT + 2, COLOR_BLACK);
+    drawText(SIDEBAR_OFFSET + 2, 4, "S", 11, COLOR_RED);
+    int offset = 7;
+    char text[3];
+    sprintf(text, "%02d", sequenceNr);
+    drawText(offset + SIDEBAR_OFFSET + 2, 4, text, 11, COLOR_ORANGE);
+    drawText(offset + SIDEBAR_OFFSET + 12, 4, ":", 11, COLOR_RED);
+    sprintf(text, "%02d", patternNr);
+    drawText(offset + SIDEBAR_OFFSET + 17, 4, text, 11, COLOR_ORANGE);
+    drawText(offset + SIDEBAR_OFFSET + 27, 4, ":", 11, COLOR_RED);
+    sprintf(text, "%02d", trackNr);
+    drawText(offset + SIDEBAR_OFFSET + 32, 4, text, 11, COLOR_ORANGE);
+}
+
+/**
  * Draw the Note Counter
  */
 void drawNoteCounter(int noteCounter) {
