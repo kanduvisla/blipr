@@ -188,10 +188,11 @@ void initSharedState(SharedState* state) {
     state->track = &state->project->sequences[0].patterns[0].tracks[0];
     setScreenAccordingToActiveTrack(state);
 
-    // struct Sequence *sequence = &state->project->sequences[state->selectedSequence];
-    // print("memory addres of sequence: %p", sequence);
-    // struct Pattern *pattern = &sequence->patterns[state->selectedPattern];
-    // print("memory addres of pattern: %p", pattern);
+    // Send proper PC to start with:
+    state->programA = state->project->sequences[0].patterns[0].programA;
+    state->programB = state->project->sequences[0].patterns[0].programB;
+    state->programC = state->project->sequences[0].patterns[0].programC;
+    state->programD = state->project->sequences[0].patterns[0].programD;
 
     pthread_mutex_init(&state->mutex, NULL);
     pthread_cond_init(&state->cond, NULL);
@@ -284,13 +285,32 @@ void* sequencerThread(void* arg) {
         }
 
         if (state->programA != 255) {
-            // TODO: Make Midi Channel for PC also configurable:
-            printLog("change program to %d", state->programA);
-            sendProgramChange(outputStream[0], 6, state->programA);
+            printLog("change program A to %d", state->programA);
+            sendProgramChange(outputStream[0], state->project->midiDevicePcChannelA, state->programA);
             pthread_mutex_lock(&state->mutex);
             state->programA = 255;
             pthread_mutex_unlock(&state->mutex);
+        } else if (state->programB != 255) {
+            printLog("change program B to %d", state->programB);
+            sendProgramChange(outputStream[1], state->project->midiDevicePcChannelB, state->programB);
+            pthread_mutex_lock(&state->mutex);
+            state->programB = 255;
+            pthread_mutex_unlock(&state->mutex);
+        } else if (state->programC != 255) {
+            printLog("change program C to %d", state->programC);
+            sendProgramChange(outputStream[2], state->project->midiDevicePcChannelC, state->programC);
+            pthread_mutex_lock(&state->mutex);
+            state->programC = 255;
+            pthread_mutex_unlock(&state->mutex);
+        } else if (state->programD != 255) {
+            printLog("change program to %d", state->programD);
+            sendProgramChange(outputStream[3], state->project->midiDevicePcChannelD, state->programD);
+            pthread_mutex_lock(&state->mutex);
+            state->programD = 255;
+            pthread_mutex_unlock(&state->mutex);
         }
+
+
 
         if (state->unprocessedPulses > 0) {
             // Do the work!
@@ -504,12 +524,7 @@ void* keyThread(void* arg) {
             if (state->scanCodeKeyUp == BLIPR_KEY_FUNC || state->scanCodeKeyUp == BLIPR_KEY_SHIFT_3) {
                 pthread_mutex_lock(&state->mutex);
                 // Set screen to current running program:
-                switch (state->track->program) {
-                    case BLIPR_PROGRAM_SEQUENCER:
-                        state->screen = BLIPR_SCREEN_SEQUENCER;
-                        break;
-                }
-                
+                setScreenAccordingToActiveTrack(state);                
                 pthread_mutex_unlock(&state->mutex);
                 resetConfigurationScreen();
             } else if (state->scanCodeKeyUp == BLIPR_KEY_SHIFT_2) {

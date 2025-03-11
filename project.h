@@ -132,6 +132,10 @@ struct Project {
     char midiDeviceBName[32];
     char midiDeviceCName[32];
     char midiDeviceDName[32];
+    unsigned char midiDevicePcChannelA;
+    unsigned char midiDevicePcChannelB;
+    unsigned char midiDevicePcChannelC;
+    unsigned char midiDevicePcChannelD;
     struct Sequence sequences[16];
 };
 

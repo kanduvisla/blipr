@@ -53,4 +53,9 @@ void drawTextOnButton(int index, char* text);
  */
 void drawABCDButtons(char descriptions[4][3]);
 
+/**
+ * Draw increase & decrease buttons
+ */
+void drawIncreaseAndDecreaseButtons(int firstButtonIndex, const char *header, const char *text);
+
 #endif

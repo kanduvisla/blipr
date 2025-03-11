@@ -24,9 +24,40 @@ void resetConfigurationScreen() {
     selectedMidiDevice = BLIPR_MIDI_DEVICE_A;
 }
 
+/**
+ * Draw a rotating button (a button that updates it's value every time it's pressed)
+ */
+void drawRotatingButton(
+    int index,
+    const char *header,
+    const char *value
+) {
+    drawCenteredLine(
+        2 + (index % 4) + BUTTON_WIDTH, 
+        BUTTON_HEIGHT + 7 + (index / 4), 
+        "PC.A", 
+        BUTTON_WIDTH, 
+        COLOR_WHITE
+    );
+    drawTextOnButton(index, value);
+}
+
 void drawConfigSelection(struct Project *project) {
     if (isMainScreen()) {
         drawIconOnIndex(0, BLIPR_ICON_MIDI);
+
+        // MIDI PC channel settings:
+        char ch[4];
+        sprintf(ch, "%d", project->midiDevicePcChannelA);
+        drawRotatingButton(4, "PC.A", ch);
+        sprintf(ch, "%d", project->midiDevicePcChannelB);
+        drawRotatingButton(5, "PC.B", ch);
+        sprintf(ch, "%d", project->midiDevicePcChannelC);
+        drawRotatingButton(6, "PC.C", ch);
+        sprintf(ch, "%d", project->midiDevicePcChannelD);
+        drawRotatingButton(7, "PC.D", ch);
+
+        // Quit:
         drawTextOnButton(15, "Q");  // Quit
         drawCenteredLine(2, 133, "CONFIGURATION", TITLE_WIDTH, COLOR_WHITE);
 
@@ -134,7 +165,27 @@ void updateConfiguration(struct Project *project, SDL_Scancode key, bool *reload
     if (isMainScreen()) {
         // No config selected, so we're on the main screen
         if (key == BLIPR_KEY_1) { isMidiConfigActive = true; } else 
-        if (key == BLIPR_KEY_16) { *quit = (true); }
+        if (key == BLIPR_KEY_5) { 
+            project->midiDevicePcChannelA = project->midiDevicePcChannelA + 1; 
+            if (project->midiDevicePcChannelA >= 16) {
+                project->midiDevicePcChannelA = 0;
+            }
+        } else if (key == BLIPR_KEY_6) { 
+            project->midiDevicePcChannelB = project->midiDevicePcChannelB + 1; 
+            if (project->midiDevicePcChannelB >= 16) {
+                project->midiDevicePcChannelB = 0;
+            }
+        } else if (key == BLIPR_KEY_7) { 
+            project->midiDevicePcChannelC = project->midiDevicePcChannelC + 1; 
+            if (project->midiDevicePcChannelC >= 16) {
+                project->midiDevicePcChannelC = 0;
+            }
+        } else if (key == BLIPR_KEY_8) { 
+            project->midiDevicePcChannelD = project->midiDevicePcChannelD + 1; 
+            if (project->midiDevicePcChannelD >= 16) {
+                project->midiDevicePcChannelD = 0;
+            }
+        } else if (key == BLIPR_KEY_16) { *quit = (true); }
     } else {
         if (isMidiConfigActive) {
             if (key == BLIPR_KEY_A) { selectedMidiDevice = BLIPR_MIDI_DEVICE_A; }

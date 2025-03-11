@@ -226,7 +226,11 @@ void projectToByteArray(const struct Project *project, unsigned char bytes[PROJE
     memcpy(bytes + 64, project->midiDeviceBName, 32);
     memcpy(bytes + 96, project->midiDeviceCName, 32);
     memcpy(bytes + 128, project->midiDeviceDName, 32);
-    memset(bytes + 160, 0, 256 - 160);
+    bytes[160] = project->midiDevicePcChannelA;
+    bytes[161] = project->midiDevicePcChannelB;
+    bytes[162] = project->midiDevicePcChannelC;
+    bytes[163] = project->midiDevicePcChannelD;
+    memset(bytes + 164, 0, 256 - 164);
     for (int i = 0; i < 16; i++) {
         sequenceToByteArray(&project->sequences[i], bytes + 256 + (i * SEQUENCE_BYTE_SIZE));
     }
@@ -241,12 +245,15 @@ struct Project* byteArrayToProject(const unsigned char bytes[PROJECT_BYTE_SIZE])
         printf("Error: cannot allocate memory for project\n");
         exit(1);
     }
-
     memcpy(project->name, bytes, 32);
     memcpy(project->midiDeviceAName, bytes + 32, 32);
     memcpy(project->midiDeviceBName, bytes + 64, 32);
     memcpy(project->midiDeviceCName, bytes + 96, 32);
     memcpy(project->midiDeviceDName, bytes + 128, 32);
+    project->midiDevicePcChannelA = bytes[160];
+    project->midiDevicePcChannelB = bytes[161];
+    project->midiDevicePcChannelC = bytes[162];
+    project->midiDevicePcChannelD = bytes[163];
     for (int i = 0; i < 16; i++) {
         project->sequences[i] = *byteArrayToSequence(bytes + 256  + (i  * SEQUENCE_BYTE_SIZE));
     }

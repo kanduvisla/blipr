@@ -7,32 +7,6 @@
 #include "../drawing_text.h"
 #include "../utils.h"
 
-/**
- * Draw default increase- and decrease buttons
- */
-void drawIncreaseAndDecreaseButtons(
-    int firstButtonIndex,
-    const char *header,
-    const char *text
-) {
-    drawCenteredLine(
-        2 + (BUTTON_WIDTH * (firstButtonIndex % 4)) + (firstButtonIndex % 4), 
-        5 + (BUTTON_HEIGHT * (firstButtonIndex / 4)) + (firstButtonIndex % 4), 
-        header, 
-        BUTTON_WIDTH * 2, 
-        COLOR_WHITE
-    );
-    drawTextOnButton(firstButtonIndex, "<");
-    drawTextOnButton(firstButtonIndex + 1, ">");
-    drawCenteredLine(
-        2 + (BUTTON_WIDTH * (firstButtonIndex % 4)) + (firstButtonIndex % 4), 
-        14 + (BUTTON_HEIGHT * (firstButtonIndex / 4)) + (firstButtonIndex % 4), 
-        text, 
-        BUTTON_WIDTH * 2, 
-        COLOR_WHITE
-    );
-}
-
 void drawPatternOptions(struct Pattern* pattern) {
     // BPM:
     char bpmText[4];
