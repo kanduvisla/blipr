@@ -79,36 +79,6 @@ void drawBPMIndiciator(int bpm) {
 }
 
 /**
- * Draw the Note Counter
- */
-void drawNoteCounter(int noteCounter) {
-    // 16 dots on the bottom for the steps:
-    /*
-    for (int i = 0; i < PATTERN_LENGTH; ++i) {
-        drawPixel(
-            2 + (i * 2),
-            HEIGHT - (GRID_UNIT * 3),
-            noteCounter == i ? COLOR_RED : COLOR_GRAY
-        );
-    } 
-    */           
-}
-
-/**
- * Draw the Page Counter
- */
-void drawPageCounter(int pageCounter) {
-    // 4 dots on the bottom right to indicate page:
-    for (int i = 0; i < 4; ++i) {
-        drawPixel(
-            WIDTH - 9 + (i * 2),
-            HEIGHT - (GRID_UNIT * 3),
-            pageCounter == i ? COLOR_RED : COLOR_GRAY
-        );
-    }
-}
-
-/**
  * Draw a basic 4x6 grid
  */
 void drawBasicGrid(bool keyStates[SDL_NUM_SCANCODES]) {
@@ -128,7 +98,6 @@ void drawBasicGrid(bool keyStates[SDL_NUM_SCANCODES]) {
         }
     }
 
-    // char characters[] = {'A', 'B', 'C', 'D'};
     char bottomButtonsDescriptions[4][3] = {"^1", "^2", "^3", "FN"};
 
     // Bottom Pad
