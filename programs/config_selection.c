@@ -28,7 +28,12 @@ void drawConfigSelection(struct Project *project) {
     if (isMainScreen()) {
         drawIconOnIndex(0, BLIPR_ICON_MIDI);
         drawTextOnButton(15, "Q");  // Quit
-        drawCenteredLine(2, 133, "CONFIGURATION", TITLE_WIDTH, COLOR_WHITE);       
+        drawCenteredLine(2, 133, "CONFIGURATION", TITLE_WIDTH, COLOR_WHITE);
+
+        // ABCD Buttons:
+        char descriptions[4][4] = {"PAT", "SEQ", "CFG", "TRN"};
+        drawABCDButtons(descriptions);
+        drawHighlightedGridTile(18);
     } else {
         if (isMidiConfigActive) {
             drawCenteredLine(2, 130, "SELECT A DEVICE FOR", TITLE_WIDTH, COLOR_WHITE);

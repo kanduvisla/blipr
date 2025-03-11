@@ -26,4 +26,9 @@ void drawSequenceSelection(int *selectedSequence) {
 
     // Title:
     drawCenteredLine(2, 133, "SELECT SEQUENCE", TITLE_WIDTH, COLOR_WHITE);
+
+    // ABCD Buttons:
+    char descriptions[4][4] = {"PAT", "SEQ", "CFG", "TRN"};
+    drawABCDButtons(descriptions);
+    drawHighlightedGridTile(17);
 }

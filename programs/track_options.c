@@ -101,9 +101,9 @@ void drawTrackOptions(struct Track* track) {
     drawTextOnButton(9, channelChar);
 
     // ABCD Buttons:
-    char descriptions[4][4] = {"TRK", "PRG", "PAT", "UTI"};
+    char descriptions[4][4] = {"TRK", "OPT", "PRG", "PAT"};
     drawABCDButtons(descriptions);
-    drawHighlightedGridTile(16);
+    drawHighlightedGridTile(17);
 }
 
 void handleKey(
