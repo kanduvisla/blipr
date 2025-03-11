@@ -131,6 +131,9 @@ void setScreenAccordingToActiveTrack(SharedState *state) {
         case BLIPR_PROGRAM_SEQUENCER:
             state->screen = BLIPR_SCREEN_SEQUENCER;
             break;
+        case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
+            state->screen = BLIPR_SCREEN_FOUR_ON_THE_FLOOR;
+            break;
         default:
             state->screen = BLIPR_SCREEN_NO_PROGRAM;
             break;

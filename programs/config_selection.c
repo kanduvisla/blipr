@@ -33,9 +33,9 @@ void drawRotatingButton(
     const char *value
 ) {
     drawCenteredLine(
-        2 + (index % 4) + BUTTON_WIDTH, 
+        2 + (index % 4) + (BUTTON_WIDTH * (index % 4)), 
         BUTTON_HEIGHT + 7 + (index / 4), 
-        "PC.A", 
+        header, 
         BUTTON_WIDTH, 
         COLOR_WHITE
     );
