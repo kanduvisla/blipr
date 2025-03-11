@@ -23,6 +23,7 @@
 #include "programs/program_selection.h"
 #include "programs/track_options.h"
 #include "programs/four_on_the_floor.h"
+#include "programs/pattern_options.h"
 #include "midi.h"
 #include "print.h"
 
@@ -172,6 +173,11 @@ void initSharedState(SharedState* state) {
     state->nanoSecondsPerPulse = calculateNanoSecondsPerPulse(state->bpm);
     state->track = &state->project->sequences[0].patterns[0].tracks[0];
     setScreenAccordingToActiveTrack(state);
+
+    // struct Sequence *sequence = &state->project->sequences[state->selectedSequence];
+    // print("memory addres of sequence: %p", sequence);
+    // struct Pattern *pattern = &sequence->patterns[state->selectedPattern];
+    // print("memory addres of pattern: %p", pattern);
 
     pthread_mutex_init(&state->mutex, NULL);
     pthread_cond_init(&state->cond, NULL);
@@ -417,6 +423,20 @@ void* keyThread(void* arg) {
                     updateTrackOptions(state->track, state->scanCodeKeyDown);
                 } else if (state->screen == BLIPR_SCREEN_PROGRAM_SELECTION) {
                     updateProgram(state->track, state->scanCodeKeyDown);
+                } else if (state->screen == BLIPR_SCREEN_PATTERN_OPTIONS) {
+                    struct Sequence *sequence = &state->project->sequences[state->selectedSequence];
+                    struct Pattern *pattern = &sequence->patterns[state->selectedPattern];
+                    int startBPM = pattern->bpm;
+
+                    updatePatternOptions(
+                        pattern, 
+                        state->scanCodeKeyDown
+                    );
+
+                    if (startBPM != pattern->bpm) {
+                        state->bpm = pattern->bpm + 45;
+                        state->nanoSecondsPerPulse = calculateNanoSecondsPerPulse(state->bpm);
+                    }
                 }
                 pthread_mutex_unlock(&state->mutex);
             } else {
@@ -605,7 +625,7 @@ int main(int argc, char *argv[]) {
                     break;
                 case BLIPR_SCREEN_PATTERN_OPTIONS:
                     // No sequence options required?
-                    drawCenteredLine(2, 61, "(PATTERN OPTIONS)", TITLE_WIDTH, COLOR_WHITE);
+                    drawPatternOptions(&state.project->sequences[state.selectedSequence].patterns[state.selectedPattern]);
                     break;
                 case BLIPR_SCREEN_UTILITIES:
                     // Is this used?

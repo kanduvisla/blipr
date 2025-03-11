@@ -147,7 +147,7 @@ void resetTrack(struct Track *track) {
 void patternToByteArray(const struct Pattern *pattern, unsigned char bytes[PATTERN_BYTE_SIZE]) {
     memcpy(bytes, pattern->name, 32);
     bytes[32] = pattern->bpm;
-    memset(bytes + 32, 0, 64 - 32);
+    memset(bytes + 33, 0, 64 - 33);
     for (int i = 0; i < 16; i++) {
         trackToByteArray(&pattern->tracks[i], bytes + 64 + (i * TRACK_BYTE_SIZE));
     }

@@ -22,6 +22,7 @@ SRCS = print.c \
 	programs/config_selection.c \
 	programs/program_selection.c \
 	programs/track_options.c \
+	programs/pattern_options.c \
 	programs/four_on_the_floor.c
 OBJS = $(SRCS:.c=.o)
 
