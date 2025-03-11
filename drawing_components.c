@@ -67,6 +67,18 @@ void drawCurrentTrackIndicator(int sequenceNr, int patternNr, int trackNr) {
 }
 
 /**
+ * Draw the BPM indicator
+ */
+void drawBPMIndiciator(int bpm) {
+    drawRect(SIDEBAR_OFFSET + 1, 11, SIDEBAR_WIDTH - 2, CHAR_HEIGHT + 2, COLOR_BLACK);
+    drawText(SIDEBAR_OFFSET + 2, 12, "BPM", 20, COLOR_RED);
+    drawText(SIDEBAR_OFFSET + 19, 12, ":", 11, COLOR_RED);
+    char text[4];
+    sprintf(text, "%d", bpm);
+    drawText(SIDEBAR_OFFSET + 24, 12, text, 20, COLOR_ORANGE);
+}
+
+/**
  * Draw the Note Counter
  */
 void drawNoteCounter(int noteCounter) {

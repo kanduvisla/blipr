@@ -21,6 +21,11 @@ void drawSideBar();
 void drawCurrentTrackIndicator(int sequenceNr, int patternNr, int trackNr);
 
 /**
+ * Draw the BPM indicator
+ */
+void drawBPMIndiciator(int bpm);
+
+/**
  * Draw a basic 4x6 grid
  */
 void drawBasicGrid(bool keyStates[SDL_NUM_SCANCODES]);

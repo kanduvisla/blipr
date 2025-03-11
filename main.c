@@ -106,6 +106,7 @@ typedef struct {
     bool isPatternSelectionActive;
     bool isSequenceSelectionActive;
     bool quit;
+    int bpm;    // shortcut to BPM, only used for displaying
     uint64_t nanoSecondsPerPulse;
     SDL_Scancode scanCodeKeyDown;
     SDL_Scancode scanCodeKeyUp;
@@ -148,6 +149,7 @@ void initSharedState(SharedState* state) {
     state->selectedPattern = 0;
     state->selectedSequence = 0;
     state->quit = false;
+    state->bpm = 0;
     state->scanCodeKeyDown = SDL_SCANCODE_UNKNOWN;
     state->scanCodeKeyUp = SDL_SCANCODE_UNKNOWN;
     state->seqPerformance = 0.0;
@@ -173,8 +175,8 @@ void initSharedState(SharedState* state) {
     }
     
     // Get the BPM from the current pattern:
-    int bpm = state->project->sequences[0].patterns[0].bpm;
-    state->nanoSecondsPerPulse = calculateNanoSecondsPerPulse(bpm + 45);
+    state->bpm = state->project->sequences[0].patterns[0].bpm + 45;
+    state->nanoSecondsPerPulse = calculateNanoSecondsPerPulse(state->bpm);
     state->track = &state->project->sequences[0].patterns[0].tracks[0];
 
     pthread_mutex_init(&state->mutex, NULL);
@@ -623,6 +625,7 @@ int main(int argc, char *argv[]) {
                 state.selectedPattern + 1,
                 state.selectedTrack + 1
             );
+            drawBPMIndiciator(state.bpm);
 
             // Basic Grid:
             drawBasicGrid(state.keyStates);
