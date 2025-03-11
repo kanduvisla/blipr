@@ -79,4 +79,35 @@
 #define BLIPR_PROGRAM_SEQUENCER 1
 #define BLIPR_PROGRAM_FOUR_ON_THE_FLOOR 2
 
+/*
+bool isSetupMidiDevicesRequired;    // Boolean flag to determine if midi devices needs to be set-up (required after changing midi assignment)
+// TODO: Maybe visible screen can be an enum?
+bool isTrackOptionsActive;
+bool isProgramSelectionActive;
+bool isPatternAndSequenceOptionsActive;
+bool isUtilitiesActive;
+bool isConfigurationModeActive;
+bool isTransportSelectionActive;
+bool isTrackSelectionActive;
+bool isPatternSelectionActive;
+bool isSequenceSelectionActive;
+*/
+
+// screens
+typedef enum {
+    BLIPR_SCREEN_NONE = 0,
+    BLIPR_SCREEN_TRACK_OPTIONS = 1,
+    BLIPR_SCREEN_PATTERN_OPTIONS = 2,
+    BLIPR_SCREEN_UTILITIES = 3,
+    BLIPR_SCREEN_CONFIGURATION = 4,
+    BLIPR_SCREEN_TRANSPORT = 5,
+    BLIPR_SCREEN_TRACK_SELECTION = 6,
+    BLIPR_SCREEN_PATTERN_SELECTION = 7,
+    BLIPR_SCREEN_SEQUENCE_SELECTION = 8,
+    BLIPR_SCREEN_PROGRAM_SELECTION = 9,
+    BLIPR_SCREEN_SEQUENCER = 10,
+    BLIPR_SCREEN_NO_PROGRAM = 11,
+    BLIPR_SCREEN_FOUR_ON_THE_FLOOR = 12
+} BliprScreen;
+
 #endif // CONSTANTS_H

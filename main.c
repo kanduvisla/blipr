@@ -95,7 +95,9 @@ typedef struct {
     bool isRenderRequired;
     bool keyStates[SDL_NUM_SCANCODES];
     bool isSetupMidiDevicesRequired;    // Boolean flag to determine if midi devices needs to be set-up (required after changing midi assignment)
-    // TODO: Maybe visible screen can be an enum?
+    // TODO: Replace visible screens with the following enum:
+    BliprScreen screen;
+    /*
     bool isTrackOptionsActive;
     bool isProgramSelectionActive;
     bool isPatternAndSequenceOptionsActive;
@@ -105,6 +107,7 @@ typedef struct {
     bool isTrackSelectionActive;
     bool isPatternSelectionActive;
     bool isSequenceSelectionActive;
+    */
     bool quit;
     int bpm;    // shortcut to BPM, only used for displaying
     uint64_t nanoSecondsPerPulse;
@@ -124,7 +127,20 @@ typedef struct {
     pthread_cond_t cond;
 } SharedState;
 
-// Initialize shared state
+/**
+ * Set the screen according to the current active track program
+ */
+void setScreenAccordingToActiveTrack(SharedState *state) {
+    switch (state->track->program) {
+        case BLIPR_PROGRAM_SEQUENCER:
+            state->screen = BLIPR_SCREEN_SEQUENCER;
+            break;
+    }
+}
+
+/**
+ * Initialize shared state
+ */
 void initSharedState(SharedState* state) {
     state->unprocessedPulses = 0;
     state->ppqnCounter = 0;
@@ -134,7 +150,7 @@ void initSharedState(SharedState* state) {
         state->keyStates[i] = false;
     }
     state->isSetupMidiDevicesRequired = true;
-
+    /*
     state->isTrackOptionsActive = false;
     state->isProgramSelectionActive = false;
     state->isPatternAndSequenceOptionsActive = false;
@@ -144,7 +160,7 @@ void initSharedState(SharedState* state) {
     state->isTrackSelectionActive = false;
     state->isPatternSelectionActive = false;
     state->isSequenceSelectionActive = false;
-    
+    */
     state->selectedTrack = 0;
     state->selectedPattern = 0;
     state->selectedSequence = 0;
@@ -178,6 +194,7 @@ void initSharedState(SharedState* state) {
     state->bpm = state->project->sequences[0].patterns[0].bpm + 45;
     state->nanoSecondsPerPulse = calculateNanoSecondsPerPulse(state->bpm);
     state->track = &state->project->sequences[0].patterns[0].tracks[0];
+    setScreenAccordingToActiveTrack(state);
 
     pthread_mutex_init(&state->mutex, NULL);
     pthread_cond_init(&state->cond, NULL);
@@ -363,6 +380,22 @@ void* keyThread(void* arg) {
 
             // Check if this is one of the global Func-options:
             if (state->keyStates[BLIPR_KEY_FUNC]) {
+                // Fn-A = Pattern selector
+                // Fn-B = Sequence selector
+                // Fn-C = Configuration
+                // Fn-D = Transport
+                pthread_mutex_lock(&state->mutex);
+                if (state->scanCodeKeyDown == BLIPR_KEY_FUNC || state->scanCodeKeyDown == BLIPR_KEY_A) {
+                    state->screen = BLIPR_SCREEN_PATTERN_SELECTION;
+                } else if (state->scanCodeKeyDown == BLIPR_KEY_B) {
+                    state->screen = BLIPR_SCREEN_SEQUENCE_SELECTION;
+                } else if (state->scanCodeKeyDown == BLIPR_KEY_C) {
+                    state->screen = BLIPR_SCREEN_CONFIGURATION;
+                } else if (state->scanCodeKeyDown == BLIPR_KEY_D) {
+                    state->screen = BLIPR_SCREEN_TRANSPORT;
+                }
+                //pthread_mutex_unlock(&state->mutex);
+                /*
                 // Only enable track selection on the Main Configuration screen:
                 if (!state->isPatternSelectionActive && 
                     !state->isSequenceSelectionActive && 
@@ -389,42 +422,60 @@ void* keyThread(void* arg) {
                     }
                     pthread_mutex_unlock(&state->mutex);
                 }
+                */
 
                 // Actions while the Func-key is down:
-                pthread_mutex_lock(&state->mutex);
-                if (state->isTrackSelectionActive) {
+                // pthread_mutex_lock(&state->mutex);
+                /*
+                if (state->screen == BLIPR_SCREEN_TRACK_SELECTION) {
                     updateTrackSelection(&state->selectedTrack, state->scanCodeKeyDown);
                     state->track = &state->project->sequences[state->selectedSequence]
                         .patterns[state->selectedPattern]
                         .tracks[state->selectedTrack];
                     // Set selected note to 0:
                     resetSelectedNote();
-                } else if (state->isPatternSelectionActive) {
+                } else */
+                if (state->screen == BLIPR_SCREEN_PATTERN_SELECTION) {
                     updatePatternSelection(&state->selectedPattern, state->scanCodeKeyDown);
                     // Set proper track + reset repeat count
                     state->track = &state->project->sequences[state->selectedSequence]
                         .patterns[state->selectedPattern]
                         .tracks[state->selectedTrack];
                     state->track->repeatCount = 0;
-                } else if (state->isSequenceSelectionActive) {
+                } else if (state->screen == BLIPR_SCREEN_SEQUENCE_SELECTION) {
                     updateSequenceSelection(&state->selectedSequence, state->scanCodeKeyDown);
                     // Set proper pattern, track + reset repeat count
                     state->track = &state->project->sequences[state->selectedSequence]
                         .patterns[state->selectedPattern]
                         .tracks[state->selectedTrack];
                     state->track->repeatCount = 0;
-                } else if (state->isConfigurationModeActive) {
+                } else if (state->screen == BLIPR_SCREEN_CONFIGURATION) {
                     bool reloadMidi = false;
                     bool quit = false;
                     updateConfiguration(state->project, state->scanCodeKeyDown, &reloadMidi, &quit);
                     if (reloadMidi) { state->isSetupMidiDevicesRequired = true; }
                     if (quit) { state->quit = true; }
-                } else if (state->isTransportSelectionActive) {
+                } else if (state->screen == BLIPR_SCREEN_TRANSPORT) {
                     // TODO
                 }
                 pthread_mutex_unlock(&state->mutex);
             } else if (state->keyStates[BLIPR_KEY_SHIFT_3]) {
+                // Shift 3 is Track & Pattern options
+                // ^3-A = Track Selector
+                // ^3-B = Track Options (1)
+                // ^3-C = Program Selector
+                // ^3-D = Pattern Options
                 pthread_mutex_lock(&state->mutex);
+                if (state->scanCodeKeyDown == BLIPR_KEY_SHIFT_3 || state->scanCodeKeyDown == BLIPR_KEY_A) {
+                    state->screen = BLIPR_SCREEN_TRACK_SELECTION;
+                } else if (state->scanCodeKeyDown == BLIPR_KEY_B) {
+                    state->screen = BLIPR_SCREEN_TRACK_OPTIONS;
+                } else if (state->scanCodeKeyDown == BLIPR_KEY_C) {
+                    state->screen = BLIPR_SCREEN_PROGRAM_SELECTION;
+                } else if (state->scanCodeKeyDown == BLIPR_KEY_D) {
+                    state->screen = BLIPR_SCREEN_PATTERN_OPTIONS;
+                }
+                /*
                 // Only enable track options on the Main screen:
                 if (!state->isProgramSelectionActive &&
                     !state->isPatternAndSequenceOptionsActive &&
@@ -454,21 +505,18 @@ void* keyThread(void* arg) {
                     state->isPatternAndSequenceOptionsActive = false;
                     state->isUtilitiesActive = true;
                 }
+                */
 
-                if (state->isTrackOptionsActive) {
+                if (state->screen == BLIPR_SCREEN_TRACK_OPTIONS) {
                     updateTrackOptions(state->track, state->scanCodeKeyDown);
-                } else if (state->isProgramSelectionActive) {
+                } else if (state->screen == BLIPR_SCREEN_PROGRAM_SELECTION) {
                     updateProgram(state->track, state->scanCodeKeyDown);
                 }
                 pthread_mutex_unlock(&state->mutex);
             } else {
+                // No Fn or ^3 active, so handle the program of the current track:
                 pthread_mutex_lock(&state->mutex);
-                // Func-key is not down, so program of current track should be shown:
-                switch (state->track->program) {
-                    case BLIPR_PROGRAM_SEQUENCER:
-                        updateSequencer(state->track, state->keyStates, state->scanCodeKeyDown);
-                        break;
-                }
+                setScreenAccordingToActiveTrack(state);
                 pthread_mutex_unlock(&state->mutex);
             }
 
@@ -484,6 +532,13 @@ void* keyThread(void* arg) {
             // Func-keyup always closes the entire program selection & func-menu
             if (state->scanCodeKeyUp == BLIPR_KEY_FUNC || state->scanCodeKeyUp == BLIPR_KEY_SHIFT_3) {
                 pthread_mutex_lock(&state->mutex);
+                // Set screen to current running program:
+                switch (state->track->program) {
+                    case BLIPR_PROGRAM_SEQUENCER:
+                        state->screen = BLIPR_SCREEN_SEQUENCER;
+                        break;
+                }
+                /*
                 state->isTrackSelectionActive = false;
                 state->isPatternSelectionActive = false;
                 state->isSequenceSelectionActive = false;
@@ -492,6 +547,7 @@ void* keyThread(void* arg) {
                 state->isTrackOptionsActive = false;
                 state->isPatternAndSequenceOptionsActive = false;
                 state->isUtilitiesActive = false;
+                */
                 pthread_mutex_unlock(&state->mutex);
                 resetConfigurationScreen();
             } else if (state->scanCodeKeyUp == BLIPR_KEY_SHIFT_2) {
@@ -631,6 +687,52 @@ int main(int argc, char *argv[]) {
             drawBasicGrid(state.keyStates);
             
             // Render proper screen / program / menu:
+            switch (state.screen) {
+                case BLIPR_SCREEN_TRACK_SELECTION:
+                    drawTrackSelection(&state.selectedTrack);    
+                    break;
+                case BLIPR_SCREEN_PATTERN_SELECTION:
+                    drawPatternSelection(&state.selectedPattern);
+                    break;
+                case BLIPR_SCREEN_SEQUENCE_SELECTION:
+                    drawSequenceSelection(&state.selectedSequence);
+                    break;
+                case BLIPR_SCREEN_CONFIGURATION:
+                    drawConfigSelection(state.project);    
+                    break;
+                case BLIPR_SCREEN_TRACK_OPTIONS:
+                    drawTrackOptions(state.track);
+                    break;
+                case BLIPR_SCREEN_PROGRAM_SELECTION:
+                    drawProgramSelection(state.track);
+                    break;
+                case BLIPR_SCREEN_PATTERN_OPTIONS:
+                    // No sequence options required?
+                    drawCenteredLine(2, 61, "(PATTERN OPTIONS)", TITLE_WIDTH, COLOR_WHITE);
+                    break;
+                case BLIPR_SCREEN_UTILITIES:
+                    // Is this used?
+                    drawCenteredLine(2, 61, "(UTILITIES)", TITLE_WIDTH, COLOR_WHITE);
+                    break;
+                case BLIPR_SCREEN_TRANSPORT:
+                    drawCenteredLine(2, 61, "(TRANSPORT)", TITLE_WIDTH, COLOR_WHITE);
+                    break;
+                case BLIPR_SCREEN_NO_PROGRAM:
+                    drawCenteredLine(2, 61, "(NO PROGRAM)", TITLE_WIDTH, COLOR_WHITE);
+                    break;
+                case BLIPR_SCREEN_SEQUENCER:
+                    drawSequencer(&state.ppqnCounter, state.keyStates, state.track);
+                    break;
+                case BLIPR_SCREEN_FOUR_ON_THE_FLOOR:
+                    drawFourOnTheFloor(&state.ppqnCounter, state.track);
+                    break;
+                default:
+                    // Should not happen, but just in case
+                    drawCenteredLine(2, 61, "(NO SCREEN)", TITLE_WIDTH, COLOR_WHITE);
+                    break;
+            }
+
+            /*
             if (state.isTrackSelectionActive) {
                 drawTrackSelection(&state.selectedTrack);
             } else if (state.isPatternSelectionActive) {
@@ -646,12 +748,12 @@ int main(int argc, char *argv[]) {
             } else if (state.isPatternAndSequenceOptionsActive) {
                 drawCenteredLine(2, 61, "(PAT&SEQ OPTIONS)", TITLE_WIDTH, COLOR_WHITE);      
             } else if (state.isUtilitiesActive) {
-                drawCenteredLine(2, 61, "(UTILITIES)", TITLE_WIDTH, COLOR_WHITE);      
+                drawCenteredLine(2, 61, "(UTILITIES)", TITLE_WIDTH, COLOR_WHITE);
             } else {
                 // Draw the program associated with this Track:
                 switch (state.track->program) {
                     case BLIPR_PROGRAM_NONE:
-                        drawCenteredLine(2, 61, "(NO PROGRAM)", TITLE_WIDTH, COLOR_WHITE);      
+                        drawCenteredLine(2, 61, "(NO PROGRAM)", TITLE_WIDTH, COLOR_WHITE);
                         break;
                     case BLIPR_PROGRAM_SEQUENCER:
                         drawSequencer(&state.ppqnCounter, state.keyStates, state.track);
@@ -661,6 +763,7 @@ int main(int argc, char *argv[]) {
                         break;
                 }
             }
+                */
 
             if (isTimeMeasured) {
                 // Render in bottom right:
