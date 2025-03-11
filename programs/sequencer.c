@@ -21,14 +21,36 @@ int defaultNote = 60;       // C-4
 int defaultVelocity = 100;
 int halfVelocity = 50;
 int selectedStep = -1;
+bool selectedSteps[16] = {false};
+bool isNoteEditorVisible = false;
+
+/**
+ * Check if there are steps selected
+ */
+static bool isStepsSelected() {
+    int count = 0;
+    for (int i=0; i<16; i++) {
+        if (selectedSteps[i]) {
+            count ++;
+        }
+    }
+    return count > 0;
+}
 
 /**
  * Reset the selected step
  */
 void resetSequencerSelectedStep() {
     selectedStep = -1;
+    for (int i=0; i<16; i++) {
+        selectedSteps[i] = false;
+    }
+    isNoteEditorVisible = false;
 }
 
+/**
+ * Reset the selected note
+ */
 void resetSelectedNote() {
     selectedNote = 0;
 }
@@ -101,11 +123,18 @@ unsigned char transposeMidiNote(unsigned char midiNote, int steps) {
     return (unsigned char)transposed;   
 }
 
+/**
+ * Handle a key in the note editor
+ */
 static void handleKey(
     struct Track *selectedTrack,
     SDL_Scancode key
 ) {
     int stepIndex = selectedStep + (selectedTrack->selectedPage * 16);
+
+    // TODO: This needs to change, because we now have multiple steps selected
+    // Use selectedSteps to iterate over each step and change the note accordingly
+
     struct Step *step = &selectedTrack->steps[stepIndex];
     struct Note *note = &selectedTrack->steps[stepIndex].notes[selectedNote];
     // We're in the step editor, handle keys:
@@ -174,10 +203,30 @@ void updateSequencer(
     int index = scancodeToStep(key);
     int stepIndex = index + (selectedTrack->selectedPage * 16);
     if (keyStates[BLIPR_KEY_SHIFT_1]) {
-        if (index >= 0) {
-            // Toggle velocity
-            toggleVelocity(&selectedTrack->steps[stepIndex]);
-        } else {
+        // Shift 1 = utils:
+        // ^1 + 1-16 = Select (multiple) step(s)
+        // ^1 + A    = Open note editor for step(s)
+        // ^1 + B    = Cut steps
+        // ^1 + C    = Copy steps
+        // ^1 + D    = Paste steps
+
+        // Shift 2 = page selector / note selector
+        // ^2 + 1-16 = select page
+        // ^2 + A    = page bank 1-16  
+        // ^2 + B    = page bank 17-32
+        // ^2 + C-D  = note / channel -/+
+        if (!isNoteEditorVisible) {
+            if (index >= 0) {
+                // Set selected steps for utilities:
+                selectedSteps[index] = !selectedSteps[index];
+            } else {
+                if (isStepsSelected()) {
+                    if (key == BLIPR_KEY_A) {
+                        isNoteEditorVisible = true;
+                    }
+                }
+            }
+
             // this is one of the bottom buttons, change page bank, for poly 2 to 8, this is:
             // A=page 1,2,3,4       (bank 0)
             // B=page 5,6,7,8       (bank 1)
@@ -188,6 +237,7 @@ void updateSequencer(
             // B=page 9,10,11,12    / 13,14,15,16   (bank 1 & 5)
             // C=page 17,18,19,20   / 21,22,23,24   (bank 2 & 6)
             // D=page 25,26,27,28   / 29,30,31,32   (bank 3 & 7)
+            /*
             int polyCount = getPolyCount(selectedTrack);
 
             if (polyCount == 1) {
@@ -204,12 +254,34 @@ void updateSequencer(
                 if (key == BLIPR_KEY_C && polyCount == 2) { selectedTrack->selectedPageBank = 2; } else
                 if (key == BLIPR_KEY_D && polyCount == 2) { selectedTrack->selectedPageBank = 3; }
             }
+            */
+        } else {
+            // Note editor is visible, handle note editor keys:
+            handleKey(selectedTrack, key);
         }
     } else if(keyStates[BLIPR_KEY_SHIFT_2]) {
+        // 1-16 = select page
+        if (index >= 0) {
+
+        } else {
+            // Bottom buttons:
+            int polyCount = getPolyCount(selectedTrack);
+            if (polyCount == 1) {
+                // There are 2 page banks
+    
+            }
+            if (key == BLIPR_KEY_C) { 
+                selectedNote = MAX(0, selectedNote - 1); 
+            } else if (key == BLIPR_KEY_D) { 
+                selectedNote = MIN(getPolyCount(selectedTrack) - 1, selectedNote + 1); 
+            }
+        }
+
         // Update selected note or page:
+        /*
         if (index >= 0 && selectedStep == -1) {
             // Select step
-            selectedStep = index;
+            // selectedStep = index;
         } else if (selectedStep == -1) {
             // No step selected, but also no index, so this is one of the bottom buttons
             // Change selected note:
@@ -222,6 +294,7 @@ void updateSequencer(
             // Handle key input with selected step
             handleKey(selectedTrack, key);
         }
+        */
     } else if(key == BLIPR_KEY_A) {
         setSelectedPage(selectedTrack, (selectedTrack->selectedPageBank * 4));
     } else if(key == BLIPR_KEY_B) {
@@ -979,6 +1052,17 @@ void drawSequencerMain(
                             noteColor
                         );
                     }
+
+                    // Draw selection outline:
+                    if (selectedSteps[i + (j * 4)]) {
+                        drawSingleLineRectOutline(
+                            4 + i + (i * width),
+                            4 + j + (j * height),
+                            width - 4,
+                            height - 4,
+                            COLOR_YELLOW
+                        );
+                    }
                 }
             }
 
@@ -1003,6 +1087,16 @@ void drawSequencerMain(
 
     // ABCD Buttons:
     if (keyStates[BLIPR_KEY_SHIFT_1]) {
+        // Show utilities:
+
+        char descriptions[4][4] = {"OPT", "CUT", "CPY", "PST"};        
+        if (isStepsSelected()) {
+            drawABCDButtons(descriptions);
+        } else {
+            drawABCDButtonsInColor(descriptions, COLOR_LIGHT_GRAY);
+        }
+
+        /*
         // Show page bank numbers:
         int polyCount = getPolyCount(selectedTrack);
         if (polyCount == 1) {
@@ -1021,9 +1115,15 @@ void drawSequencerMain(
         }
         // Draw highlighted page banke:
         drawHighlightedGridTile((selectedTrack->selectedPageBank % 4) + 16);
+        */
     } else if (keyStates[BLIPR_KEY_SHIFT_2]) {
         // Note (for polyphony)
         char descriptions[4][4] = {"-", "-", "<", ">"};
+        int polyCount = getPolyCount(selectedTrack);
+        if (polyCount == 1) {
+            sprintf(descriptions[0], "PB1");
+            sprintf(descriptions[1], "PB2");
+        }
         drawABCDButtons(descriptions);
         // Draw channel number:
         char channelText[2];
@@ -1077,6 +1177,9 @@ void drawStepEditor(struct Step *step) {
         - 13-14 : Increase / decrease CC1 value
         - 15-16 : Increase / decrease CC2 value    
     */
+
+    // TODO: Iterate over selected Steps, and replace the values with "##" if there are differences in selected steps 
+    // for these values. The values will change each on their own.
 
     // Title:
     drawCenteredLine(2, 133, "STEP OPTIONS", TITLE_WIDTH, COLOR_WHITE);
@@ -1150,7 +1253,7 @@ void drawStepEditor(struct Step *step) {
     drawTextOnButton(15, "+");
 
     // Step selected, show copy paste options:
-    char descriptions[4][4] = {"-", "-", "CPY", "PST"};
+    char descriptions[4][4] = {"A", "B", "C", "D"};
     drawABCDButtons(descriptions);
 }
 
@@ -1159,7 +1262,7 @@ void drawSequencer(
     bool keyStates[SDL_NUM_SCANCODES],
     struct Track *selectedTrack
 ) {
-    if (selectedStep == -1) {
+    if (!isNoteEditorVisible) {
         drawSequencerMain(ppqnCounter, keyStates, selectedTrack);
     } else {
         int stepIndex = selectedStep + (selectedTrack->selectedPage * 16);

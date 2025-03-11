@@ -148,6 +148,17 @@ void drawABCDButtons(char descriptions[4][4]) {
     }
 }
 
+void drawABCDButtonsInColor(char descriptions[4][4], SDL_Color color) {
+    int width = WIDTH / 6;
+    int height = width / 2;
+
+    for (int i = 0; i < 4; i++) {
+        int x = 3 + i + (i * width);
+        int y = HEIGHT - 3 - (2 * height);
+        drawCenteredLine(x, y + 5, descriptions[i], width, color);
+    }
+}
+
 void drawHighlightedGridTile(int tileIndex) {
     int width = HEIGHT / 6;
     int height = width;

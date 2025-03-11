@@ -530,7 +530,7 @@ void* keyThread(void* arg) {
                 setScreenAccordingToActiveTrack(state);                
                 pthread_mutex_unlock(&state->mutex);
                 resetConfigurationScreen();
-            } else if (state->scanCodeKeyUp == BLIPR_KEY_SHIFT_2) {
+            } else if (state->scanCodeKeyUp == BLIPR_KEY_SHIFT_1) {
                 resetSequencerSelectedStep();
             }
             

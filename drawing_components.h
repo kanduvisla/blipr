@@ -52,6 +52,7 @@ void drawTextOnButton(int index, char* text);
  * Draw ABCD buttons
  */
 void drawABCDButtons(char descriptions[4][3]);
+void drawABCDButtonsInColor(char descriptions[4][4], SDL_Color color);
 
 /**
  * Draw increase & decrease buttons
