@@ -57,4 +57,6 @@ void updateNotesAndSendOffs();
 
 char* getMidiNoteName(unsigned char midiNote);
 
+void sendProgramChange(PortMidiStream *stream, int channel, int program);
+
 #endif

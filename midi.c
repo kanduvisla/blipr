@@ -170,3 +170,18 @@ char* getMidiNoteName(unsigned char midiNote) {
 
     return noteName;
 }
+
+void sendProgramChange(PortMidiStream *stream, int channel, int program) {
+    // Ensure channel is in valid range (0-15)
+    channel = channel & 0x0F;
+    
+    // Ensure program is in valid range (0-127)
+    program = program & 0x7F;
+    
+    // Calculate status byte: 0xC0 + channel
+    int status = 0xC0 | channel;
+    
+    // For Program Change, the second data byte is ignored
+    // but we'll set it to 0 for clarity
+    sendMidiMessage(stream, status, program, 0);
+}

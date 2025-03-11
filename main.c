@@ -92,10 +92,17 @@ typedef struct {
     struct Project *project;
     struct Track* track;
     int unprocessedPulses;              // Pulses are count with unprocessed pulses in the clock thread.
-    uint64_t ppqnCounter;                    // The ppqn counter is kept in the sequencer track in conjunction with the unprocessedPulses counter. This way skipped pulses can be caught.
+    uint64_t ppqnCounter;               // The ppqn counter is kept in the sequencer track in conjunction with the unprocessedPulses counter. This way skipped pulses can be caught.
     bool isRenderRequired;
     bool keyStates[SDL_NUM_SCANCODES];
+    
     bool isSetupMidiDevicesRequired;    // Boolean flag to determine if midi devices needs to be set-up (required after changing midi assignment)
+    
+    int programA;                       // Midi programs. Is 255 if no PC is required
+    int programB;
+    int programC;
+    int programD;    
+    
     BliprScreen screen;
     bool quit;
     int bpm;    // shortcut to BPM, only used for displaying
@@ -124,6 +131,9 @@ void setScreenAccordingToActiveTrack(SharedState *state) {
         case BLIPR_PROGRAM_SEQUENCER:
             state->screen = BLIPR_SCREEN_SEQUENCER;
             break;
+        default:
+            state->screen = BLIPR_SCREEN_NO_PROGRAM;
+            break;
     }
 }
 
@@ -139,6 +149,10 @@ void initSharedState(SharedState* state) {
         state->keyStates[i] = false;
     }
     state->isSetupMidiDevicesRequired = true;
+    state->programA = 255;
+    state->programB = 255;
+    state->programC = 255;
+    state->programD = 255;
     state->selectedTrack = 0;
     state->selectedPattern = 0;
     state->selectedSequence = 0;
@@ -266,6 +280,15 @@ void* sequencerThread(void* arg) {
 
             pthread_mutex_lock(&state->mutex);
             state->isSetupMidiDevicesRequired = false;
+            pthread_mutex_unlock(&state->mutex);
+        }
+
+        if (state->programA != 255) {
+            // TODO: Make Midi Channel for PC also configurable:
+            printLog("change program to %d", state->programA);
+            sendProgramChange(outputStream[0], 6, state->programA);
+            pthread_mutex_lock(&state->mutex);
+            state->programA = 255;
             pthread_mutex_unlock(&state->mutex);
         }
 
@@ -423,10 +446,22 @@ void* keyThread(void* arg) {
                     updateTrackOptions(state->track, state->scanCodeKeyDown);
                 } else if (state->screen == BLIPR_SCREEN_PROGRAM_SELECTION) {
                     updateProgram(state->track, state->scanCodeKeyDown);
+                } else if (state->screen == BLIPR_SCREEN_TRACK_SELECTION) {
+                    updateTrackSelection(&state->selectedTrack, state->scanCodeKeyDown);
+                    state->track = &state->project->sequences[state->selectedSequence]
+                        .patterns[state->selectedPattern]
+                        .tracks[state->selectedTrack];
+                    // Set selected note to 0:
+                    resetSelectedNote();
                 } else if (state->screen == BLIPR_SCREEN_PATTERN_OPTIONS) {
                     struct Sequence *sequence = &state->project->sequences[state->selectedSequence];
                     struct Pattern *pattern = &sequence->patterns[state->selectedPattern];
+                    
                     int startBPM = pattern->bpm;
+                    int startProgA = pattern->programA;
+                    int startProgB = pattern->programB;
+                    int startProgC = pattern->programC;
+                    int startProgD = pattern->programD;
 
                     updatePatternOptions(
                         pattern, 
@@ -437,12 +472,22 @@ void* keyThread(void* arg) {
                         state->bpm = pattern->bpm + 45;
                         state->nanoSecondsPerPulse = calculateNanoSecondsPerPulse(state->bpm);
                     }
+
+                    if (startProgA != pattern->programA) {
+                        state->programA = pattern->programA;
+                    }
                 }
                 pthread_mutex_unlock(&state->mutex);
             } else {
                 // No Fn or ^3 active, so handle the program of the current track:
                 pthread_mutex_lock(&state->mutex);
                 setScreenAccordingToActiveTrack(state);
+                switch (state->track->program) {
+                    case BLIPR_PROGRAM_SEQUENCER:
+                        updateSequencer(state->track, state->keyStates, state->scanCodeKeyDown);                        
+                        break;
+                }
+                // Handle key:
                 pthread_mutex_unlock(&state->mutex);
             }
 

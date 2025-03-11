@@ -100,3 +100,51 @@ bool get2FByteFlag2(uint8_t byte) {
 uint8_t get2FByteValue(uint8_t byte) {
     return (byte >> 2) & 0x3F;
 }
+
+// Function to increment the high nibble (first hex digit)
+unsigned char incrementHighNibble(unsigned char byte) {
+    // Extract high nibble, increment it, handle overflow
+    unsigned char highNibble = (byte >> 4) & 0x0F;
+    highNibble = (highNibble + 1) & 0x0F;  // Increment and wrap around at 16
+    
+    // Clear the high nibble in original byte and set the new high nibble
+    byte = (byte & 0x0F) | (highNibble << 4);
+    
+    return byte;
+}
+
+// Function to decrement the high nibble (first hex digit)
+unsigned char decrementHighNibble(unsigned char byte) {
+    // Extract high nibble, decrement it, handle underflow
+    unsigned char highNibble = (byte >> 4) & 0x0F;
+    highNibble = (highNibble - 1) & 0x0F;  // Decrement and wrap around at 0
+    
+    // Clear the high nibble in original byte and set the new high nibble
+    byte = (byte & 0x0F) | (highNibble << 4);
+    
+    return byte;
+}
+
+// Function to increment the low nibble (second hex digit)
+unsigned char incrementLowNibble(unsigned char byte) {
+    // Extract low nibble, increment it, handle overflow
+    unsigned char lowNibble = byte & 0x0F;
+    lowNibble = (lowNibble + 1) & 0x0F;  // Increment and wrap around at 16
+    
+    // Clear the low nibble in original byte and set the new low nibble
+    byte = (byte & 0xF0) | lowNibble;
+    
+    return byte;
+}
+
+// Function to decrement the low nibble (second hex digit)
+unsigned char decrementLowNibble(unsigned char byte) {
+    // Extract low nibble, decrement it, handle underflow
+    unsigned char lowNibble = byte & 0x0F;
+    lowNibble = (lowNibble - 1) & 0x0F;  // Decrement and wrap around at 0
+    
+    // Clear the low nibble in original byte and set the new low nibble
+    byte = (byte & 0xF0) | lowNibble;
+    
+    return byte;
+}

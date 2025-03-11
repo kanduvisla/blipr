@@ -35,4 +35,9 @@ bool get2FByteFlag2(uint8_t byte);
  */
 uint8_t get2FByteValue(uint8_t byte);
 
+unsigned char incrementHighNibble(unsigned char byte);
+unsigned char decrementHighNibble(unsigned char byte);
+unsigned char incrementLowNibble(unsigned char byte);
+unsigned char decrementLowNibble(unsigned char byte);
+
 #endif

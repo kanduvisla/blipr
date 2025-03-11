@@ -101,7 +101,11 @@ void resetTrack(struct Track *track);
  */
 struct Pattern {
     char name[32];
-    unsigned char bpm;  // 0-255 accounts for 45-300 BPM (BPM = byte value + 45)
+    unsigned char bpm;      // 0-255 accounts for 45-300 BPM (BPM = byte value + 45)
+    unsigned char programA; // Midi Program for device A (0x00 - 0xFF (low = bank, high = pattern))
+    unsigned char programB;
+    unsigned char programC;
+    unsigned char programD;
     struct Track tracks[16];
 };
 
