@@ -22,6 +22,7 @@ int defaultVelocity = 100;
 int halfVelocity = 50;
 int selectedStep = -1;
 bool selectedSteps[16] = {false};
+struct Step* clipBoard[16] = {NULL};
 bool isNoteEditorVisible = false;
 
 /**
@@ -53,6 +54,52 @@ void resetSequencerSelectedStep() {
  */
 void resetSelectedNote() {
     selectedNote = 0;
+}
+
+/**
+ * Clear note
+ */
+void clearNote(struct Note *note) {
+    note->cc1Value = 0;
+    note->cc2Value = 0;
+    note->enabled = false;
+    note->length = 0;
+    note->velocity = 0;
+    note->trigg = 0;
+    note->note = 0;
+    note->nudge = PP16N;
+}
+
+/**
+ * Clear step
+ */
+void clearStep(struct Step *step) {
+    for (int i=0; i<NOTES_IN_STEP; i++) {
+        clearNote(&step->notes[i]);
+    }
+}
+
+/**
+ * Copy note
+ */
+void copyNote(const struct Note *src, struct Note *dst) {
+    dst->cc1Value = src->cc1Value;
+    dst->cc2Value = src->cc2Value;
+    dst->enabled = src->enabled;
+    dst->length = src->length;
+    dst->velocity = src->velocity;
+    dst->trigg = src->trigg;
+    dst->note = src->note;
+    dst->nudge = src->nudge;
+}
+
+/**
+ * Copy step
+ */
+void copyStep(const struct Step *src, struct Step *dst) {
+    for (int i=0; i<NOTES_IN_STEP; i++) {
+        copyNote(&src->notes[i], &dst->notes[i]);
+    }
 }
 
 /**
@@ -196,12 +243,11 @@ static void handleKey(
  * Update the sequencer according to user input
  */
 void updateSequencer(
-    struct Track *selectedTrack,
+    struct Track *track,
     bool keyStates[SDL_NUM_SCANCODES], 
     SDL_Scancode key
 ) {
     int index = scancodeToStep(key);
-    int stepIndex = index + (selectedTrack->selectedPage * 16);
     if (keyStates[BLIPR_KEY_SHIFT_1]) {
         // Shift 1 = utils:
         // ^1 + 1-16 = Select (multiple) step(s)
@@ -222,8 +268,57 @@ void updateSequencer(
             } else {
                 if (isStepsSelected()) {
                     if (key == BLIPR_KEY_A) {
+                        // Open editor:
                         isNoteEditorVisible = true;
-                    }
+                    } else
+                    if (key == BLIPR_KEY_B) {
+                        // Cut all steps:
+                        for (int i=0; i<16; i++) {
+                            if (selectedSteps[i]) {
+                                clearStep(&track->steps[i + (track->selectedPage * 16)]);
+                            }
+                        }
+                        resetSequencerSelectedStep();
+                    } else
+                    if (key == BLIPR_KEY_C) {
+                        // Copy steps:
+                        for (int i=0; i<16; i++) {
+                            if (selectedSteps[i]) {
+                                clipBoard[i] = &track->steps[i + (track->selectedPage * 16)];
+                            } else {
+                                clipBoard[i] = NULL;
+                            }
+                        }
+                        resetSequencerSelectedStep();
+                    } else
+                    if (key == BLIPR_KEY_D) {
+                        // Paste steps (will be pasted on first step in selection):
+                        int pastePosition = 0;
+                        for (int i=0; i<16; i++) {
+                            if (selectedSteps[i]) {
+                                pastePosition = i;
+                                break;
+                            }
+                        }
+                        // Paste copied steps:
+                        // Subtract the first empty entries of the clipboard:
+                        int offset = 0;
+                        for (int i=0; i<16; i++) {
+                            if (clipBoard[i] != NULL) {
+                                // a step is found, so we have our offset:
+                                break;
+                            }
+                            offset++;
+                        }
+                        // Now paste until we reach a NULL object:
+                        for (int i=offset; i<16; i++) {
+                            copyStep(
+                                clipBoard[i],
+                                &track->steps[pastePosition + (track->selectedPage * 16)]                                
+                            );
+                        }
+                        resetSequencerSelectedStep();
+                    }                    
                 }
             }
 
@@ -257,7 +352,7 @@ void updateSequencer(
             */
         } else {
             // Note editor is visible, handle note editor keys:
-            handleKey(selectedTrack, key);
+            handleKey(track, key);
         }
     } else if(keyStates[BLIPR_KEY_SHIFT_2]) {
         // 1-16 = select page
@@ -265,15 +360,15 @@ void updateSequencer(
 
         } else {
             // Bottom buttons:
-            int polyCount = getPolyCount(selectedTrack);
+            int polyCount = getPolyCount(track);
             if (polyCount == 1) {
                 // There are 2 page banks
-    
+                
             }
             if (key == BLIPR_KEY_C) { 
                 selectedNote = MAX(0, selectedNote - 1); 
             } else if (key == BLIPR_KEY_D) { 
-                selectedNote = MIN(getPolyCount(selectedTrack) - 1, selectedNote + 1); 
+                selectedNote = MIN(getPolyCount(track) - 1, selectedNote + 1); 
             }
         }
 
@@ -296,18 +391,19 @@ void updateSequencer(
         }
         */
     } else if(key == BLIPR_KEY_A) {
-        setSelectedPage(selectedTrack, (selectedTrack->selectedPageBank * 4));
+        setSelectedPage(track, (track->selectedPageBank * 4));
     } else if(key == BLIPR_KEY_B) {
-        setSelectedPage(selectedTrack, (selectedTrack->selectedPageBank * 4) + 1);
+        setSelectedPage(track, (track->selectedPageBank * 4) + 1);
     } else if(key == BLIPR_KEY_C) {
-        setSelectedPage(selectedTrack, (selectedTrack->selectedPageBank * 4) + 2);
+        setSelectedPage(track, (track->selectedPageBank * 4) + 2);
     } else if(key == BLIPR_KEY_D) {
-        setSelectedPage(selectedTrack, (selectedTrack->selectedPageBank * 4) + 3);
+        setSelectedPage(track, (track->selectedPageBank * 4) + 3);
     } else {
         // Default stp pressed
         if (index >= 0) {
             // Toggle key
-            toggleStep(&selectedTrack->steps[stepIndex]);
+            int stepIndex = index + (track->selectedPage * 16);
+            toggleStep(&track->steps[stepIndex]);
         }
     }
 }
