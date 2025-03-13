@@ -431,6 +431,10 @@ void* keyThread(void* arg) {
                         .patterns[state->selectedPattern]
                         .tracks[state->selectedTrack];
                     state->track->repeatCount = 0;
+                    // Set proper BPM:
+                    state->bpm = state->project->sequences[state->selectedSequence]
+                        .patterns[state->selectedPattern].bpm + 45;
+                    state->nanoSecondsPerPulse = calculateNanoSecondsPerPulse(state->bpm);                
                 } else if (state->screen == BLIPR_SCREEN_SEQUENCE_SELECTION) {
                     updateSequenceSelection(&state->selectedSequence, state->scanCodeKeyDown);
                     // Set proper pattern, track + reset repeat count

@@ -28,23 +28,39 @@ int cutCounter = 0;     // 0=none   1=note  2=step (all notes)
 int copyCounter = 0;
 
 // Boolean arrays that determine if for a step all note properties are the same:
-#define PROPERTY_CC1 = 0;
-#define PROPERTY_CC2 = 1;
-#define PROPERTY_NOTE = 2;
-#define PROPERTY_LENGTH = 3;
-#define PROPERTY_VELOCITY = 4;
-#define PROPERTY_NUDGE = 5;
-#define PROPERTY_TRIG = 6;
-#define PROPERTY_ENABLED = 7;
+#define PROPERTY_CC1 0
+#define PROPERTY_CC2 1
+#define PROPERTY_NOTE 2
+#define PROPERTY_LENGTH 3
+#define PROPERTY_VELOCITY 4
+#define PROPERTY_NUDGE 5
+#define PROPERTY_TRIG 6
+#define PROPERTY_ENABLED 7
 bool areAllStepPropertiesTheSame[8] = {false};
 
 /**
  * Method to check if all step properties are the same
  */
 void checkIfAllStepPropertiesAreTheSame() {
-    // Iterate over the clipboard, and check if there is difference in properties of the selected steps:
-    for (int i=0; i<16; i++) {
+    for (int i=0; i<8; i++) {
+        areAllStepPropertiesTheSame[i] = true;
+    }
 
+    // Iterate over the clipboard, and check if there is difference in properties of the selected steps:
+    for (int i=1; i<16; i++) {
+        // Only apply to clipboard:
+        if (clipBoard[i] != NULL) {
+            struct Step *lhStep = clipBoard[i];
+            struct Step *rhStep = clipBoard[i];
+            areAllStepPropertiesTheSame[PROPERTY_CC1] &= lhStep->notes[selectedNote].cc1Value == rhStep->notes[selectedNote].cc1Value;
+            areAllStepPropertiesTheSame[PROPERTY_CC2] &= lhStep->notes[selectedNote].cc2Value == rhStep->notes[selectedNote].cc2Value;
+            areAllStepPropertiesTheSame[PROPERTY_NOTE] &= lhStep->notes[selectedNote].note == rhStep->notes[selectedNote].note;
+            areAllStepPropertiesTheSame[PROPERTY_LENGTH] &= lhStep->notes[selectedNote].length == rhStep->notes[selectedNote].length;
+            areAllStepPropertiesTheSame[PROPERTY_VELOCITY] &= lhStep->notes[selectedNote].velocity == rhStep->notes[selectedNote].velocity;
+            areAllStepPropertiesTheSame[PROPERTY_NUDGE] &= lhStep->notes[selectedNote].nudge == rhStep->notes[selectedNote].nudge;
+            areAllStepPropertiesTheSame[PROPERTY_TRIG] &= lhStep->notes[selectedNote].trigg == rhStep->notes[selectedNote].trigg;
+            areAllStepPropertiesTheSame[PROPERTY_ENABLED] &= lhStep->notes[selectedNote].enabled == rhStep->notes[selectedNote].enabled;
+        }
     }
 }
 
@@ -1336,15 +1352,23 @@ void drawStepEditor(struct Step *step) {
 
     // TODO: Iterate over selected Steps, and replace the values with "##" if there are differences in selected steps 
     // for these values. The values will change each on their own.
+    // We can use areAllStepPropertiesTheSame for this
+
+
 
     // Title:
     drawCenteredLine(2, 133, "STEP OPTIONS", TITLE_WIDTH, COLOR_WHITE);
 
     struct Note *note = &step->notes[selectedNote];
 
-    // Transpose:
+    // Note/Transpose:
     drawCenteredLine(2, 7, "TRANSPOSE", TITLE_WIDTH, COLOR_WHITE);
-    char *midiNoteName = getMidiNoteName(note->note);
+    char *midiNoteName;
+    if (areAllStepPropertiesTheSame[PROPERTY_NOTE]) {
+        midiNoteName = getMidiNoteName(note->note);
+    } else {
+        midiNoteName = "##";
+    }
     drawCenteredLine(2, 22, midiNoteName, TITLE_WIDTH, COLOR_YELLOW);
     drawTextOnButton(0, "-12");
     drawTextOnButton(1, "-1");
@@ -1354,7 +1378,11 @@ void drawStepEditor(struct Step *step) {
     // Velocity:
     drawCenteredLine(2, 37, "VELOCITY", BUTTON_WIDTH * 2, COLOR_WHITE);
     char velocityChar[4];
-    snprintf(velocityChar, sizeof(velocityChar), "%d", note->velocity);
+    if (areAllStepPropertiesTheSame[PROPERTY_VELOCITY]) {
+        snprintf(velocityChar, sizeof(velocityChar), "%d", note->velocity);
+    } else {
+        sprintf(velocityChar, "##");
+    }
     drawCenteredLine(2, 47, velocityChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(4, "-");
     drawTextOnButton(5, "+");
@@ -1362,7 +1390,11 @@ void drawStepEditor(struct Step *step) {
     // Length:
     drawCenteredLine(62, 37, "LENGTH", BUTTON_WIDTH * 2, COLOR_WHITE);
     char lengthChar[4];
-    snprintf(lengthChar, sizeof(lengthChar), "%d", note->length);
+    if (areAllStepPropertiesTheSame[PROPERTY_LENGTH]) {
+        snprintf(lengthChar, sizeof(lengthChar), "%d", note->length);
+    } else {
+        sprintf(lengthChar, "##");
+    }
     drawCenteredLine(62, 47, lengthChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(6, "-");
     drawTextOnButton(7, "+");
@@ -1370,7 +1402,11 @@ void drawStepEditor(struct Step *step) {
     // Nudge:
     drawCenteredLine(2, 67, "NUDGE", BUTTON_WIDTH * 2, COLOR_WHITE);
     char nudgeChar[4];
-    snprintf(nudgeChar, sizeof(nudgeChar), "%d", note->nudge - PP16N);
+    if (areAllStepPropertiesTheSame[PROPERTY_NUDGE]) {
+        snprintf(nudgeChar, sizeof(nudgeChar), "%d", note->nudge - PP16N);
+    } else {
+        sprintf(nudgeChar, "##");
+    }
     drawCenteredLine(2, 77, nudgeChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(8, "-");
     drawTextOnButton(9, "+");
@@ -1378,24 +1414,36 @@ void drawStepEditor(struct Step *step) {
     // Trig:
     drawCenteredLine(62, 67, "TRIGG", BUTTON_WIDTH * 2, COLOR_WHITE);
     char triggChar[4];
-    snprintf(
-        triggChar, 
-        sizeof(triggChar), 
-        "%d", 
-        get2FByteValue(note->trigg) + (get2FByteFlag2(note->trigg) ? TRIG_HIGHEST_VALUE : 0)
-    );
+    if (areAllStepPropertiesTheSame[PROPERTY_TRIG]) {
+        snprintf(
+            triggChar, 
+            sizeof(triggChar), 
+            "%d", 
+            get2FByteValue(note->trigg) + (get2FByteFlag2(note->trigg) ? TRIG_HIGHEST_VALUE : 0)
+        );
+    } else {
+        sprintf(triggChar, "##");
+    }
     drawCenteredLine(62, 77, triggChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(10, "-");
     drawTextOnButton(11, "+");
     // Trigg description:
     char triggText[6];
-    setTriggText(note->trigg, triggText);
+    if (areAllStepPropertiesTheSame[PROPERTY_TRIG]) {
+        setTriggText(note->trigg, triggText);
+    } else {
+        sprintf(triggText, "##");
+    }
     drawCenteredLine(62, 87, triggText, BUTTON_WIDTH * 2, COLOR_WHITE);
 
     // CC1:
     drawCenteredLine(2, 97, "CC1 VALUE", BUTTON_WIDTH * 2, COLOR_WHITE);
     char cc1Value[4];
-    snprintf(cc1Value, sizeof(cc1Value), "%d", note->cc1Value);
+    if (areAllStepPropertiesTheSame[PROPERTY_CC1]) {
+        snprintf(cc1Value, sizeof(cc1Value), "%d", note->cc1Value);
+    } else {
+        sprintf(cc1Value, "##");
+    }
     drawCenteredLine(2, 107, cc1Value, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(12, "-");
     drawTextOnButton(13, "+");
@@ -1403,7 +1451,11 @@ void drawStepEditor(struct Step *step) {
     // CC2:
     drawCenteredLine(62, 97, "CC2 VALUE", BUTTON_WIDTH * 2, COLOR_WHITE);
     char cc2Value[4];
-    snprintf(cc2Value, sizeof(cc2Value), "%d", note->cc2Value);
+    if (areAllStepPropertiesTheSame[PROPERTY_CC2]) {
+        snprintf(cc2Value, sizeof(cc2Value), "%d", note->cc2Value);
+    } else {
+        sprintf(cc2Value, "##");
+    }
     drawCenteredLine(62, 107, cc2Value, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(14, "-");
     drawTextOnButton(15, "+");
