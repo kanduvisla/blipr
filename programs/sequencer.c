@@ -369,13 +369,16 @@ void updateSequencer(
                     } else
                     if (key == BLIPR_KEY_C) {
                         // Copy steps:
+                        int count = 0;
                         for (int i=0; i<16; i++) {
                             if (selectedSteps[i]) {
                                 clipBoard[i] = &track->steps[i + (track->selectedPage * 16)];
+                                count ++;
                             } else {
                                 clipBoard[i] = NULL;
                             }
                         }
+                        printLog("Copied %d steps to the clipboard");
                         // Clear selection after copying to clipboard:
                         resetSequencerSelectedStep();
                     } else
@@ -388,6 +391,7 @@ void updateSequencer(
                                 break;
                             }
                         }
+                        printLog("paste position is %d", pastePosition);
                         // Paste copied steps:
                         // Subtract the first empty entries of the clipboard:
                         int offset = 0;
@@ -398,13 +402,15 @@ void updateSequencer(
                             }
                             offset++;
                         }
+                        printLog("clipboard offset is %d", offset);
                         // Now paste until we reach a NULL object:
                         for (int i=offset; i<16; i++) {
                             if (clipBoard[i] != NULL) {
                                 copyStep(
                                     clipBoard[i],
-                                    &track->steps[pastePosition + (track->selectedPage * 16)]                                
+                                    &track->steps[pastePosition + (track->selectedPage * 16) + i - offset]
                                 );
+                                printLog("copied step %d from clipboard to position %d", i,pastePosition + (track->selectedPage * 16));
                             } else {
                                 break;
                             }
