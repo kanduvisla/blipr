@@ -26,6 +26,7 @@ bool isNoteEditorVisible = false;
 int cutCounter = 0;     // 0=none   1=note  2=step (all notes)
 int copyCounter = 0;
 bool isEditOnAllNotes = false;
+bool isHighPageBankSelected = false;
 
 // Boolean arrays that determine if for a step all note properties are the same:
 #define PROPERTY_CC1 0
@@ -431,19 +432,32 @@ void updateSequencer(
         // ^2 + B    = page bank 17-32
         // ^2 + C-D  = note / channel -/+
 
+        int polyCount = getPolyCount(track);
+
         // 1-16 = select page
         if (index >= 0) {
             // 1-4   = page bank 0
             // 5-8   = page bank 1
             // 9-12  = page bank 2
             // 13-16 = page bank 3
-
+            if (index < 4) {
+                track->selectedPageBank = isHighPageBankSelected ? 4 : 0;
+            } else if(index < 8 && polyCount < 8) {
+                track->selectedPageBank = isHighPageBankSelected ? 5 : 1;
+            } else if (index < 12 && polyCount < 4) {
+                track->selectedPageBank = isHighPageBankSelected ? 6 : 2;
+            } else if (polyCount <= 2) {
+                track->selectedPageBank = isHighPageBankSelected ? 7 : 3;
+            }
         } else {
             // Bottom buttons:
-            int polyCount = getPolyCount(track);
             if (polyCount == 1) {
                 // There are 2 page banks
-
+                if (key == BLIPR_KEY_A) {
+                    isHighPageBankSelected = false;
+                } if (key == BLIPR_KEY_B) {
+                    isHighPageBankSelected  = true;
+                }
             }
             if (key == BLIPR_KEY_C) { 
                 selectedNote = MAX(0, selectedNote - 1); 
@@ -451,25 +465,6 @@ void updateSequencer(
                 selectedNote = MIN(getPolyCount(track) - 1, selectedNote + 1); 
             }
         }
-
-        // Update selected note or page:
-        /*
-        if (index >= 0 && selectedStep == -1) {
-            // Select step
-            // selectedStep = index;
-        } else if (selectedStep == -1) {
-            // No step selected, but also no index, so this is one of the bottom buttons
-            // Change selected note:
-            if (key == BLIPR_KEY_C) { 
-                selectedNote = MAX(0, selectedNote - 1); 
-            } else if (key == BLIPR_KEY_D) { 
-                selectedNote = MIN(getPolyCount(selectedTrack) - 1, selectedNote + 1); 
-            }
-        } else {
-            // Handle key input with selected step
-            handleKey(selectedTrack, key);
-        }
-        */
     } else if(key == BLIPR_KEY_A) {
         setSelectedPage(track, (track->selectedPageBank * 4));
     } else if(key == BLIPR_KEY_B) {
