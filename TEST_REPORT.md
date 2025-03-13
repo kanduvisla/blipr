@@ -6,16 +6,13 @@ These are observations done while testing Blipr with real hardware.
 
 --- Bugs:
 
-- (requires testing) Paste does not highlight selected step / empty step is not highlighted
-- Paste only pastes one step (the last?)
+- Copy / pasting: when selecting, create range when there are empty values in between
 - "##" does not show with multiple steps with different values
 - Message is not clear when pasting notes "COPIED ALL NOTES"?
-- (requires re-testing) Selected note is not "picked" (pipet tool)
-- (requires re-testing) Pattern change does not trigger a PC
+- Selected note is not "picked" (pipet tool)
 - It still appears that something goes wrong when setting steps in the sequencer; other pages seem affected.
 - Roland SH-4d was not detected by Linux. Not sure if this is a Blipr problem, since `amidi -l` also didn't show it.
 - (still not working) Midi configuration with multiple device is not working properly. Was unable to set proper midi device for A. Cannot set to "None"
-- (still not working) When configuring midi device, configuration is not directly applied, restart of the program is required. The current device is unassigned, but a new device is not assigned
 - Got an error with invalid device Id (probably the Midi Through Port), blipr won't start
 - Steps are set on disabled tiles (takes not in account page length (possible also track length))
 - (requires re-testing) It appears that the note off is not properly send when changing the note tone
@@ -67,3 +64,8 @@ These are observations done while testing Blipr with real hardware.
 - Missing option to set BPM
 - Shift2 hides all steps, this is undesired because it's not helping when choosing the proper channel for editing.
 - Shift1+Shift2+Note to directly edit a single note
+- Paste does not highlight selected step / empty step is not highlighted
+- Paste only pastes one step (the last?)
+- Pattern change does not trigger a PC
+- When configuring midi device, configuration is not directly applied, restart of the program is required. The current device is unassigned, but a new device is not assigned
+- Copy / pasting: single paste pastes all notes, while this should only happen after copy twice

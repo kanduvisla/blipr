@@ -127,7 +127,6 @@ void clearStep(struct Step *step) {
             clearNote(&step->notes[i]);
         }
     }
-    cutCounter ++;
 }
 
 /**
@@ -157,7 +156,6 @@ void copyStep(const struct Step *src, struct Step *dst) {
             copyNote(&src->notes[i], &dst->notes[i]);
         }
     }
-    copyCounter ++;
 }
 
 /**
@@ -365,6 +363,7 @@ void updateSequencer(
                                 clearStep(&track->steps[i + (track->selectedPage * 16)]);
                             }
                         }
+                        cutCounter ++;
                         // No resetSequencerSelectedStep(), because paste can be done twice
                     } else
                     if (key == BLIPR_KEY_C) {
@@ -415,6 +414,7 @@ void updateSequencer(
                                 break;
                             }
                         }
+                        copyCounter ++;
                         // No resetSequencerSelectedStep(), because paste can be done twice
                     }                    
                 }
