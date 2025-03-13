@@ -164,8 +164,8 @@ void copyStep(const struct Step *src, struct Step *dst) {
 void resetTemplateNote() {
     templateNote.enabled = false;
     templateNote.note = 60;     // C-4
-    templateNote.velocity = 0;
-    templateNote.length = 0;
+    templateNote.velocity = 100;
+    templateNote.length = 1;
     templateNote.nudge = PP16N; // PP16N = middle, nudge 0
     templateNote.trigg = 0;
     templateNote.cc1Value = 0;

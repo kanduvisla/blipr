@@ -244,6 +244,8 @@ void* sequencerThread(void* arg) {
     PmStream *outputStream[4]; // 4 streams, for A, B, C and D
     int midiDevice[4];          // 4 midi devices, for A, B, C and D
 
+    resetTemplateNote();
+
     // Sequencer loop:
     while (!state->quit) {
         if (state->isSetupMidiDevicesRequired) {
