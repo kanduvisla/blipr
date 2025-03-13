@@ -184,11 +184,7 @@ void toggleStep(struct Step *step) {
         // Use template note
         copyNote(&templateNote, &step->notes[selectedNote]);
         // Reset enabled state, because template note might be a disabled note :-/
-        step->notes[selectedNote].enabled;
-
-        // step->notes[selectedNote].velocity = templateNote.velocity;
-        // step->notes[selectedNote].note = templateNote.note;
-        
+        step->notes[selectedNote].enabled = true;
     }
 }
 
@@ -348,7 +344,7 @@ void updateSequencer(
         if (!isNoteEditorVisible) {
             if (index >= 0) {
                 // Set template note:
-                copyNote(&track->steps[index + (track->selectedPage * 16)], &templateNote);
+                copyNote(&track->steps[index + (track->selectedPage * 16)].notes[selectedNote], &templateNote);
                 // Set selected steps for utilities:
                 selectedSteps[index] = !selectedSteps[index];
                 checkIfAllStepPropertiesAreTheSame();
