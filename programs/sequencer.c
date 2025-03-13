@@ -17,9 +17,9 @@
 
 // Pages can be global, or per track configured
 int selectedNote = 0;
-int defaultNote = 60;       // C-4
-int defaultVelocity = 100;
-int halfVelocity = 50;
+// int defaultNote = 60;       // C-4
+// int defaultVelocity = 100;
+// int halfVelocity = 50;
 bool selectedSteps[16] = {false};       // Boolean that determines if this step is selected or not
 struct Step* clipBoard[16] = {NULL};
 bool isNoteEditorVisible = false;
@@ -38,6 +38,9 @@ bool isHighPageBankSelected = false;
 #define PROPERTY_TRIG 6
 #define PROPERTY_ENABLED 7
 bool areAllStepPropertiesTheSame[8] = {false};
+
+// Template note that is used for pipet tooling
+struct Note templateNote;
 
 /**
  * Method to check if all step properties are the same
@@ -158,20 +161,41 @@ void copyStep(const struct Step *src, struct Step *dst) {
 }
 
 /**
+ * Reset template note to default values
+ */
+void resetTemplateNote() {
+    templateNote.enabled = false;
+    templateNote.note = 60;     // C-4
+    templateNote.velocity = 0;
+    templateNote.length = 0;
+    templateNote.nudge = PP16N; // PP16N = middle, nudge 0
+    templateNote.trigg = 0;
+    templateNote.cc1Value = 0;
+    templateNote.cc2Value = 0;
+}
+
+/**
  * Toggle a step
  */
 void toggleStep(struct Step *step) {
     step->notes[selectedNote].enabled = !step->notes[selectedNote].enabled;
     // Set default values:
     if (step->notes[selectedNote].enabled) {
-        step->notes[selectedNote].velocity = defaultVelocity;
-        step->notes[selectedNote].note = defaultNote;
+        // Use template note
+        copyNote(&templateNote, &step->notes[selectedNote]);
+        // Reset enabled state, because template note might be a disabled note :-/
+        step->notes[selectedNote].enabled;
+
+        // step->notes[selectedNote].velocity = templateNote.velocity;
+        // step->notes[selectedNote].note = templateNote.note;
+        
     }
 }
 
 /**
  * Toggle velocity
  */
+/*
 void toggleVelocity(struct Step *step) {
     if (step->notes[selectedNote].enabled) {
         if (step->notes[selectedNote].velocity == defaultVelocity) {
@@ -185,6 +209,7 @@ void toggleVelocity(struct Step *step) {
         step->notes[selectedNote].velocity = halfVelocity;
     }
 }
+*/
 
 /**
  * Set selected page
@@ -220,7 +245,7 @@ unsigned char transposeMidiNote(unsigned char midiNote, int steps) {
     } 
 
     // Set default note to this:
-    defaultNote = transposed;
+    templateNote.note = transposed;
 
     return (unsigned char)transposed;   
 }
@@ -322,6 +347,8 @@ void updateSequencer(
         // ^1 + D    = Paste notes/steps    press once=paste notes, press twice=paste all notes on step
         if (!isNoteEditorVisible) {
             if (index >= 0) {
+                // Set template note:
+                copyNote(&track->steps[index + (track->selectedPage * 16)], &templateNote);
                 // Set selected steps for utilities:
                 selectedSteps[index] = !selectedSteps[index];
                 checkIfAllStepPropertiesAreTheSame();
@@ -1193,7 +1220,7 @@ void drawSequencerMain(
             } else {
                 if (step.notes[selectedNote].enabled) {
                     struct Note *note = &step.notes[selectedNote];
-                    SDL_Color noteColor = note->velocity >= defaultVelocity ? COLOR_RED : COLOR_DARK_RED;
+                    SDL_Color noteColor = note->velocity >= 100 ? COLOR_RED : COLOR_DARK_RED;
                     if (isNoteTrigged(note->trigg, selectedTrack->repeatCount)) {
                         drawRect(
                             4 + i + (i * width),
@@ -1242,17 +1269,6 @@ void drawSequencerMain(
                             noteColor
                         );
                     }
-
-                    // Draw selection outline:
-                    if (selectedSteps[i + (j * 4)]) {
-                        drawSingleLineRectOutline(
-                            4 + i + (i * width),
-                            4 + j + (j * height),
-                            width - 4,
-                            height - 4,
-                            COLOR_YELLOW
-                        );
-                    }
                 }
             }
 
@@ -1264,6 +1280,17 @@ void drawSequencerMain(
                 COLOR_GRAY
             );
 
+            // Draw selection outline:
+            if (selectedSteps[i + (j * 4)]) {
+                drawSingleLineRectOutline(
+                    4 + i + (i * width),
+                    4 + j + (j * height),
+                    width - 4,
+                    height - 4,
+                    COLOR_YELLOW
+                );
+            }
+            
             // Poly count dots:
             for (int p=0; p<polyCount; p++) {
                 drawPixel(

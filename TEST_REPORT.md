@@ -6,8 +6,8 @@ These are observations done while testing Blipr with real hardware.
 
 --- Bugs:
 
-- Shift2 hides all steps, this is undesired because it's not helping when choosing the proper channel for editing.
-- Paste does not highlight selected step / empty step is not highlighted
+- (requires testing) Shift2 hides all steps, this is undesired because it's not helping when choosing the proper channel for editing.
+- (requires testing) Paste does not highlight selected step / empty step is not highlighted
 - Paste only pastes one step (the last?)
 - "##" does not show with multiple steps with different values
 - Message is not clear when pasting notes "COPIED ALL NOTES"?
