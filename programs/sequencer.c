@@ -24,6 +24,29 @@ int selectedStep = -1;
 bool selectedSteps[16] = {false};
 struct Step* clipBoard[16] = {NULL};
 bool isNoteEditorVisible = false;
+int cutCounter = 0;     // 0=none   1=note  2=step (all notes)
+int copyCounter = 0;
+
+// Boolean arrays that determine if for a step all note properties are the same:
+#define PROPERTY_CC1 = 0;
+#define PROPERTY_CC2 = 1;
+#define PROPERTY_NOTE = 2;
+#define PROPERTY_LENGTH = 3;
+#define PROPERTY_VELOCITY = 4;
+#define PROPERTY_NUDGE = 5;
+#define PROPERTY_TRIG = 6;
+#define PROPERTY_ENABLED = 7;
+bool areAllStepPropertiesTheSame[8] = {false};
+
+/**
+ * Method to check if all step properties are the same
+ */
+void checkIfAllStepPropertiesAreTheSame() {
+    // Iterate over the clipboard, and check if there is difference in properties of the selected steps:
+    for (int i=0; i<16; i++) {
+
+    }
+}
 
 /**
  * Check if there are steps selected
@@ -47,6 +70,8 @@ void resetSequencerSelectedStep() {
         selectedSteps[i] = false;
     }
     isNoteEditorVisible = false;
+    cutCounter = 0;
+    copyCounter = 0;
 }
 
 /**
@@ -74,9 +99,16 @@ void clearNote(struct Note *note) {
  * Clear step
  */
 void clearStep(struct Step *step) {
-    for (int i=0; i<NOTES_IN_STEP; i++) {
-        clearNote(&step->notes[i]);
+    if (cutCounter == 0) {
+        // This is the first cut, clear only the selected note:
+        clearNote(&step->notes[selectedNote]);
+    } else {
+        // This is the second cut, clear all notes in this step
+        for (int i=0; i<NOTES_IN_STEP; i++) {
+            clearNote(&step->notes[i]);
+        }
     }
+    cutCounter ++;
 }
 
 /**
@@ -97,9 +129,16 @@ void copyNote(const struct Note *src, struct Note *dst) {
  * Copy step
  */
 void copyStep(const struct Step *src, struct Step *dst) {
-    for (int i=0; i<NOTES_IN_STEP; i++) {
-        copyNote(&src->notes[i], &dst->notes[i]);
+    if (copyCounter == 0) {
+        // This is the first copy, only copy the selected note:
+        copyNote(&src->notes[selectedNote], &dst->notes[selectedNote]);
+    } else {
+        // This is the second copy, copy all the notes:
+        for (int i=0; i<NOTES_IN_STEP; i++) {
+            copyNote(&src->notes[i], &dst->notes[i]);
+        }
     }
+    copyCounter ++;
 }
 
 /**
@@ -252,9 +291,9 @@ void updateSequencer(
         // Shift 1 = utils:
         // ^1 + 1-16 = Select (multiple) step(s)
         // ^1 + A    = Open note editor for step(s)
-        // ^1 + B    = Cut steps
-        // ^1 + C    = Copy steps
-        // ^1 + D    = Paste steps
+        // ^1 + B    = Cut notes/steps      press once=cut notes,   press twice=cut all notes on step
+        // ^1 + C    = Copy notes/steps     press once=copy notes,  press twice=copy all notes on step
+        // ^1 + D    = Paste notes/steps    press once=paste notes, press twice=paste all notes on step
 
         // Shift 2 = page selector / note selector
         // ^2 + 1-16 = select page
@@ -265,6 +304,7 @@ void updateSequencer(
             if (index >= 0) {
                 // Set selected steps for utilities:
                 selectedSteps[index] = !selectedSteps[index];
+                checkIfAllStepPropertiesAreTheSame();
             } else {
                 if (isStepsSelected()) {
                     if (key == BLIPR_KEY_A) {
@@ -278,7 +318,7 @@ void updateSequencer(
                                 clearStep(&track->steps[i + (track->selectedPage * 16)]);
                             }
                         }
-                        resetSequencerSelectedStep();
+                        // No resetSequencerSelectedStep(), because paste can be done twice
                     } else
                     if (key == BLIPR_KEY_C) {
                         // Copy steps:
@@ -289,6 +329,7 @@ void updateSequencer(
                                 clipBoard[i] = NULL;
                             }
                         }
+                        // Clear selection after copying to clipboard:
                         resetSequencerSelectedStep();
                     } else
                     if (key == BLIPR_KEY_D) {
@@ -312,12 +353,16 @@ void updateSequencer(
                         }
                         // Now paste until we reach a NULL object:
                         for (int i=offset; i<16; i++) {
-                            copyStep(
-                                clipBoard[i],
-                                &track->steps[pastePosition + (track->selectedPage * 16)]                                
-                            );
+                            if (clipBoard[i] != NULL) {
+                                copyStep(
+                                    clipBoard[i],
+                                    &track->steps[pastePosition + (track->selectedPage * 16)]                                
+                                );
+                            } else {
+                                break;
+                            }
                         }
-                        resetSequencerSelectedStep();
+                        // No resetSequencerSelectedStep(), because paste can be done twice
                     }                    
                 }
             }
@@ -1066,6 +1111,21 @@ void drawSequencerMain(
         );
     }
    
+    // Show cut & copy information:
+    char *bottomText[64];
+    if (cutCounter == 1) {
+        sprintf(bottomText, "CUTTED 1 NOTE");
+    } else if (cutCounter > 1) {
+        sprintf(bottomText, "CUTTED ALL NOTES");
+    }
+
+    if (copyCounter == 1) {
+        sprintf(bottomText, "COPIED 1 NOTE");
+    } else if (copyCounter > 1) {
+        sprintf(bottomText, "COPIED ALL NOTES");
+    }
+    drawCenteredLine(2, HEIGHT - BUTTON_HEIGHT - 10, bottomText, BUTTON_WIDTH * 4, COLOR_YELLOW);
+
     // Highlight playing page:
     drawLine(
         2 + playingPage + (playingPage * BUTTON_WIDTH),
