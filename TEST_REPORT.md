@@ -12,7 +12,7 @@ These are observations done while testing Blipr with real hardware.
 - "##" does not show with multiple steps with different values
 - Message is not clear when pasting notes "COPIED ALL NOTES"?
 - Selected note is not "picked" (pipet tool)
-- Pattern change does not trigger a PC
+- (requires re-testing) Pattern change does not trigger a PC
 - It still appears that something goes wrong when setting steps in the sequencer; other pages seem affected.
 - Roland SH-4d was not detected by Linux. Not sure if this is a Blipr problem, since `amidi -l` also didn't show it.
 - (still not working) Midi configuration with multiple device is not working properly. Was unable to set proper midi device for A. Cannot set to "None"
@@ -25,11 +25,10 @@ These are observations done while testing Blipr with real hardware.
 --- Improvements:
 
 - When no notes are selected cut/copy/paste = on notes/track/step
-- Shift1+Shift2+Note to directly edit a single note
+- (requires testing) Shift1+Shift2+Note to directly edit a single note
 - Configuration: Midi PC representation needs to be represented +1 (1-16 instead of 0-15)
 - Missing page numbers / max pages
 - Missing transport / option to start / stop
-- (requires testing) Missing option to set BPM
 - Last set length is not remembered when editing track.
 - Same for last set velocity.
 - When track has no program, shift 3 should start on program selection
@@ -67,3 +66,4 @@ These are observations done while testing Blipr with real hardware.
 - Poly sacrificing / cannot select pagebank 5-8 (selected page bank not highlighted)
 - Other pages is not working
 - Page bank is pickable, even if it's not allowed or visible
+- Missing option to set BPM
