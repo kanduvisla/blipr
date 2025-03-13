@@ -19,7 +19,7 @@ These are observations done while testing Blipr with real hardware.
 
 - Missing page numbers / max pages
 - Missing transport / option to start / stop
-- Missing option to set BPM
+- (requires testing) Missing option to set BPM
 - Last set length is not remembered when editing track.
 - Same for last set velocity.
 - When track has no program, shift 3 should start on program selection
@@ -30,8 +30,8 @@ These are observations done while testing Blipr with real hardware.
 - Save / Remember last note / velocity / etc. per track
 - Thumbnail of track on track selection
 - Panic button!
-- Copy / Paste of ranges of notes
-- Shuffle and nudge should be on the same position
+- (requires testing) Copy / Paste of ranges of notes
+- Shuffle and nudge should be on the same position in the menu
 - More quick velocity switches
 
 --- Fixed
