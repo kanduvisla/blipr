@@ -431,10 +431,16 @@ void* keyThread(void* arg) {
                         .patterns[state->selectedPattern]
                         .tracks[state->selectedTrack];
                     state->track->repeatCount = 0;
+                    // Trigger program change:
+                    const struct Pattern *pattern = &state->project->sequences[state->selectedSequence].patterns[state->selectedPattern];
+                    state->programA = pattern->programA;
+                    state->programB = pattern->programB;
+                    state->programC = pattern->programC;
+                    state->programD = pattern->programD;
                     // Set proper BPM:
                     state->bpm = state->project->sequences[state->selectedSequence]
                         .patterns[state->selectedPattern].bpm + 45;
-                    state->nanoSecondsPerPulse = calculateNanoSecondsPerPulse(state->bpm);                
+                    state->nanoSecondsPerPulse = calculateNanoSecondsPerPulse(state->bpm);          
                 } else if (state->screen == BLIPR_SCREEN_SEQUENCE_SELECTION) {
                     updateSequenceSelection(&state->selectedSequence, state->scanCodeKeyDown);
                     // Set proper pattern, track + reset repeat count
@@ -502,6 +508,18 @@ void* keyThread(void* arg) {
 
                     if (startProgA != pattern->programA) {
                         state->programA = pattern->programA;
+                    }
+
+                    if (startProgB != pattern->programB) {
+                        state->programB = pattern->programB;
+                    }
+
+                    if (startProgC != pattern->programC) {
+                        state->programC = pattern->programC;
+                    }
+
+                    if (startProgD != pattern->programD) {
+                        state->programD = pattern->programD;
                     }
                 }
                 pthread_mutex_unlock(&state->mutex);
