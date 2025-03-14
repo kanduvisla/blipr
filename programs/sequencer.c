@@ -324,6 +324,40 @@ static void handleKey(
 }
 
 /**
+ * Select all steps between the first and last selected step
+ */
+void sanitizeSelection(int indexPressed) {
+    int first = -1;
+    int last = -1;
+    for (int i=0; i<16; i++) {
+        if (selectedSteps[i] == true) {
+            first = i;
+            break;
+        } 
+    }
+
+    for (int i=15; i>=0; i--) {
+        if (selectedSteps[i] == true) {
+            last = i;
+            break;
+        }
+    }
+
+    if (first != -1 && last != -1) {
+        // Select from first to last
+        for (int i=first; i<=last; i++) {
+            selectedSteps[i] = true;
+        }        
+        // If the selected step is smaller than the greatest selected step, disable all after:
+        if (indexPressed < last) {
+            for (int i=indexPressed + 1; i<16; i++) {
+                selectedSteps[i] = false;
+            }
+        }
+    }
+}
+
+/**
  * Update the sequencer according to user input
  */
 void updateSequencer(
@@ -345,6 +379,8 @@ void updateSequencer(
                 copyNote(&track->steps[index + (track->selectedPage * 16)].notes[selectedNote], &templateNote);
                 // Set selected steps for utilities:
                 selectedSteps[index] = !selectedSteps[index];
+                // Select all steps between the first and last selected step:
+                sanitizeSelection(index);
                 checkIfAllStepPropertiesAreTheSame();
                 // If Shift2 is also down, immeadiately open the note editor for this step:
                 if (keyStates[BLIPR_KEY_SHIFT_2]) {
