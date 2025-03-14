@@ -45,17 +45,17 @@ struct Note templateNote;
 /**
  * Method to check if all step properties are the same
  */
-void checkIfAllStepPropertiesAreTheSame() {
+void checkIfAllStepPropertiesAreTheSame(const struct Track *track) {
     for (int i=0; i<8; i++) {
         areAllStepPropertiesTheSame[i] = true;
     }
 
-    // Iterate over the clipboard, and check if there is difference in properties of the selected steps:
+    // Iterate over the selected steps, and check if there is difference in properties of the selected steps:
     for (int i=1; i<16; i++) {
-        // Only apply to clipboard:
-        if (clipBoard[i] != NULL) {
-            struct Step *lhStep = clipBoard[i];
-            struct Step *rhStep = clipBoard[i];
+        if (selectedSteps[i] && selectedSteps[i - 1]) {
+            int stepIndex = i + (track->selectedPage * 16);
+            const struct Step *lhStep = &track->steps[stepIndex - 1];
+            const struct Step *rhStep = &track->steps[stepIndex];
             areAllStepPropertiesTheSame[PROPERTY_CC1] &= lhStep->notes[selectedNote].cc1Value == rhStep->notes[selectedNote].cc1Value;
             areAllStepPropertiesTheSame[PROPERTY_CC2] &= lhStep->notes[selectedNote].cc2Value == rhStep->notes[selectedNote].cc2Value;
             areAllStepPropertiesTheSame[PROPERTY_NOTE] &= lhStep->notes[selectedNote].note == rhStep->notes[selectedNote].note;
@@ -308,7 +308,6 @@ static void handleKey(
     for (int i=0; i<16; i++) {
         if (selectedSteps[i]) {
             // We need to apply this key input on this step, but only on the selected note
-            // TODO: Determine how we should be able to apply key input to all notes.
             int stepIndex = i + (selectedTrack->selectedPage * 16);
             if (isEditOnAllNotes) {
                 for (int j=0; j<NOTES_IN_STEP; j++) {
@@ -381,7 +380,7 @@ void updateSequencer(
                 selectedSteps[index] = !selectedSteps[index];
                 // Select all steps between the first and last selected step:
                 sanitizeSelection(index);
-                checkIfAllStepPropertiesAreTheSame();
+                checkIfAllStepPropertiesAreTheSame(track);
                 // If Shift2 is also down, immeadiately open the note editor for this step:
                 if (keyStates[BLIPR_KEY_SHIFT_2]) {
                     isNoteEditorVisible = true;
@@ -1339,6 +1338,9 @@ void drawSequencerMain(
             }
         }
     }   
+
+    // TODO: Draw template Note details:
+    
 
     // ABCD Buttons:
     if (keyStates[BLIPR_KEY_SHIFT_1]) {

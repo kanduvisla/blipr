@@ -6,10 +6,8 @@ These are observations done while testing Blipr with real hardware.
 
 --- Bugs:
 
-- Copy / pasting: when selecting, create range when there are empty values in between
 - "##" does not show with multiple steps with different values
 - Message is not clear when pasting notes "COPIED ALL NOTES"?
-- Selected note is not "picked" (pipet tool)
 - It still appears that something goes wrong when setting steps in the sequencer; other pages seem affected.
 - Roland SH-4d was not detected by Linux. Not sure if this is a Blipr problem, since `amidi -l` also didn't show it.
 - (still not working) Midi configuration with multiple device is not working properly. Was unable to set proper midi device for A. Cannot set to "None"
@@ -24,18 +22,14 @@ These are observations done while testing Blipr with real hardware.
 - Configuration: Midi PC representation needs to be represented +1 (1-16 instead of 0-15)
 - Missing page numbers / max pages
 - Missing transport / option to start / stop
-- Last set length is not remembered when editing track.
-- Same for last set velocity.
 - When track has no program, shift 3 should start on program selection
 - Show default note, length + velocity in sidebar
 - Mute Track
 - Solo Track
 - Utilities (clear track)
-- Save / Remember last note / velocity / etc. per track
 - Program icon on track selection
 - Thumbnail of track on track selection
 - Panic button!
-- (requires testing) Copy / Paste of ranges of notes
 - Shuffle and nudge should be on the same position in the menu
 - More quick velocity switches
 
@@ -69,3 +63,9 @@ These are observations done while testing Blipr with real hardware.
 - Pattern change does not trigger a PC
 - When configuring midi device, configuration is not directly applied, restart of the program is required. The current device is unassigned, but a new device is not assigned
 - Copy / pasting: single paste pastes all notes, while this should only happen after copy twice
+- Copy / pasting: when selecting, create range when there are empty values in between
+- Last set length is not remembered when editing track.
+- Same for last set velocity.
+- Copy / Paste of ranges of notes
+- Save / Remember last note / velocity / etc. per track
+- Selected note is not "picked" (pipet tool)
