@@ -1218,11 +1218,11 @@ void drawSequencerMain(
     }
 
     if (copyCounter == 1) {
-        sprintf(bottomText, "COPIED 1 NOTE");
+        sprintf(bottomText, "PASTED 1 NOTE");
     } else if (copyCounter > 1) {
-        sprintf(bottomText, "COPIED ALL NOTES");
+        sprintf(bottomText, "PASTED ALL NOTES");
     }
-    drawCenteredLine(2, HEIGHT - BUTTON_HEIGHT - 10, bottomText, BUTTON_WIDTH * 4, COLOR_YELLOW);
+    drawCenteredLine(2, HEIGHT - BUTTON_HEIGHT - 12, bottomText, BUTTON_WIDTH * 4, COLOR_YELLOW);
 
     // Highlight playing page:
     drawLine(
@@ -1339,7 +1339,7 @@ void drawSequencerMain(
         }
     }   
 
-    // TODO: Draw template Note details:
+    // Draw template Note details:
     
 
     // ABCD Buttons:
@@ -1381,6 +1381,22 @@ void drawSequencerMain(
             sprintf(descriptions[1], "PB2");
         }
         drawABCDButtons(descriptions);
+        // Draw page bank title:
+        drawCenteredLine(
+            2, 
+            HEIGHT - BUTTON_HEIGHT - 12, 
+            "PAGEBANK",
+            BUTTON_WIDTH * 2,
+            COLOR_YELLOW
+        );
+        // Draw channel title:
+        drawCenteredLine(
+            6 + (BUTTON_WIDTH * 2), 
+            HEIGHT - BUTTON_HEIGHT - 12, 
+            "CHANNEL",
+            BUTTON_WIDTH * 2,
+            COLOR_YELLOW
+        );
         // Draw channel number:
         char channelText[2];
         sprintf(channelText, "%d", selectedNote + 1);

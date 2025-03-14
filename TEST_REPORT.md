@@ -6,15 +6,14 @@ These are observations done while testing Blipr with real hardware.
 
 --- Bugs:
 
-- "##" does not show with multiple steps with different values
+- Key repeat is repeating also on steps
 - Message is not clear when pasting notes "COPIED ALL NOTES"?
-- It still appears that something goes wrong when setting steps in the sequencer; other pages seem affected.
 - Roland SH-4d was not detected by Linux. Not sure if this is a Blipr problem, since `amidi -l` also didn't show it.
 - (still not working) Midi configuration with multiple device is not working properly. Was unable to set proper midi device for A. Cannot set to "None"
 - Got an error with invalid device Id (probably the Midi Through Port), blipr won't start
 - Steps are set on disabled tiles (takes not in account page length (possible also track length))
 - (requires re-testing) It appears that the note off is not properly send when changing the note tone
-- Key repeat is repeating also on steps
+- It still appears that something goes wrong when setting steps in the sequencer; other pages seem affected.
 
 --- Improvements:
 
@@ -32,6 +31,8 @@ These are observations done while testing Blipr with real hardware.
 - Panic button!
 - Shuffle and nudge should be on the same position in the menu
 - More quick velocity switches
+- Undo / Redo
+- Autosave / Backup
 
 --- Fixed
 
@@ -69,3 +70,4 @@ These are observations done while testing Blipr with real hardware.
 - Copy / Paste of ranges of notes
 - Save / Remember last note / velocity / etc. per track
 - Selected note is not "picked" (pipet tool)
+- "##" does not show with multiple steps with different values
