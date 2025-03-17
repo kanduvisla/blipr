@@ -389,7 +389,7 @@ void cleanupTextures() {
 /**
  * Draw a single character
  */
-void drawCharacter(int startX, int startY, char character, SDL_Color color) {
+void drawCharacter(int startX, int startY, const char character, SDL_Color color) {
     int charIndex;
 
     if (character >= 'A' && character <= 'Z') {

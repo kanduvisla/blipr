@@ -304,7 +304,6 @@ static void handleKey(
     struct Track *selectedTrack,
     SDL_Scancode key
 ) {
-    struct Note *note;
     for (int i=0; i<16; i++) {
         if (selectedSteps[i]) {
             // We need to apply this key input on this step, but only on the selected note
@@ -403,16 +402,13 @@ void updateSequencer(
                     } else
                     if (key == BLIPR_KEY_C) {
                         // Copy steps:
-                        int count = 0;
                         for (int i=0; i<16; i++) {
                             if (selectedSteps[i]) {
                                 clipBoard[i] = &track->steps[i + (track->selectedPage * 16)];
-                                count ++;
                             } else {
                                 clipBoard[i] = NULL;
                             }
                         }
-                        printLog("Copied %d steps to the clipboard");
                         // Clear selection after copying to clipboard:
                         resetSequencerSelectedStep();
                     } else
@@ -717,7 +713,6 @@ void setTriggText(int triggValue, char *text) {
         return;
     }
 
-    bool isTrigged = true;
     bool isInversed = get2FByteFlag2(triggValue);
     int value = get2FByteValue(triggValue);
 
@@ -1142,7 +1137,7 @@ void runSequencer(
     processPulse(&pulse, selectedTrack, isFirstPulseCallback, playNoteCallback);
 
     // Decrease note-off counters:
-    updateNotesAndSendOffs(outputStream, selectedTrack->midiChannel);
+    updateNotesAndSendOffs();
 }
 
 /**

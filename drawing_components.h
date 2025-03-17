@@ -46,7 +46,7 @@ void drawSingleNumber(int index);
 /**
  * Draw text on a button
  */
-void drawTextOnButton(int index, char* text);
+void drawTextOnButton(int index, const char* text);
 
 /**
  * Draw ABCD buttons

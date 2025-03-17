@@ -150,6 +150,6 @@ void initializeProject(struct Project* project);
 /**
  * Get polyphony count for a given track
  */
-int getPolyCount(struct Track* track);
+int getPolyCount(const struct Track* track);
 
 #endif

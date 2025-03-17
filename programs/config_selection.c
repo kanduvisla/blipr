@@ -106,7 +106,7 @@ void drawConfigSelection(struct Project *project) {
                         isSelected =  strcmp(project->midiDeviceDName, info->name) == 0;
                     }
                     int result = snprintf(line, sizeof(line), "%d:%s%s", y + 1, isSelected? "*" : " ", name);
-                    if (result < 0 || result >= sizeof(line)) {
+                    if (result < 0 || result >= (int)sizeof(line)) {
                         // Handle error: string was truncated or an error occurred
                         snprintf(line, sizeof(line), "%d:(ERROR)", y + 1);
                     }

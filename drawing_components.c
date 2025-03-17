@@ -230,7 +230,7 @@ void drawSingleNumber(int index) {
     );
 }
 
-void drawTextOnButton(int index, char* text) {
+void drawTextOnButton(int index, const char* text) {
     int width = HEIGHT / 6;
     int height = width;
 

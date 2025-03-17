@@ -189,5 +189,8 @@ void updateTrackOptions(struct Track* track, SDL_Scancode key) {
                 track->midiChannel = 0;
             }
             break;
+        default:
+            // Do nothing:
+            break;
     }
 }
