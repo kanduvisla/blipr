@@ -496,10 +496,8 @@ void updateSequencer(
     } else if(keyStates[BLIPR_KEY_SHIFT_2]) {
         // Shift 2 = page selector / note selector
         // ^2 + 1-16 = select page
-        // ^2 + A    = page bank 1-16  
-        // ^2 + B    = page bank 17-32
+        // ^2 + A-B  = page bank -/+
         // ^2 + C-D  = note / channel -/+
-
         int polyCount = getPolyCount(track);
 
         // 1-16 = select page
@@ -519,13 +517,20 @@ void updateSequencer(
             }
         } else {
             // Bottom buttons:
-            if (polyCount == 1) {
-                // There are 2 page banks
+            if (polyCount < 8) {
                 if (key == BLIPR_KEY_A) {
-                    isHighPageBankSelected = false;
+                    track->selectedPageBank = MAX(0, track->selectedPageBank - 1);
                 } if (key == BLIPR_KEY_B) {
-                    isHighPageBankSelected  = true;
+                    // polycount 8=1 page bank
+                    // polycount 4=2 page banks
+                    // polycount 2=4 page banks
+                    // polycount 1=8 page banks
+                    int totalPageBanks = 9 - polyCount;
+                    if (polyCount == 4) { totalPageBanks = 2; }
+                    if (polyCount == 2) { totalPageBanks = 4; }
+                    track->selectedPageBank = MIN(totalPageBanks - 1, track->selectedPageBank + 1);
                 }
+                isHighPageBankSelected = track->selectedPageBank >= 4;
             }
             if (key == BLIPR_KEY_C) { 
                 selectedNote = MAX(0, selectedNote - 1); 
@@ -542,7 +547,7 @@ void updateSequencer(
     } else if(key == BLIPR_KEY_D) {
         setSelectedPage(track, (track->selectedPageBank * 4) + 3);
     } else {
-        // Default stp pressed
+        // Default step pressed
         if (index >= 0) {
             // Toggle key
             int stepIndex = index + (track->selectedPage * 16);
@@ -1376,9 +1381,9 @@ void drawSequencerMain(
         // Note (for polyphony)
         char descriptions[4][4] = {"-", "-", "<", ">"};
         int polyCount = getPolyCount(selectedTrack);
-        if (polyCount == 1) {
-            sprintf(descriptions[0], "PB1");
-            sprintf(descriptions[1], "PB2");
+        if (polyCount < 8) {
+            sprintf(descriptions[0], "<");
+            sprintf(descriptions[1], ">");
         }
         drawABCDButtons(descriptions);
         // Draw page bank title:
@@ -1389,6 +1394,10 @@ void drawSequencerMain(
             BUTTON_WIDTH * 2,
             COLOR_YELLOW
         );
+        // Draw page bank number:
+        char pageBankText[2];
+        sprintf(pageBankText, "%d", selectedTrack->selectedPageBank + 1);
+        drawText(2 + 15, HEIGHT - BUTTON_HEIGHT + 2, pageBankText, BUTTON_WIDTH, COLOR_WHITE);
         // Draw channel title:
         drawCenteredLine(
             6 + (BUTTON_WIDTH * 2), 
