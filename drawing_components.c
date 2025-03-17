@@ -137,7 +137,7 @@ void drawBasicGrid(bool keyStates[SDL_NUM_SCANCODES]) {
     }
 }
 
-void drawABCDButtons(char descriptions[4][4]) {
+void drawABCDButtons(const char descriptions[4][4]) {
     int width = WIDTH / 6;
     int height = width / 2;
 
@@ -148,7 +148,7 @@ void drawABCDButtons(char descriptions[4][4]) {
     }
 }
 
-void drawABCDButtonsInColor(char descriptions[4][4], SDL_Color color) {
+void drawABCDButtonsInColor(const char descriptions[4][4], SDL_Color color) {
     int width = WIDTH / 6;
     int height = width / 2;
 

@@ -18,9 +18,10 @@ char midiDeviceToCharacter(int midiDevice) {
            return 'C';
         case BLIPR_MIDI_DEVICE_D:
            return 'D';
+        default:
+            // practically not possible
+            return ' ';
     }
-
-    return ' ';
 }
 
 void drawTrackOptions(struct Track* track) {
@@ -127,6 +128,9 @@ void handleKey(
             } else {
                 track->pageLength = MIN(15, track->pageLength + 1);
             }
+            break;
+        default:
+            // Do nothing
             break;
     }
 } 

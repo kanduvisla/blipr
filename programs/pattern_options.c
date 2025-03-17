@@ -62,5 +62,8 @@ void updatePatternOptions(struct Pattern* pattern, SDL_Scancode key) {
         case BLIPR_KEY_16:
             pattern->programD = MIN(127, pattern->programD + 1);
             break;
+        default:
+            // Do nothing, key is not used
+            break;
     }
 }

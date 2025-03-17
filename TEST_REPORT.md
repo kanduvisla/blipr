@@ -14,6 +14,7 @@ These are observations done while testing Blipr with real hardware.
 --- Improvements:
 
 - When no notes are selected cut/copy/paste = on notes/track/step
+- Page bank selection
 - Configuration: Midi PC representation needs to be represented +1 (1-16 instead of 0-15)
 - Missing page numbers / max pages
 - Missing transport / option to start / stop
@@ -30,6 +31,7 @@ These are observations done while testing Blipr with real hardware.
 - Undo / Redo
 - Autosave / Backup
 - Fix compiler warnings :-)
+- `use` consts on locations where properties are read-only
 
 --- Fixed
 
