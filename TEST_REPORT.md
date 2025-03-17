@@ -13,6 +13,8 @@ These are observations done while testing Blipr with real hardware.
 
 --- Improvements:
 
+- Set number of repeats for transitioning to next page / pattern
+- Queue patterns same as pages
 - When no notes are selected cut/copy/paste = on notes/track/step
 - Page bank selection
 - Configuration: Midi PC representation needs to be represented +1 (1-16 instead of 0-15)
@@ -27,7 +29,7 @@ These are observations done while testing Blipr with real hardware.
 - Thumbnail of track on track selection
 - Panic button!
 - Shuffle and nudge should be on the same position in the menu
-- More quick velocity switches
+- More quick velocity switches (with drumkit sequencer)
 - Undo / Redo
 - Autosave / Backup
 - Fix compiler warnings :-)

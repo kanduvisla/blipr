@@ -454,35 +454,6 @@ void updateSequencer(
                     }                    
                 }
             }
-
-            // this is one of the bottom buttons, change page bank, for poly 2 to 8, this is:
-            // A=page 1,2,3,4       (bank 0)
-            // B=page 5,6,7,8       (bank 1)
-            // C=page 9,10,11,12    (bank 2)
-            // D=page 13,14,15,16   (bank 3)
-            // for monophonic (512 steps = 32 pages, this is)
-            // A=page 1,2,3,4       / 5,6,7,8       (bank 0 & 4)
-            // B=page 9,10,11,12    / 13,14,15,16   (bank 1 & 5)
-            // C=page 17,18,19,20   / 21,22,23,24   (bank 2 & 6)
-            // D=page 25,26,27,28   / 29,30,31,32   (bank 3 & 7)
-            /*
-            int polyCount = getPolyCount(selectedTrack);
-
-            if (polyCount == 1) {
-                if (key == BLIPR_KEY_A) { selectedTrack->selectedPageBank == 0 ? 4 : 0; } else
-                if (key == BLIPR_KEY_B) { selectedTrack->selectedPageBank == 1 ? 5 : 1; } else
-                if (key == BLIPR_KEY_C) { selectedTrack->selectedPageBank == 2 ? 6 : 2; } else
-                if (key == BLIPR_KEY_D) { selectedTrack->selectedPageBank == 3 ? 7 : 3; }
-            } else {
-                // PolyCount 8 only allows pageBank 1
-                // PolyCount 4 only allows pageBank 1 & 2
-                // PolyCount 2 only allows pageBank 1, 2, 3 & 4
-                if (key == BLIPR_KEY_A) { selectedTrack->selectedPageBank = 0; } else
-                if (key == BLIPR_KEY_B && polyCount < 8) { selectedTrack->selectedPageBank = 1; } else
-                if (key == BLIPR_KEY_C && polyCount == 2) { selectedTrack->selectedPageBank = 2; } else
-                if (key == BLIPR_KEY_D && polyCount == 2) { selectedTrack->selectedPageBank = 3; }
-            }
-            */
         } else {
             // Note editor is visible, handle note editor keys:
             if (index >= 0) {
@@ -515,6 +486,8 @@ void updateSequencer(
             } else if (polyCount <= 2) {
                 track->selectedPageBank = isHighPageBankSelected ? 7 : 3;
             }
+            // Set selected page:
+            setSelectedPage(track, (index % 4) + (track->selectedPageBank * 4));
         } else {
             // Bottom buttons:
             if (polyCount < 8) {
