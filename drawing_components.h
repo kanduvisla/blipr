@@ -63,4 +63,9 @@ void drawABCDButtonsInColor(const char descriptions[4][4], SDL_Color color);
  */
 void drawIncreaseAndDecreaseButtons(int firstButtonIndex, const char *header, const char *text);
 
+/**
+ * Draw a rotating button (a button that updates it's value every time it's pressed)
+ */
+void drawRotatingButton(int index, const char *header, const char *value);
+
 #endif

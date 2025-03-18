@@ -101,6 +101,19 @@ void drawTrackOptions(struct Track* track) {
     drawCenteredLine(32, 67, "MC", BUTTON_WIDTH, COLOR_WHITE);
     drawTextOnButton(9, channelChar);
 
+    // Transition Repeats:
+    char transitionRepeatsText[4];
+    sprintf(transitionRepeatsText, "%d", track->transitionRepeats + 45);
+    drawIncreaseAndDecreaseButtons(10, "REPEATS", transitionRepeatsText);
+
+    // CC Assignments:
+    char ccAssignmentText1[4];
+    sprintf(ccAssignmentText1, "%d", track->cc1Assignment + 1);
+    drawIncreaseAndDecreaseButtons(12, "CC1.ASS", ccAssignmentText1);
+    char ccAssignmentText2[4];
+    sprintf(ccAssignmentText2, "%d", track->cc1Assignment + 1);
+    drawIncreaseAndDecreaseButtons(14, "CC2.ASS", ccAssignmentText2);
+
     // ABCD Buttons:
     char descriptions[4][4] = {"TRK", "OPT", "PRG", "PAT"};
     drawABCDButtons(descriptions);
@@ -189,6 +202,24 @@ void updateTrackOptions(struct Track* track, SDL_Scancode key) {
                 track->midiChannel = 0;
             }
             break;
+        case BLIPR_KEY_11:
+            track->transitionRepeats = MAX(0, track->transitionRepeats - 1);
+            break;
+        case BLIPR_KEY_12:
+            track->transitionRepeats = MIN(255, track->transitionRepeats + 1);
+            break;
+        case BLIPR_KEY_13:
+            track->cc1Assignment = MAX(0, track->cc1Assignment - 1);
+            break;
+        case BLIPR_KEY_14:
+            track->cc1Assignment = MIN(127, track->cc1Assignment + 1);
+            break;
+        case BLIPR_KEY_15:
+            track->cc2Assignment = MAX(0, track->cc2Assignment - 1);
+            break;
+        case BLIPR_KEY_16:
+            track->cc2Assignment = MIN(127, track->cc2Assignment + 1);
+            break;        
         default:
             // Do nothing:
             break;

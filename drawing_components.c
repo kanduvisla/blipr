@@ -271,3 +271,21 @@ void drawIncreaseAndDecreaseButtons(
         COLOR_WHITE
     );
 }
+
+/**
+ * Draw a rotating button (a button that updates it's value every time it's pressed)
+ */
+void drawRotatingButton(
+    int index,
+    const char *header,
+    const char *value
+) {
+    drawCenteredLine(
+        2 + (index % 4) + (BUTTON_WIDTH * (index % 4)), 
+        BUTTON_HEIGHT + 7 + (index / 4), 
+        header, 
+        BUTTON_WIDTH, 
+        COLOR_WHITE
+    );
+    drawTextOnButton(index, value);
+}

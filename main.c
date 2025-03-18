@@ -102,7 +102,11 @@ typedef struct {
     int programB;
     int programC;
     int programD;    
-    
+    int prevProgramA;                   // Previous Midi programs. Is used to detect changes
+    int prevProgramB;
+    int prevProgramC;
+    int prevProgramD;    
+
     BliprScreen screen;
     bool quit;
     int bpm;    // shortcut to BPM, only used for displaying
@@ -293,29 +297,31 @@ void* sequencerThread(void* arg) {
             printLog("change program A to %d", state->programA);
             sendProgramChange(outputStream[0], state->project->midiDevicePcChannelA, state->programA);
             pthread_mutex_lock(&state->mutex);
+            state->prevProgramA = state->programA;
             state->programA = 255;
             pthread_mutex_unlock(&state->mutex);
         } else if (state->programB != 255) {
             printLog("change program B to %d", state->programB);
             sendProgramChange(outputStream[1], state->project->midiDevicePcChannelB, state->programB);
             pthread_mutex_lock(&state->mutex);
+            state->prevProgramB = state->programB;
             state->programB = 255;
             pthread_mutex_unlock(&state->mutex);
         } else if (state->programC != 255) {
             printLog("change program C to %d", state->programC);
             sendProgramChange(outputStream[2], state->project->midiDevicePcChannelC, state->programC);
             pthread_mutex_lock(&state->mutex);
+            state->prevProgramC = state->programC;
             state->programC = 255;
             pthread_mutex_unlock(&state->mutex);
         } else if (state->programD != 255) {
             printLog("change program to %d", state->programD);
             sendProgramChange(outputStream[3], state->project->midiDevicePcChannelD, state->programD);
             pthread_mutex_lock(&state->mutex);
+            state->prevProgramD = state->programD;
             state->programD = 255;
             pthread_mutex_unlock(&state->mutex);
         }
-
-
 
         if (state->unprocessedPulses > 0) {
             // Do the work!
@@ -357,6 +363,9 @@ void* sequencerThread(void* arg) {
                         break;
                 }
             }
+
+            // Decrease note-off counters:
+            updateNotesAndSendOffs();
 
             // Check for render trigger (typically every step):
             if (state->ppqnCounter % PP16N == 0) {
@@ -435,10 +444,18 @@ void* keyThread(void* arg) {
                     state->track->repeatCount = 0;
                     // Trigger program change:
                     const struct Pattern *pattern = &state->project->sequences[state->selectedSequence].patterns[state->selectedPattern];
-                    state->programA = pattern->programA;
-                    state->programB = pattern->programB;
-                    state->programC = pattern->programC;
-                    state->programD = pattern->programD;
+                    if (pattern->programA != state->prevProgramA) {
+                        state->programA = pattern->programA;
+                    }
+                    if (pattern->programB != state->prevProgramB) {
+                        state->programB = pattern->programB;
+                    }
+                    if (pattern->programC != state->prevProgramC) {
+                        state->programC = pattern->programC;
+                    }
+                    if (pattern->programD != state->prevProgramD) {
+                        state->programD = pattern->programD;
+                    }
                     // Set proper BPM:
                     state->bpm = state->project->sequences[state->selectedSequence]
                         .patterns[state->selectedPattern].bpm + 45;

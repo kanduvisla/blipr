@@ -1135,9 +1135,6 @@ void runSequencer(
 
     // Process pulse
     processPulse(&pulse, selectedTrack, isFirstPulseCallback, playNoteCallback);
-
-    // Decrease note-off counters:
-    updateNotesAndSendOffs();
 }
 
 /**

@@ -6,6 +6,13 @@ These are observations done while testing Blipr with real hardware.
 
 --- Bugs:
 
+- Double speed does not seem to work good
+- Weird yellow X (probably "<" and ">" characters of pagebank)
+- Page bank shows -1 (probably wrong location of page bank nr)
+- (requires retesting) When more sequencer is used, it seems that note offs are triggered too soon (is note length taken globally instead of per note?)
+- Page indicator when page > 4
+- Page bank seems to show steps from different track?
+- (requires retesting) Rapidly pressing "Fn" seems to reset the PC / Pattern
 - Key repeat is repeating also on steps
 - Steps are set on disabled tiles (takes not in account page length (possible also track length))
 - (requires re-testing) It appears that the note off is not properly send when changing the note tone
@@ -14,6 +21,7 @@ These are observations done while testing Blipr with real hardware.
 --- Improvements:
 
 - Set number of repeats for transitioning to next page / pattern
+- Show theser repeats
 - Queue patterns same as pages
 - When no notes are selected cut/copy/paste = on notes/track/step
 - Page bank selection

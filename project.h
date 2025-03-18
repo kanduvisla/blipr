@@ -77,6 +77,7 @@ struct Track {
     unsigned char pagePlayMode;
     unsigned char speed;
     unsigned char shuffle;
+    unsigned char transitionRepeats;    // How many repeats before a transition kicks in?
     // Not saved, used internally:
     unsigned char selectedPage;
     unsigned char selectedPageBank;
