@@ -1047,7 +1047,7 @@ void isFirstPulseCallback() {
     if (tmpTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
         tmpTrack->repeatCount += 1;
     } else {
-        if (tmpTrack->selectedPage != tmpTrack->queuedPage) {
+        if (tmpTrack->selectedPage != tmpTrack->queuedPage && tmpTrack->repeatCount % (tmpTrack->transitionRepeats + 1) == 0) {
             tmpTrack->selectedPage = tmpTrack->queuedPage;
             // Reset repeat count, since we're switching pages:
             tmpTrack->repeatCount = 0;
@@ -1061,6 +1061,14 @@ void isFirstPulseCallback() {
  * Callback when a note is played
  */
 void playNoteCallback(const struct Note *note) {
+    // Send CC:
+    if (note->cc1Value > 0) {
+        sendMidiMessage(tmpStream, tmpTrack->midiChannel | 0xB0, tmpTrack->cc1Assignment, note->cc1Value - 1);
+    }
+    if (note->cc2Value > 0) {
+        sendMidiMessage(tmpStream, tmpTrack->midiChannel | 0xB0, tmpTrack->cc2Assignment, note->cc2Value - 1);
+    }
+
     sendMidiNoteOn(tmpStream, tmpTrack->midiChannel, note->note, note->velocity);
     addNoteToTracker(tmpStream, tmpTrack->midiChannel, note);
 }
@@ -1520,7 +1528,11 @@ void drawStepEditor(struct Track *track) {
     drawCenteredLine(2, 97, "CC1 VALUE", BUTTON_WIDTH * 2, COLOR_WHITE);
     char cc1Value[4];
     if (areAllStepPropertiesTheSame[PROPERTY_CC1]) {
-        snprintf(cc1Value, sizeof(cc1Value), "%d", note->cc1Value);
+        if (note->cc1Value == 0) {
+            snprintf(cc1Value, sizeof(cc1Value), "OFF");
+        } else {
+            snprintf(cc1Value, sizeof(cc1Value), "%d", note->cc1Value - 1);
+        }
     } else {
         sprintf(cc1Value, "##");
     }
@@ -1532,7 +1544,11 @@ void drawStepEditor(struct Track *track) {
     drawCenteredLine(62, 97, "CC2 VALUE", BUTTON_WIDTH * 2, COLOR_WHITE);
     char cc2Value[4];
     if (areAllStepPropertiesTheSame[PROPERTY_CC2]) {
-        snprintf(cc2Value, sizeof(cc2Value), "%d", note->cc2Value);
+        if (note->cc2Value == 0) {
+            snprintf(cc2Value, sizeof(cc2Value), "OFF");
+        } else {
+            snprintf(cc2Value, sizeof(cc2Value), "%d", note->cc2Value);
+        }        
     } else {
         sprintf(cc2Value, "##");
     }

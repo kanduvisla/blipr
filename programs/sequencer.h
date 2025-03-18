@@ -87,6 +87,7 @@
 #define TRIG_LOWER_TRANSITION_PAGE 54  // When transitioning to a lower page
 #define TRIG_FIRST_PAGE_PLAY 55         // Trigged when the page is played the 1st time (does not re-trig when the page is played a second time when coming back from another page)
 #define TRIG_FIRST_PATTERN_PLAY 56      // Trigged when the pattern is played the 1st time (does not re-trig when the pattern is played a second time when coming back from another pattern)
+#define TRIG_TRANSITION_LAST_PAGE 57     // When transitioning to another page and the last repeat of transition repeats is played
 
 #define TRIG_HIGHEST_VALUE 56         // Used internally for decision making, make sure to change this if you add new trigg conditions
 

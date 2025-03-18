@@ -20,8 +20,9 @@ These are observations done while testing Blipr with real hardware.
 
 --- Improvements:
 
-- Set number of repeats for transitioning to next page / pattern
-- Show theser repeats
+- (requires testing) Set number of repeats for transitioning to next page
+- Set number of repeats for transitioning to next page
+- Show these transition repeats
 - Queue patterns same as pages
 - When no notes are selected cut/copy/paste = on notes/track/step
 - Page bank selection
@@ -42,6 +43,7 @@ These are observations done while testing Blipr with real hardware.
 - Autosave / Backup
 - Fix compiler warnings :-)
 - `use` consts on locations where properties are read-only
+- Replace `sprintf` with `snprintf`
 
 --- Fixed
 
