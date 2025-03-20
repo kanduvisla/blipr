@@ -14,6 +14,11 @@ void drawBPMBlinker(uint64_t *ppqnCounter);
 void drawSideBar();
 
 /**
+ * Sidebar template
+ */
+void drawSidebarTemplate(int y, const char *text);
+
+/**
  * Draw the current track indicator
  */
 void drawCurrentTrackIndicator(int sequenceNr, int patternNr, int trackNr);

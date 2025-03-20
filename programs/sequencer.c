@@ -1173,6 +1173,37 @@ void drawPageIndicator(const struct Track *track, int playingPage)
 }
 
 /**
+ * Draw the template note
+ */
+void drawTemplateNote() {
+    // drawRect(SIDEBAR_OFFSET + 1, 27, SIDEBAR_WIDTH - 2, (CHAR_HEIGHT * 8) + 8, COLOR_BLACK);
+    drawRect(SIDEBAR_OFFSET + 1, 27, SIDEBAR_WIDTH - 2, CHAR_HEIGHT + 2, COLOR_BLACK);
+    drawText(SIDEBAR_OFFSET + 1, 28, "TEMPLATE", 20, COLOR_ORANGE);
+    char text[8];
+    drawSidebarTemplate(34, "NOT");
+    char *midiNote = getMidiNoteName(templateNote.note);
+    drawText(SIDEBAR_OFFSET + 24, 35, midiNote, 20, COLOR_ORANGE);
+    drawSidebarTemplate(40, "VEL");
+    sprintf(text, "%d", templateNote.velocity);
+    drawText(SIDEBAR_OFFSET + 24, 41, text, 18, COLOR_ORANGE);
+    drawSidebarTemplate(46, "LEN");
+    sprintf(text, "%d", templateNote.length);
+    drawText(SIDEBAR_OFFSET + 24, 47, text, 18, COLOR_ORANGE);
+    drawSidebarTemplate(52, "NDG");
+    sprintf(text, "%d", templateNote.nudge - PP16N);
+    drawText(SIDEBAR_OFFSET + 24, 53, text, 18, COLOR_ORANGE);
+    drawSidebarTemplate(58, "TRG");
+    setTriggText(templateNote.trigg, text);
+    drawText(SIDEBAR_OFFSET + 24, 59, text, 18, COLOR_ORANGE);
+    drawSidebarTemplate(64, "CC1");
+    sprintf(text, "%d", templateNote.cc1Value);
+    drawText(SIDEBAR_OFFSET + 24, 65, text, 18, COLOR_ORANGE);
+    drawSidebarTemplate(70, "CC2");
+    sprintf(text, "%d", templateNote.cc2Value);
+    drawText(SIDEBAR_OFFSET + 24, 71, text, 18, COLOR_ORANGE);
+}
+
+/**
  * Draw the sequencer
  */
 void drawSequencerMain(
@@ -1342,7 +1373,7 @@ void drawSequencerMain(
     }   
 
     // Draw template Note details:
-    
+    drawTemplateNote();
 
     // ABCD Buttons:
     if (keyStates[BLIPR_KEY_SHIFT_1]) {

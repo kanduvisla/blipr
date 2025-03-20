@@ -67,12 +67,19 @@ void drawCurrentTrackIndicator(int sequenceNr, int patternNr, int trackNr) {
 }
 
 /**
+ * Sidebar template
+ */
+void drawSidebarTemplate(int y, const char *text) {
+    drawRect(SIDEBAR_OFFSET + 1, y, SIDEBAR_WIDTH - 2, CHAR_HEIGHT + 2, COLOR_BLACK);
+    drawText(SIDEBAR_OFFSET + 2, y + 1, text, 20, COLOR_RED);
+    drawText(SIDEBAR_OFFSET + 19, y + 1, ":", 11, COLOR_RED);
+}
+
+/**
  * Draw the BPM indicator
  */
 void drawBPMIndiciator(int bpm) {
-    drawRect(SIDEBAR_OFFSET + 1, 11, SIDEBAR_WIDTH - 2, CHAR_HEIGHT + 2, COLOR_BLACK);
-    drawText(SIDEBAR_OFFSET + 2, 12, "BPM", 20, COLOR_RED);
-    drawText(SIDEBAR_OFFSET + 19, 12, ":", 11, COLOR_RED);
+    drawSidebarTemplate(11, "BPM");
     char text[4];
     sprintf(text, "%d", bpm);
     drawText(SIDEBAR_OFFSET + 24, 12, text, 20, COLOR_ORANGE);
@@ -82,9 +89,7 @@ void drawBPMIndiciator(int bpm) {
  * Draw pattern length indicator
  */
 void drawPatternLengthIndicator(int current, int total) {
-    drawRect(SIDEBAR_OFFSET + 1, 19, SIDEBAR_WIDTH - 2, CHAR_HEIGHT + 2, COLOR_BLACK);
-    drawText(SIDEBAR_OFFSET + 2, 20, "LEN", 20, COLOR_RED);
-    drawText(SIDEBAR_OFFSET + 19, 20, ":", 11, COLOR_RED);
+    drawSidebarTemplate(19, "LEN");
     char text[8];
     sprintf(text, "%d/%d", current + 1, total + 1);
     float p = (float)current / (float)total;
