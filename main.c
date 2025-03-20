@@ -361,11 +361,13 @@ void* sequencerThread(void* arg) {
                     // This is the moment to switch from the queued pattern to the selected pattern
                     if (state->selectedPattern != state->queuedPattern) {
                         state->selectedPattern = state->queuedPattern;
-                        // Set proper track + reset repeat count
+                        // Set proper track + reset repeat count for all track:
                         state->track = &state->project->sequences[state->selectedSequence]
                             .patterns[state->selectedPattern]
                             .tracks[state->selectedTrack];
-                        state->track->repeatCount = 0;
+                        for (int i=0; i<16; i++) {
+                            state->project->sequences[state->selectedSequence].patterns[state->selectedPattern].tracks[i].repeatCount = 0;
+                        }
                         // Trigger program change:
                         const struct Pattern *pattern = &state->project->sequences[state->selectedSequence].patterns[state->selectedPattern];
                         if (pattern->programA != state->prevProgramA) {
