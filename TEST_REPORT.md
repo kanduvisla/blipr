@@ -6,11 +6,10 @@ These are observations done while testing Blipr with real hardware.
 
 --- Bugs:
 
+- Cannot set midi device for slot B, C and D (need to review configuration layout)
 - Double speed does not seem to work good
 - Weird yellow X (probably "<" and ">" characters of pagebank)
-- (requires retesting) When more sequencer is used, it seems that note offs are triggered too soon (is note length taken globally instead of per note?)
 - Page bank seems to show steps from different track?
-- (requires retesting) Rapidly pressing "Fn" seems to reset the PC / Pattern
 - Key repeat is repeating also on steps
 - Steps are set on disabled tiles (takes not in account page length (possible also track length))
 - (requires re-testing) It appears that the note off is not properly send when changing the note tone
@@ -19,7 +18,6 @@ These are observations done while testing Blipr with real hardware.
 --- Improvements:
 
 - When no notes are selected cut/copy/paste = on notes/track/step
-- Configuration: Midi PC representation needs to be represented +1 (1-16 instead of 0-15)
 - Missing transport / option to start / stop
 - When track has no program, shift 3 should start on program selection
 - Mute Track
@@ -82,6 +80,12 @@ These are observations done while testing Blipr with real hardware.
 - Queue patterns same as pages
 - Missing page numbers / max pages
 - Show default note, length + velocity in sidebar
+- Configuration: Midi PC representation needs to be represented +1 (1-16 instead of 0-15)
+- Note length is now too long
+- Midi CC channel can the same as device (1 = 1, don't +1 them)
+- Show queued pattern when selecting
+- When more sequencer is used, it seems that note offs are triggered too soon (is note length taken globally instead of per note?)
+- Rapidly pressing "Fn" seems to reset the PC / Pattern
 
 -- Won't fix / not related:
 

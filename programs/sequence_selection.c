@@ -20,7 +20,7 @@ void updateSequenceSelection(int *selectedSequence, SDL_Scancode key) {
 /**
  * Draw the sequence selection
  */
-void drawSequenceSelection(int *selectedSequence) {
+void drawSequenceSelection(const int *selectedSequence) {
     drawBasicNumbers();
     drawHighlightedGridTile(*selectedSequence);
 

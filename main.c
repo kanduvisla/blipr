@@ -734,7 +734,7 @@ int main(int argc, char *argv[]) {
                     drawTrackSelection(&state.selectedTrack);    
                     break;
                 case BLIPR_SCREEN_PATTERN_SELECTION:
-                    drawPatternSelection(&state.selectedPattern);
+                    drawPatternSelection(&state.selectedPattern, &state.queuedPattern);
                     break;
                 case BLIPR_SCREEN_SEQUENCE_SELECTION:
                     drawSequenceSelection(&state.selectedSequence);

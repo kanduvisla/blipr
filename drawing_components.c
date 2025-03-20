@@ -177,7 +177,7 @@ void drawABCDButtonsInColor(const char descriptions[4][4], SDL_Color color) {
     }
 }
 
-void drawHighlightedGridTile(int tileIndex) {
+void drawHighlightedGridTileInColor(int tileIndex, SDL_Color color) {
     int width = HEIGHT / 6;
     int height = width;
 
@@ -190,7 +190,7 @@ void drawHighlightedGridTile(int tileIndex) {
             2 + y + (y * height),
             width,
             height,
-            COLOR_WHITE
+            color
         );
     } else {
         // Bottom buttons:
@@ -200,9 +200,13 @@ void drawHighlightedGridTile(int tileIndex) {
             (HEIGHT - 7 - (height * 2)) + y + ((y-4) * height),
             width,
             height,
-            COLOR_WHITE
+            color
         );
     }
+}
+
+void drawHighlightedGridTile(int tileIndex) {
+    drawHighlightedGridTileInColor(tileIndex, COLOR_WHITE);
 }
 
 void drawBasicNumbers() {

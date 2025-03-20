@@ -51,6 +51,7 @@ void openMidiOutput(int deviceId, PmStream **outputStream) {
 }
 
 void sendMidiMessage(PmStream *outputStream, int status, int data1, int data2) {
+    printLog("MIDI: 0x%X 0x%X 0x%X", status, data1, data2);
     if (outputStream == NULL) {
         // Failsafe to prevent crashing
         return;
@@ -133,7 +134,7 @@ void addNoteToTracker(PmStream* outputStream, int midiChannel, const struct Note
             activeNotes[i].note = *note;
             activeNotes[i].outputStream = outputStream;
             activeNotes[i].midiChannel = midiChannel;
-            activeNotes[i].counter = MAX(1, note->length) * 6;  // TODO: Make a proper calculation for length here.
+            activeNotes[i].counter = MAX(1, note->length);  // TODO: Make a proper calculation for length here.
             activeNotes[i].active = true;
             break;
         }

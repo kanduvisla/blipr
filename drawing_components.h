@@ -39,6 +39,11 @@ void drawPatternLengthIndicator(int current, int total);
 void drawBasicGrid(bool keyStates[SDL_NUM_SCANCODES]);
 
 /**
+ * Draw a hightlighted grid tile in a given color (zero-based index)
+ */
+void drawHighlightedGridTileInColor(int tileIndex, SDL_Color color);
+
+/**
  * Draw a hightlighted grid tile (zero-based index)
  */
 void drawHighlightedGridTile(int tileIndex);
