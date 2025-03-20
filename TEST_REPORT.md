@@ -8,9 +8,7 @@ These are observations done while testing Blipr with real hardware.
 
 - Double speed does not seem to work good
 - Weird yellow X (probably "<" and ">" characters of pagebank)
-- Page bank shows -1 (probably wrong location of page bank nr)
 - (requires retesting) When more sequencer is used, it seems that note offs are triggered too soon (is note length taken globally instead of per note?)
-- Page indicator when page > 4
 - Page bank seems to show steps from different track?
 - (requires retesting) Rapidly pressing "Fn" seems to reset the PC / Pattern
 - Key repeat is repeating also on steps
@@ -83,6 +81,8 @@ These are observations done while testing Blipr with real hardware.
 - Selected note is not "picked" (pipet tool)
 - "##" does not show with multiple steps with different values
 - Message is not clear when pasting notes "COPIED ALL NOTES"?
+- Page bank shows -1 (probably wrong location of page bank nr)
+- Page indicator when page > 4
 
 -- Won't fix / not related:
 

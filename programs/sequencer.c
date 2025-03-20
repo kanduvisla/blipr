@@ -356,6 +356,21 @@ void sanitizeSelection(int indexPressed) {
 }
 
 /**
+ * Get the maximum number of page banks
+ */
+int getMaxPageBanks(const struct Track *track) {
+    int polyCount = getPolyCount(track);
+    // polycount 8=1 page bank
+    // polycount 4=2 page banks
+    // polycount 2=4 page banks
+    // polycount 1=8 page banks
+    int totalPageBanks = 9 - polyCount; // 1 or 8
+    if (polyCount == 4) { totalPageBanks = 2; }
+    if (polyCount == 2) { totalPageBanks = 4; }
+    return totalPageBanks;
+}
+
+/**
  * Update the sequencer according to user input
  */
 void updateSequencer(
@@ -490,13 +505,7 @@ void updateSequencer(
                 if (key == BLIPR_KEY_A) {
                     track->selectedPageBank = MAX(0, track->selectedPageBank - 1);
                 } if (key == BLIPR_KEY_B) {
-                    // polycount 8=1 page bank
-                    // polycount 4=2 page banks
-                    // polycount 2=4 page banks
-                    // polycount 1=8 page banks
-                    int totalPageBanks = 9 - polyCount;
-                    if (polyCount == 4) { totalPageBanks = 2; }
-                    if (polyCount == 2) { totalPageBanks = 4; }
+                    int totalPageBanks = getMaxPageBanks(track);
                     track->selectedPageBank = MIN(totalPageBanks - 1, track->selectedPageBank + 1);
                 }
                 isHighPageBankSelected = track->selectedPageBank >= 4;
@@ -1047,7 +1056,7 @@ void isFirstPulseCallback() {
     if (tmpTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
         tmpTrack->repeatCount += 1;
     } else {
-        if (tmpTrack->selectedPage != tmpTrack->queuedPage && tmpTrack->repeatCount % (tmpTrack->transitionRepeats + 1) == 0) {
+        if (tmpTrack->selectedPage != tmpTrack->queuedPage && (tmpTrack->repeatCount + 1) % (tmpTrack->transitionRepeats + 1) == 0) {
             tmpTrack->selectedPage = tmpTrack->queuedPage;
             // Reset repeat count, since we're switching pages:
             tmpTrack->repeatCount = 0;
@@ -1146,6 +1155,24 @@ void runSequencer(
 }
 
 /**
+ * Draw the page indicator
+ */
+void drawPageIndicator(const struct Track *track, int playingPage) 
+{
+    char *bottomText[64];
+    int totalPageBanks = getMaxPageBanks(track);
+    sprintf(
+        bottomText, 
+        "PAGE %d/%d - REP %d/%d", 
+        playingPage + 1, 
+        totalPageBanks * 4,
+        (track->repeatCount % (track->transitionRepeats + 1)) + 1,
+        track->transitionRepeats + 1
+    );
+    drawCenteredLine(2, HEIGHT - BUTTON_HEIGHT - 12, bottomText, BUTTON_WIDTH * 4, COLOR_YELLOW);
+}
+
+/**
  * Draw the sequencer
  */
 void drawSequencerMain(
@@ -1187,31 +1214,28 @@ void drawSequencerMain(
         );
     }
 
-    // Show cut & copy information:
-    char *bottomText[64];
-    if (cutCounter == 1) {
-        sprintf(bottomText, "CUTTED 1 NOTE");
-    } else if (cutCounter > 1) {
-        sprintf(bottomText, "CUTTED ALL NOTES");
-    }
-
-    if (copyCounter == 1) {
-        sprintf(bottomText, "PASTED 1 NOTE");
-    } else if (copyCounter > 1) {
-        sprintf(bottomText, "PASTED ALL NOTES");
-    }
-    drawCenteredLine(2, HEIGHT - BUTTON_HEIGHT - 12, bottomText, BUTTON_WIDTH * 4, COLOR_YELLOW);
-
     // Highlight playing page:
-    drawLine(
-        2 + playingPage + (playingPage * BUTTON_WIDTH),
-        HEIGHT - BUTTON_HEIGHT - 5,
-        2 + playingPage + ((playingPage + 1) * BUTTON_WIDTH) - 1,
-        HEIGHT - BUTTON_HEIGHT - 5,
-        COLOR_RED
-    );
-
     int polyCount = getPolyCount(selectedTrack);
+
+    // Show cut & copy information:
+    if (cutCounter > 0 || copyCounter > 0) {
+        char *bottomText[64];
+        if (cutCounter == 1) {
+            sprintf(bottomText, "CUTTED 1 NOTE");
+        } else if (cutCounter > 1) {
+            sprintf(bottomText, "CUTTED ALL NOTES");
+        }
+
+        if (copyCounter == 1) {
+            sprintf(bottomText, "PASTED 1 NOTE");
+        } else if (copyCounter > 1) {
+            sprintf(bottomText, "PASTED ALL NOTES");
+        }
+        drawCenteredLine(2, HEIGHT - BUTTON_HEIGHT - 12, bottomText, BUTTON_WIDTH * 4, COLOR_YELLOW);
+    } else {
+        drawPageIndicator(selectedTrack, playingPage);
+    }
+
     int noteIndicatorOffset = 12 - polyCount;
 
     // Highlight non-empty steps:
@@ -1329,27 +1353,6 @@ void drawSequencerMain(
         } else {
             drawABCDButtonsInColor(descriptions, COLOR_LIGHT_GRAY);
         }
-
-        /*
-        // Show page bank numbers:
-        int polyCount = getPolyCount(selectedTrack);
-        if (polyCount == 1) {
-            char descriptions[4][4] = {"1/5", "2/6", "3/7", "4/8"};
-            drawABCDButtons(descriptions);
-        } else if (polyCount == 2) {
-            char descriptions[4][4] = {"1", "2", "3", "4"};
-            drawABCDButtons(descriptions);    
-        } else if (polyCount == 4) {
-            char descriptions[4][4] = {"1", "2", "-", "-"};
-            drawABCDButtons(descriptions);    
-        } else {
-            // 8 poly only has 1 page bank
-            char descriptions[4][4] = {"1", "-", "-", "-"};
-            drawABCDButtons(descriptions);    
-        }
-        // Draw highlighted page banke:
-        drawHighlightedGridTile((selectedTrack->selectedPageBank % 4) + 16);
-        */
     } else if (keyStates[BLIPR_KEY_SHIFT_2]) {
         // Note (for polyphony)
         char descriptions[4][4] = {"-", "-", "<", ">"};
@@ -1370,7 +1373,7 @@ void drawSequencerMain(
         // Draw page bank number:
         char pageBankText[2];
         sprintf(pageBankText, "%d", selectedTrack->selectedPageBank + 1);
-        drawText(2 + 15, HEIGHT - BUTTON_HEIGHT + 2, pageBankText, BUTTON_WIDTH, COLOR_WHITE);
+        drawText(2 + 28, HEIGHT - BUTTON_HEIGHT + 2, pageBankText, BUTTON_WIDTH, COLOR_WHITE);
         // Draw channel title:
         drawCenteredLine(
             6 + (BUTTON_WIDTH * 2), 

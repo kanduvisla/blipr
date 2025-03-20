@@ -103,7 +103,7 @@ void drawTrackOptions(struct Track* track) {
 
     // Transition Repeats:
     char transitionRepeatsText[4];
-    sprintf(transitionRepeatsText, "%d", track->transitionRepeats + 45);
+    sprintf(transitionRepeatsText, "%d", track->transitionRepeats + 1);
     drawIncreaseAndDecreaseButtons(10, "REPEATS", transitionRepeatsText);
 
     // CC Assignments:
