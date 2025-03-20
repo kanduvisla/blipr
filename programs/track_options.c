@@ -111,7 +111,7 @@ void drawTrackOptions(struct Track* track) {
     sprintf(ccAssignmentText1, "%d", track->cc1Assignment + 1);
     drawIncreaseAndDecreaseButtons(12, "CC1.ASS", ccAssignmentText1);
     char ccAssignmentText2[4];
-    sprintf(ccAssignmentText2, "%d", track->cc1Assignment + 1);
+    sprintf(ccAssignmentText2, "%d", track->cc2Assignment + 1);
     drawIncreaseAndDecreaseButtons(14, "CC2.ASS", ccAssignmentText2);
 
     // ABCD Buttons:

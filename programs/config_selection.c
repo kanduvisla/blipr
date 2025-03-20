@@ -30,13 +30,13 @@ void drawConfigSelection(struct Project *project) {
 
         // MIDI PC channel settings:
         char ch[4];
-        sprintf(ch, "%d", project->midiDevicePcChannelA);
+        sprintf(ch, "%d", project->midiDevicePcChannelA + 1);
         drawRotatingButton(4, "PC.A", ch);
-        sprintf(ch, "%d", project->midiDevicePcChannelB);
+        sprintf(ch, "%d", project->midiDevicePcChannelB + 1);
         drawRotatingButton(5, "PC.B", ch);
-        sprintf(ch, "%d", project->midiDevicePcChannelC);
+        sprintf(ch, "%d", project->midiDevicePcChannelC + 1);
         drawRotatingButton(6, "PC.C", ch);
-        sprintf(ch, "%d", project->midiDevicePcChannelD);
+        sprintf(ch, "%d", project->midiDevicePcChannelD + 1);
         drawRotatingButton(7, "PC.D", ch);
 
         // Quit:

@@ -20,13 +20,13 @@ void drawPatternOptions(struct Pattern* pattern) {
     
     // Program (PC)
     char prog[6];
-    sprintf(prog, "%d:%d", (pattern->programA >> 4) & 0x0F, pattern->programA & 0x0F);
+    sprintf(prog, "%d:%d", ((pattern->programA >> 4) & 0x0F) + 1, (pattern->programA & 0x0F) + 1);
     drawIncreaseAndDecreaseButtons(8, "PROG.A", prog);
-    sprintf(prog, "%d:%d", (pattern->programB >> 4) & 0x0F, pattern->programB & 0x0F);
+    sprintf(prog, "%d:%d", ((pattern->programB >> 4) & 0x0F) + 1, (pattern->programB & 0x0F) + 1);
     drawIncreaseAndDecreaseButtons(10, "PROG.B", prog);
-    sprintf(prog, "%d:%d", (pattern->programC >> 4) & 0x0F, pattern->programC & 0x0F);
+    sprintf(prog, "%d:%d", ((pattern->programC >> 4) & 0x0F) + 1, (pattern->programC & 0x0F) + 1);
     drawIncreaseAndDecreaseButtons(12, "PROG.C", prog);
-    sprintf(prog, "%d:%d", (pattern->programD >> 4) & 0x0F, pattern->programD & 0x0F);
+    sprintf(prog, "%d:%d", ((pattern->programD >> 4) & 0x0F) + 1, (pattern->programD & 0x0F) + 1);
     drawIncreaseAndDecreaseButtons(14, "PROG.D", prog);
 
     // ABCD Buttons:

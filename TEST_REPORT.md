@@ -22,7 +22,6 @@ These are observations done while testing Blipr with real hardware.
 - Configuration: Midi PC representation needs to be represented +1 (1-16 instead of 0-15)
 - Missing transport / option to start / stop
 - When track has no program, shift 3 should start on program selection
-- Show default note, length + velocity in sidebar
 - Mute Track
 - Solo Track
 - Utilities (clear track)
@@ -82,6 +81,7 @@ These are observations done while testing Blipr with real hardware.
 - Page bank selection
 - Queue patterns same as pages
 - Missing page numbers / max pages
+- Show default note, length + velocity in sidebar
 
 -- Won't fix / not related:
 

@@ -272,9 +272,10 @@ void drawIncreaseAndDecreaseButtons(
     const char *header,
     const char *text
 ) {
+    int y = (firstButtonIndex / 4);
     drawCenteredLine(
         2 + (BUTTON_WIDTH * (firstButtonIndex % 4)) + (firstButtonIndex % 4), 
-        5 + (BUTTON_HEIGHT * (firstButtonIndex / 4)) + (firstButtonIndex % 4), 
+        5 + (BUTTON_HEIGHT * (firstButtonIndex / 4)) + (firstButtonIndex / 4), 
         header, 
         BUTTON_WIDTH * 2, 
         COLOR_WHITE
@@ -283,7 +284,7 @@ void drawIncreaseAndDecreaseButtons(
     drawTextOnButton(firstButtonIndex + 1, ">");
     drawCenteredLine(
         2 + (BUTTON_WIDTH * (firstButtonIndex % 4)) + (firstButtonIndex % 4), 
-        14 + (BUTTON_HEIGHT * (firstButtonIndex / 4)) + (firstButtonIndex % 4), 
+        14 + (BUTTON_HEIGHT * (firstButtonIndex / 4)) + (firstButtonIndex / 4),
         text, 
         BUTTON_WIDTH * 2, 
         COLOR_WHITE

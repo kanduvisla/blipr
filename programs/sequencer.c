@@ -463,6 +463,9 @@ void updateSequencer(
                         copyCounter ++;
                         // No resetSequencerSelectedStep(), because paste can be done twice
                     }                    
+                } else {
+                    // #TODO No steps selected,
+                    // cut, copy paste applies to whole track
                 }
             }
         } else {
@@ -1379,11 +1382,11 @@ void drawSequencerMain(
     if (keyStates[BLIPR_KEY_SHIFT_1]) {
         // Show utilities:
         char descriptions[4][4] = {"OPT", "CUT", "CPY", "PST"};        
-        if (isStepsSelected()) {
-            drawABCDButtons(descriptions);
-        } else {
-            drawABCDButtonsInColor(descriptions, COLOR_LIGHT_GRAY);
-        }
+        // if (isStepsSelected()) {
+        drawABCDButtons(descriptions);
+        // } else {
+        //     drawABCDButtonsInColor(descriptions, COLOR_LIGHT_GRAY);
+        // }
     } else if (keyStates[BLIPR_KEY_SHIFT_2]) {
         // Note (for polyphony)
         char descriptions[4][4] = {"-", "-", "<", ">"};
