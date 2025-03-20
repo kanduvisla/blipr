@@ -20,7 +20,6 @@ These are observations done while testing Blipr with real hardware.
 
 - When no notes are selected cut/copy/paste = on notes/track/step
 - Configuration: Midi PC representation needs to be represented +1 (1-16 instead of 0-15)
-- Missing page numbers / max pages
 - Missing transport / option to start / stop
 - When track has no program, shift 3 should start on program selection
 - Show default note, length + velocity in sidebar
@@ -82,6 +81,7 @@ These are observations done while testing Blipr with real hardware.
 - Show these transition repeats
 - Page bank selection
 - Queue patterns same as pages
+- Missing page numbers / max pages
 
 -- Won't fix / not related:
 

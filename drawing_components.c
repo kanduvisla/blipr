@@ -79,6 +79,19 @@ void drawBPMIndiciator(int bpm) {
 }
 
 /**
+ * Draw pattern length indicator
+ */
+void drawPatternLengthIndicator(int current, int total) {
+    drawRect(SIDEBAR_OFFSET + 1, 19, SIDEBAR_WIDTH - 2, CHAR_HEIGHT + 2, COLOR_BLACK);
+    drawText(SIDEBAR_OFFSET + 2, 20, "LEN", 20, COLOR_RED);
+    drawText(SIDEBAR_OFFSET + 19, 20, ":", 11, COLOR_RED);
+    char text[8];
+    sprintf(text, "%d/%d", current + 1, total + 1);
+    float p = (float)current / (float)total;
+    drawRect(SIDEBAR_OFFSET + 24, 20, (SIDEBAR_WIDTH - 26) * p, 5, COLOR_RED);
+}
+
+/**
  * Draw a basic 4x6 grid
  */
 void drawBasicGrid(bool keyStates[SDL_NUM_SCANCODES]) {

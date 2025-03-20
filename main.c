@@ -720,6 +720,10 @@ int main(int argc, char *argv[]) {
                 state.selectedTrack + 1
             );
             drawBPMIndiciator(state.bpm);
+            drawPatternLengthIndicator(
+                state.patternStepCounter, 
+                state.project->sequences[state.selectedSequence].patterns[state.selectedPattern].length
+            );
 
             // Basic Grid:
             drawBasicGrid(state.keyStates);
