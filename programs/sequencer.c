@@ -175,14 +175,14 @@ void resetTemplateNote() {
 /**
  * Toggle a step
  */
-void toggleStep(struct Step *step) {
-    step->notes[selectedNote].enabled = !step->notes[selectedNote].enabled;
+void toggleStep(struct Step *step, int noteIndex) {
+    step->notes[noteIndex].enabled = !step->notes[noteIndex].enabled;
     // Set default values:
-    if (step->notes[selectedNote].enabled) {
+    if (step->notes[noteIndex].enabled) {
         // Use template note
-        copyNote(&templateNote, &step->notes[selectedNote]);
+        copyNote(&templateNote, &step->notes[noteIndex]);
         // Reset enabled state, because template note might be a disabled note :-/
-        step->notes[selectedNote].enabled = true;
+        step->notes[noteIndex].enabled = true;
     }
 }
 
@@ -531,8 +531,25 @@ void updateSequencer(
         // Default step pressed
         if (index >= 0) {
             // Toggle key
+            int polyCount = getPolyCount(track);
             int stepIndex = index + (track->selectedPage * 16);
-            toggleStep(&track->steps[stepIndex]);
+            toggleStep(&track->steps[stepIndex], (track->selectedPageBank * 4) + selectedNote);
+            // switch (polyCount) {
+            //     case 8:
+            //         // Default behaviour; selected note = selected note
+            //         toggleStep(&track->steps[stepIndex], selectedNote);
+            //         break;
+            //     case 4:
+            //         // Default behaviour; selected note = selected note
+            //         break;
+            //     case 2:
+
+            //         break;
+            //     case 1:
+            //     default:
+            //         // Failsafe
+            //         break;
+            // }
         }
     }
 }
