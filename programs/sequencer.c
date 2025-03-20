@@ -532,24 +532,9 @@ void updateSequencer(
         if (index >= 0) {
             // Toggle key
             int polyCount = getPolyCount(track);
-            int stepIndex = index + (track->selectedPage * 16);
-            toggleStep(&track->steps[stepIndex], (track->selectedPageBank * 4) + selectedNote);
-            // switch (polyCount) {
-            //     case 8:
-            //         // Default behaviour; selected note = selected note
-            //         toggleStep(&track->steps[stepIndex], selectedNote);
-            //         break;
-            //     case 4:
-            //         // Default behaviour; selected note = selected note
-            //         break;
-            //     case 2:
-
-            //         break;
-            //     case 1:
-            //     default:
-            //         // Failsafe
-            //         break;
-            // }
+            int stepIndex = (index + (track->selectedPage * 16)) % 64;
+            printLog("setting note %d on step %d", (track->selectedPageBank * polyCount) + selectedNote, stepIndex);
+            toggleStep(&track->steps[stepIndex], (track->selectedPageBank * polyCount) + selectedNote);
         }
     }
 }
@@ -1308,8 +1293,10 @@ void drawSequencerMain(
                     COLOR_GRAY
                 );
             } else {
-                if (step.notes[selectedNote].enabled) {
-                    struct Note *note = &step.notes[selectedNote];
+                int noteIndex = (selectedTrack->selectedPageBank * polyCount) + selectedNote;
+
+                if (step.notes[noteIndex].enabled) {
+                    struct Note *note = &step.notes[noteIndex];
                     SDL_Color noteColor = note->velocity >= 100 ? COLOR_RED : COLOR_DARK_RED;
                     if (isNoteTrigged(note->trigg, selectedTrack->repeatCount)) {
                         drawRect(
@@ -1329,7 +1316,7 @@ void drawSequencerMain(
                                 mixColors(COLOR_RED, COLOR_WHITE, 0.5f)
                             );    
                         }                        
-                        drawTextOnButton((i + (j * 4)), getMidiNoteName(step.notes[selectedNote].note));
+                        drawTextOnButton((i + (j * 4)), getMidiNoteName(step.notes[noteIndex].note));
                     } else {
                         // Here is a note, but it is not trigged by the fill condition:
                         drawSingleLineRectOutline(

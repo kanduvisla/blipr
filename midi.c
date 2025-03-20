@@ -51,7 +51,6 @@ void openMidiOutput(int deviceId, PmStream **outputStream) {
 }
 
 void sendMidiMessage(PmStream *outputStream, int status, int data1, int data2) {
-    printLog("MIDI: 0x%X 0x%X 0x%X", status, data1, data2);
     if (outputStream == NULL) {
         // Failsafe to prevent crashing
         return;
