@@ -18,12 +18,7 @@ These are observations done while testing Blipr with real hardware.
 
 --- Improvements:
 
-- (requires testing) Set number of repeats for transitioning to next page
-- Set number of repeats for transitioning to next page
-- Show these transition repeats
-- Queue patterns same as pages
 - When no notes are selected cut/copy/paste = on notes/track/step
-- Page bank selection
 - Configuration: Midi PC representation needs to be represented +1 (1-16 instead of 0-15)
 - Missing page numbers / max pages
 - Missing transport / option to start / stop
@@ -83,6 +78,10 @@ These are observations done while testing Blipr with real hardware.
 - Message is not clear when pasting notes "COPIED ALL NOTES"?
 - Page bank shows -1 (probably wrong location of page bank nr)
 - Page indicator when page > 4
+- Set number of repeats for transitioning to next page
+- Show these transition repeats
+- Page bank selection
+- Queue patterns same as pages
 
 -- Won't fix / not related:
 

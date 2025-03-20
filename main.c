@@ -116,6 +116,8 @@ typedef struct {
 
     int selectedTrack;
     int selectedPattern;
+    int queuedPattern;
+    uint64_t patternStepCounter;       // Is in steps
     int selectedSequence;
 
     // For monitoring:
@@ -162,6 +164,8 @@ void initSharedState(SharedState* state) {
     state->programD = 255;
     state->selectedTrack = 0;
     state->selectedPattern = 0;
+    state->queuedPattern = 0;
+    state->patternStepCounter = 0;
     state->selectedSequence = 0;
     state->quit = false;
     state->bpm = 0;
@@ -348,6 +352,42 @@ void* sequencerThread(void* arg) {
                 }
             }
 
+            // Increase pattern steps:
+            if (state->ppqnCounter % PP16N == 0) {
+                state->patternStepCounter++;
+                int length = (state->project->sequences[state->selectedSequence].patterns[state->selectedPattern].length + 1);
+                if (state->patternStepCounter % length == 0) {
+                    state->patternStepCounter = 0;
+                    // This is the moment to switch from the queued pattern to the selected pattern
+                    if (state->selectedPattern != state->queuedPattern) {
+                        state->selectedPattern = state->queuedPattern;
+                        // Set proper track + reset repeat count
+                        state->track = &state->project->sequences[state->selectedSequence]
+                            .patterns[state->selectedPattern]
+                            .tracks[state->selectedTrack];
+                        state->track->repeatCount = 0;
+                        // Trigger program change:
+                        const struct Pattern *pattern = &state->project->sequences[state->selectedSequence].patterns[state->selectedPattern];
+                        if (pattern->programA != state->prevProgramA) {
+                            state->programA = pattern->programA;
+                        }
+                        if (pattern->programB != state->prevProgramB) {
+                            state->programB = pattern->programB;
+                        }
+                        if (pattern->programC != state->prevProgramC) {
+                            state->programC = pattern->programC;
+                        }
+                        if (pattern->programD != state->prevProgramD) {
+                            state->programD = pattern->programD;
+                        }
+                        // Set proper BPM:
+                        state->bpm = state->project->sequences[state->selectedSequence]
+                            .patterns[state->selectedPattern].bpm + 45;
+                        state->nanoSecondsPerPulse = calculateNanoSecondsPerPulse(state->bpm);
+                    }                    
+                }
+            }
+
             // Iterate over all tracks, and send proper midi signals
             for (int i=0; i<16; i++) {
                 struct Track* iTrack = &state->project->sequences[state->selectedSequence].patterns[state->selectedPattern].tracks[i];
@@ -436,30 +476,7 @@ void* keyThread(void* arg) {
                 }
                 
                 if (state->screen == BLIPR_SCREEN_PATTERN_SELECTION) {
-                    updatePatternSelection(&state->selectedPattern, state->scanCodeKeyDown);
-                    // Set proper track + reset repeat count
-                    state->track = &state->project->sequences[state->selectedSequence]
-                        .patterns[state->selectedPattern]
-                        .tracks[state->selectedTrack];
-                    state->track->repeatCount = 0;
-                    // Trigger program change:
-                    const struct Pattern *pattern = &state->project->sequences[state->selectedSequence].patterns[state->selectedPattern];
-                    if (pattern->programA != state->prevProgramA) {
-                        state->programA = pattern->programA;
-                    }
-                    if (pattern->programB != state->prevProgramB) {
-                        state->programB = pattern->programB;
-                    }
-                    if (pattern->programC != state->prevProgramC) {
-                        state->programC = pattern->programC;
-                    }
-                    if (pattern->programD != state->prevProgramD) {
-                        state->programD = pattern->programD;
-                    }
-                    // Set proper BPM:
-                    state->bpm = state->project->sequences[state->selectedSequence]
-                        .patterns[state->selectedPattern].bpm + 45;
-                    state->nanoSecondsPerPulse = calculateNanoSecondsPerPulse(state->bpm);          
+                    updatePatternSelection(&state->queuedPattern, state->scanCodeKeyDown);
                 } else if (state->screen == BLIPR_SCREEN_SEQUENCE_SELECTION) {
                     updateSequenceSelection(&state->selectedSequence, state->scanCodeKeyDown);
                     // Set proper pattern, track + reset repeat count

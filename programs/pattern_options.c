@@ -13,6 +13,11 @@ void drawPatternOptions(struct Pattern* pattern) {
     sprintf(bpmText, "%d", pattern->bpm + 45);
     drawIncreaseAndDecreaseButtons(0, "BPM", bpmText);
 
+    // Pattern length:
+    char patternLengthText[4];
+    sprintf(patternLengthText, "%d", pattern->length + 1);
+    drawIncreaseAndDecreaseButtons(2, "LENGTH", patternLengthText);
+    
     // Program (PC)
     char prog[6];
     sprintf(prog, "%d:%d", (pattern->programA >> 4) & 0x0F, pattern->programA & 0x0F);
@@ -37,6 +42,12 @@ void updatePatternOptions(struct Pattern* pattern, SDL_Scancode key) {
             break;
         case BLIPR_KEY_2:
             pattern->bpm = MIN(255, pattern->bpm + 1);
+            break;
+        case BLIPR_KEY_3:
+            pattern->length = MAX(0, pattern->length - 1);
+            break;
+        case BLIPR_KEY_4:
+            pattern->length = MIN(255, pattern->length + 1);
             break;
         case BLIPR_KEY_9:
             pattern->programA = MAX(0, pattern->programA - 1);

@@ -153,7 +153,8 @@ void patternToByteArray(const struct Pattern *pattern, unsigned char bytes[PATTE
     bytes[34] = pattern->programB;
     bytes[35] = pattern->programC;
     bytes[36] = pattern->programD;
-    memset(bytes + 37, 0, 64 - 37);
+    bytes[37] = pattern->length;
+    memset(bytes + 38, 0, 64 - 38);
     for (int i = 0; i < 16; i++) {
         trackToByteArray(&pattern->tracks[i], bytes + 64 + (i * TRACK_BYTE_SIZE));
     }
@@ -175,6 +176,7 @@ struct Pattern* byteArrayToPattern(const unsigned char bytes[PATTERN_BYTE_SIZE])
     pattern->programB = bytes[34];
     pattern->programC = bytes[35];
     pattern->programD = bytes[36];
+    pattern->length = bytes[37];
     for (int i = 0; i < 16; i++) {
         pattern->tracks[i] = *byteArrayToTrack(bytes + 64 + (i * TRACK_BYTE_SIZE));
     }
@@ -274,6 +276,7 @@ void initializeProject(struct Project* project) {
             struct Pattern pattern;
             snprintf(pattern.name, sizeof(pattern.name), "Pattern %d", j + 1);
             pattern.bpm = 120 - 45;
+            pattern.length = 63;
             for (int k = 0; k < 16; k++) {
                 struct Track track;
                 snprintf(track.name, sizeof(track.name), "Track %d", k + 1);
