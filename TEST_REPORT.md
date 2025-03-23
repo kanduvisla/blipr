@@ -6,11 +6,8 @@ These are observations done while testing Blipr with real hardware.
 
 --- Bugs:
 
-- When editing with poly < 8 to get more pages, steps are set in different tracks. There goes something wrong with settings notes
-- Cannot set midi device for slot B, C and D (need to review configuration layout)
+- When switching page bank, page is also changed. Defferentiate in playingPageBank and selectedPageBank
 - Double speed does not seem to work good
-- Page bank seems to show steps from different track?
-- Page bank > 5 shows in step editor but is not playing
 - When selecting a pagebank but not yet a page, the page already starts playing
 - Key repeat is repeating also on steps
 - Steps are set on disabled tiles (takes not in account page length (possible also track length))
@@ -88,6 +85,10 @@ These are observations done while testing Blipr with real hardware.
 - When more sequencer is used, it seems that note offs are triggered too soon (is note length taken globally instead of per note?)
 - Rapidly pressing "Fn" seems to reset the PC / Pattern
 - It appears that the note off is not properly send when changing the note tone
+- When editing with poly < 8 to get more pages, steps are set in different tracks. There goes something wrong with settings notes
+- Cannot set midi device for slot B, C and D (need to review configuration layout)
+- Page bank seems to show steps from different track?
+- Page bank > 5 shows in step editor but is not playing
 
 -- Won't fix / not related:
 
