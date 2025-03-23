@@ -1268,7 +1268,7 @@ void drawSequencerMain(
             sprintf(bottomText, "PASTED ALL NOTES");
         }
         drawCenteredLine(2, HEIGHT - BUTTON_HEIGHT - 12, bottomText, BUTTON_WIDTH * 4, COLOR_YELLOW);
-    } else {
+    } else if (!keyStates[BLIPR_KEY_SHIFT_2]) {
         drawPageIndicator(selectedTrack, playingPage);
     }
 
@@ -1278,7 +1278,9 @@ void drawSequencerMain(
     for (int j = 0; j < 4; j++) {
         int height = width;
         for (int i = 0; i < 4; i++) {
-            struct Step step = selectedTrack->steps[(i + (j * 4)) + (selectedTrack->selectedPage * 16)];
+            int stepIndex = ((i + (j * 4)) + (selectedTrack->selectedPage * 16)) % 64;
+
+            struct Step step = selectedTrack->steps[stepIndex];
             // Check if this is within the track length, or outside the page length:
             if (
                 ((selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) && (selectedTrack->selectedPage * 16) + i + (j * 4) > selectedTrack->trackLength) ||
@@ -1369,11 +1371,13 @@ void drawSequencerMain(
             }
             
             // Poly count dots:
+            int baseNoteIndex = (selectedTrack->selectedPageBank * polyCount);
             for (int p=0; p<polyCount; p++) {
+
                 drawPixel(
                     6 + i + (i * width) + (p * 2) + noteIndicatorOffset,
                     6 + j + (j * height),
-                    p == selectedNote ? COLOR_WHITE : (step.notes[p].enabled ? COLOR_RED : COLOR_LIGHT_GRAY)
+                    p == selectedNote ? COLOR_WHITE : (step.notes[baseNoteIndex + p].enabled ? COLOR_RED : COLOR_LIGHT_GRAY)
                 );
             }
         }
