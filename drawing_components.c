@@ -67,15 +67,33 @@ void drawCurrentTrackIndicator(int sequenceNr, int patternNr, int trackNr) {
 }
 
 /**
+ * Sidebar template
+ */
+void drawSidebarTemplate(int y, const char *text) {
+    drawRect(SIDEBAR_OFFSET + 1, y, SIDEBAR_WIDTH - 2, CHAR_HEIGHT + 2, COLOR_BLACK);
+    drawText(SIDEBAR_OFFSET + 2, y + 1, text, 20, COLOR_RED);
+    drawText(SIDEBAR_OFFSET + 19, y + 1, ":", 11, COLOR_RED);
+}
+
+/**
  * Draw the BPM indicator
  */
 void drawBPMIndiciator(int bpm) {
-    drawRect(SIDEBAR_OFFSET + 1, 11, SIDEBAR_WIDTH - 2, CHAR_HEIGHT + 2, COLOR_BLACK);
-    drawText(SIDEBAR_OFFSET + 2, 12, "BPM", 20, COLOR_RED);
-    drawText(SIDEBAR_OFFSET + 19, 12, ":", 11, COLOR_RED);
+    drawSidebarTemplate(11, "BPM");
     char text[4];
     sprintf(text, "%d", bpm);
     drawText(SIDEBAR_OFFSET + 24, 12, text, 20, COLOR_ORANGE);
+}
+
+/**
+ * Draw pattern length indicator
+ */
+void drawPatternLengthIndicator(int current, int total) {
+    drawSidebarTemplate(19, "LEN");
+    char text[8];
+    sprintf(text, "%d/%d", current + 1, total + 1);
+    float p = (float)current / (float)total;
+    drawRect(SIDEBAR_OFFSET + 24, 20, (SIDEBAR_WIDTH - 26) * p, 5, COLOR_RED);
 }
 
 /**
@@ -137,7 +155,7 @@ void drawBasicGrid(bool keyStates[SDL_NUM_SCANCODES]) {
     }
 }
 
-void drawABCDButtons(char descriptions[4][4]) {
+void drawABCDButtons(const char descriptions[4][4]) {
     int width = WIDTH / 6;
     int height = width / 2;
 
@@ -148,7 +166,18 @@ void drawABCDButtons(char descriptions[4][4]) {
     }
 }
 
-void drawHighlightedGridTile(int tileIndex) {
+void drawABCDButtonsInColor(const char descriptions[4][4], SDL_Color color) {
+    int width = WIDTH / 6;
+    int height = width / 2;
+
+    for (int i = 0; i < 4; i++) {
+        int x = 3 + i + (i * width);
+        int y = HEIGHT - 3 - (2 * height);
+        drawCenteredLine(x, y + 5, descriptions[i], width, color);
+    }
+}
+
+void drawHighlightedGridTileInColor(int tileIndex, SDL_Color color) {
     int width = HEIGHT / 6;
     int height = width;
 
@@ -161,7 +190,7 @@ void drawHighlightedGridTile(int tileIndex) {
             2 + y + (y * height),
             width,
             height,
-            COLOR_WHITE
+            color
         );
     } else {
         // Bottom buttons:
@@ -171,9 +200,13 @@ void drawHighlightedGridTile(int tileIndex) {
             (HEIGHT - 7 - (height * 2)) + y + ((y-4) * height),
             width,
             height,
-            COLOR_WHITE
+            color
         );
     }
+}
+
+void drawHighlightedGridTile(int tileIndex) {
+    drawHighlightedGridTileInColor(tileIndex, COLOR_WHITE);
 }
 
 void drawBasicNumbers() {
@@ -219,7 +252,7 @@ void drawSingleNumber(int index) {
     );
 }
 
-void drawTextOnButton(int index, char* text) {
+void drawTextOnButton(int index, const char* text) {
     int width = HEIGHT / 6;
     int height = width;
 
@@ -243,9 +276,10 @@ void drawIncreaseAndDecreaseButtons(
     const char *header,
     const char *text
 ) {
+    int y = (firstButtonIndex / 4);
     drawCenteredLine(
         2 + (BUTTON_WIDTH * (firstButtonIndex % 4)) + (firstButtonIndex % 4), 
-        5 + (BUTTON_HEIGHT * (firstButtonIndex / 4)) + (firstButtonIndex % 4), 
+        5 + (BUTTON_HEIGHT * (firstButtonIndex / 4)) + (firstButtonIndex / 4), 
         header, 
         BUTTON_WIDTH * 2, 
         COLOR_WHITE
@@ -254,9 +288,27 @@ void drawIncreaseAndDecreaseButtons(
     drawTextOnButton(firstButtonIndex + 1, ">");
     drawCenteredLine(
         2 + (BUTTON_WIDTH * (firstButtonIndex % 4)) + (firstButtonIndex % 4), 
-        14 + (BUTTON_HEIGHT * (firstButtonIndex / 4)) + (firstButtonIndex % 4), 
+        14 + (BUTTON_HEIGHT * (firstButtonIndex / 4)) + (firstButtonIndex / 4),
         text, 
         BUTTON_WIDTH * 2, 
         COLOR_WHITE
     );
+}
+
+/**
+ * Draw a rotating button (a button that updates it's value every time it's pressed)
+ */
+void drawRotatingButton(
+    int index,
+    const char *header,
+    const char *value
+) {
+    drawCenteredLine(
+        2 + (index % 4) + (BUTTON_WIDTH * (index % 4)), 
+        BUTTON_HEIGHT + 7 + (index / 4), 
+        header, 
+        BUTTON_WIDTH, 
+        COLOR_WHITE
+    );
+    drawTextOnButton(index, value);
 }

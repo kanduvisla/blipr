@@ -11,6 +11,6 @@ void updatePatternSelection(int *selectedPattern, SDL_Scancode key);
 /**
  * Draw the pattern selection
  */
-void drawPatternSelection(int *selectedPattern);
+void drawPatternSelection(const int *selectedPattern, const int *queuedPattern);
 
 #endif

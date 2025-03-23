@@ -102,7 +102,11 @@ typedef struct {
     int programB;
     int programC;
     int programD;    
-    
+    int prevProgramA;                   // Previous Midi programs. Is used to detect changes
+    int prevProgramB;
+    int prevProgramC;
+    int prevProgramD;    
+
     BliprScreen screen;
     bool quit;
     int bpm;    // shortcut to BPM, only used for displaying
@@ -112,6 +116,8 @@ typedef struct {
 
     int selectedTrack;
     int selectedPattern;
+    int queuedPattern;
+    uint64_t patternStepCounter;       // Is in steps
     int selectedSequence;
 
     // For monitoring:
@@ -158,6 +164,8 @@ void initSharedState(SharedState* state) {
     state->programD = 255;
     state->selectedTrack = 0;
     state->selectedPattern = 0;
+    state->queuedPattern = 0;
+    state->patternStepCounter = 0;
     state->selectedSequence = 0;
     state->quit = false;
     state->bpm = 0;
@@ -244,6 +252,8 @@ void* sequencerThread(void* arg) {
     PmStream *outputStream[4]; // 4 streams, for A, B, C and D
     int midiDevice[4];          // 4 midi devices, for A, B, C and D
 
+    resetTemplateNote();
+
     // Sequencer loop:
     while (!state->quit) {
         if (state->isSetupMidiDevicesRequired) {
@@ -291,29 +301,31 @@ void* sequencerThread(void* arg) {
             printLog("change program A to %d", state->programA);
             sendProgramChange(outputStream[0], state->project->midiDevicePcChannelA, state->programA);
             pthread_mutex_lock(&state->mutex);
+            state->prevProgramA = state->programA;
             state->programA = 255;
             pthread_mutex_unlock(&state->mutex);
         } else if (state->programB != 255) {
             printLog("change program B to %d", state->programB);
             sendProgramChange(outputStream[1], state->project->midiDevicePcChannelB, state->programB);
             pthread_mutex_lock(&state->mutex);
+            state->prevProgramB = state->programB;
             state->programB = 255;
             pthread_mutex_unlock(&state->mutex);
         } else if (state->programC != 255) {
             printLog("change program C to %d", state->programC);
             sendProgramChange(outputStream[2], state->project->midiDevicePcChannelC, state->programC);
             pthread_mutex_lock(&state->mutex);
+            state->prevProgramC = state->programC;
             state->programC = 255;
             pthread_mutex_unlock(&state->mutex);
         } else if (state->programD != 255) {
             printLog("change program to %d", state->programD);
             sendProgramChange(outputStream[3], state->project->midiDevicePcChannelD, state->programD);
             pthread_mutex_lock(&state->mutex);
+            state->prevProgramD = state->programD;
             state->programD = 255;
             pthread_mutex_unlock(&state->mutex);
         }
-
-
 
         if (state->unprocessedPulses > 0) {
             // Do the work!
@@ -340,6 +352,44 @@ void* sequencerThread(void* arg) {
                 }
             }
 
+            // Increase pattern steps:
+            if (state->ppqnCounter % PP16N == 0) {
+                state->patternStepCounter++;
+                int length = (state->project->sequences[state->selectedSequence].patterns[state->selectedPattern].length + 1);
+                if (state->patternStepCounter % length == 0) {
+                    state->patternStepCounter = 0;
+                    // This is the moment to switch from the queued pattern to the selected pattern
+                    if (state->selectedPattern != state->queuedPattern) {
+                        state->selectedPattern = state->queuedPattern;
+                        // Set proper track + reset repeat count for all track:
+                        state->track = &state->project->sequences[state->selectedSequence]
+                            .patterns[state->selectedPattern]
+                            .tracks[state->selectedTrack];
+                        for (int i=0; i<16; i++) {
+                            state->project->sequences[state->selectedSequence].patterns[state->selectedPattern].tracks[i].repeatCount = 0;
+                        }
+                        // Trigger program change:
+                        const struct Pattern *pattern = &state->project->sequences[state->selectedSequence].patterns[state->selectedPattern];
+                        if (pattern->programA != state->prevProgramA) {
+                            state->programA = pattern->programA;
+                        }
+                        if (pattern->programB != state->prevProgramB) {
+                            state->programB = pattern->programB;
+                        }
+                        if (pattern->programC != state->prevProgramC) {
+                            state->programC = pattern->programC;
+                        }
+                        if (pattern->programD != state->prevProgramD) {
+                            state->programD = pattern->programD;
+                        }
+                        // Set proper BPM:
+                        state->bpm = state->project->sequences[state->selectedSequence]
+                            .patterns[state->selectedPattern].bpm + 45;
+                        state->nanoSecondsPerPulse = calculateNanoSecondsPerPulse(state->bpm);
+                    }                    
+                }
+            }
+
             // Iterate over all tracks, and send proper midi signals
             for (int i=0; i<16; i++) {
                 struct Track* iTrack = &state->project->sequences[state->selectedSequence].patterns[state->selectedPattern].tracks[i];
@@ -355,6 +405,9 @@ void* sequencerThread(void* arg) {
                         break;
                 }
             }
+
+            // Decrease note-off counters:
+            updateNotesAndSendOffs();
 
             // Check for render trigger (typically every step):
             if (state->ppqnCounter % PP16N == 0) {
@@ -425,12 +478,7 @@ void* keyThread(void* arg) {
                 }
                 
                 if (state->screen == BLIPR_SCREEN_PATTERN_SELECTION) {
-                    updatePatternSelection(&state->selectedPattern, state->scanCodeKeyDown);
-                    // Set proper track + reset repeat count
-                    state->track = &state->project->sequences[state->selectedSequence]
-                        .patterns[state->selectedPattern]
-                        .tracks[state->selectedTrack];
-                    state->track->repeatCount = 0;
+                    updatePatternSelection(&state->queuedPattern, state->scanCodeKeyDown);
                 } else if (state->screen == BLIPR_SCREEN_SEQUENCE_SELECTION) {
                     updateSequenceSelection(&state->selectedSequence, state->scanCodeKeyDown);
                     // Set proper pattern, track + reset repeat count
@@ -499,6 +547,18 @@ void* keyThread(void* arg) {
                     if (startProgA != pattern->programA) {
                         state->programA = pattern->programA;
                     }
+
+                    if (startProgB != pattern->programB) {
+                        state->programB = pattern->programB;
+                    }
+
+                    if (startProgC != pattern->programC) {
+                        state->programC = pattern->programC;
+                    }
+
+                    if (startProgD != pattern->programD) {
+                        state->programD = pattern->programD;
+                    }
                 }
                 pthread_mutex_unlock(&state->mutex);
             } else {
@@ -530,7 +590,7 @@ void* keyThread(void* arg) {
                 setScreenAccordingToActiveTrack(state);                
                 pthread_mutex_unlock(&state->mutex);
                 resetConfigurationScreen();
-            } else if (state->scanCodeKeyUp == BLIPR_KEY_SHIFT_2) {
+            } else if (state->scanCodeKeyUp == BLIPR_KEY_SHIFT_1) {
                 resetSequencerSelectedStep();
             }
             
@@ -662,6 +722,10 @@ int main(int argc, char *argv[]) {
                 state.selectedTrack + 1
             );
             drawBPMIndiciator(state.bpm);
+            drawPatternLengthIndicator(
+                state.patternStepCounter, 
+                state.project->sequences[state.selectedSequence].patterns[state.selectedPattern].length
+            );
 
             // Basic Grid:
             drawBasicGrid(state.keyStates);
@@ -672,7 +736,7 @@ int main(int argc, char *argv[]) {
                     drawTrackSelection(&state.selectedTrack);    
                     break;
                 case BLIPR_SCREEN_PATTERN_SELECTION:
-                    drawPatternSelection(&state.selectedPattern);
+                    drawPatternSelection(&state.selectedPattern, &state.queuedPattern);
                     break;
                 case BLIPR_SCREEN_SEQUENCE_SELECTION:
                     drawSequenceSelection(&state.selectedSequence);

@@ -24,37 +24,19 @@ void resetConfigurationScreen() {
     selectedMidiDevice = BLIPR_MIDI_DEVICE_A;
 }
 
-/**
- * Draw a rotating button (a button that updates it's value every time it's pressed)
- */
-void drawRotatingButton(
-    int index,
-    const char *header,
-    const char *value
-) {
-    drawCenteredLine(
-        2 + (index % 4) + (BUTTON_WIDTH * (index % 4)), 
-        BUTTON_HEIGHT + 7 + (index / 4), 
-        header, 
-        BUTTON_WIDTH, 
-        COLOR_WHITE
-    );
-    drawTextOnButton(index, value);
-}
-
 void drawConfigSelection(struct Project *project) {
     if (isMainScreen()) {
         drawIconOnIndex(0, BLIPR_ICON_MIDI);
 
         // MIDI PC channel settings:
         char ch[4];
-        sprintf(ch, "%d", project->midiDevicePcChannelA);
+        sprintf(ch, "%d", project->midiDevicePcChannelA + 1);
         drawRotatingButton(4, "PC.A", ch);
-        sprintf(ch, "%d", project->midiDevicePcChannelB);
+        sprintf(ch, "%d", project->midiDevicePcChannelB + 1);
         drawRotatingButton(5, "PC.B", ch);
-        sprintf(ch, "%d", project->midiDevicePcChannelC);
+        sprintf(ch, "%d", project->midiDevicePcChannelC + 1);
         drawRotatingButton(6, "PC.C", ch);
-        sprintf(ch, "%d", project->midiDevicePcChannelD);
+        sprintf(ch, "%d", project->midiDevicePcChannelD + 1);
         drawRotatingButton(7, "PC.D", ch);
 
         // Quit:
@@ -106,7 +88,7 @@ void drawConfigSelection(struct Project *project) {
                         isSelected =  strcmp(project->midiDeviceDName, info->name) == 0;
                     }
                     int result = snprintf(line, sizeof(line), "%d:%s%s", y + 1, isSelected? "*" : " ", name);
-                    if (result < 0 || result >= sizeof(line)) {
+                    if (result < 0 || result >= (int)sizeof(line)) {
                         // Handle error: string was truncated or an error occurred
                         snprintf(line, sizeof(line), "%d:(ERROR)", y + 1);
                     }

@@ -17,37 +17,179 @@
 
 // Pages can be global, or per track configured
 int selectedNote = 0;
-int defaultNote = 60;       // C-4
-int defaultVelocity = 100;
-int halfVelocity = 50;
-int selectedStep = -1;
+// int defaultNote = 60;       // C-4
+// int defaultVelocity = 100;
+// int halfVelocity = 50;
+bool selectedSteps[16] = {false};       // Boolean that determines if this step is selected or not
+struct Step* clipBoard[16] = {NULL};
+bool isNoteEditorVisible = false;
+int cutCounter = 0;     // 0=none   1=note  2=step (all notes)
+int copyCounter = 0;
+bool isEditOnAllNotes = false;
+bool isHighPageBankSelected = false;
+
+// Boolean arrays that determine if for a step all note properties are the same:
+#define PROPERTY_CC1 0
+#define PROPERTY_CC2 1
+#define PROPERTY_NOTE 2
+#define PROPERTY_LENGTH 3
+#define PROPERTY_VELOCITY 4
+#define PROPERTY_NUDGE 5
+#define PROPERTY_TRIG 6
+#define PROPERTY_ENABLED 7
+bool areAllStepPropertiesTheSame[8] = {false};
+
+// Template note that is used for pipet tooling
+struct Note templateNote;
+
+/**
+ * Method to check if all step properties are the same
+ */
+void checkIfAllStepPropertiesAreTheSame(const struct Track *track) {
+    for (int i=0; i<8; i++) {
+        areAllStepPropertiesTheSame[i] = true;
+    }
+
+    // Iterate over the selected steps, and check if there is difference in properties of the selected steps:
+    for (int i=1; i<16; i++) {
+        if (selectedSteps[i] && selectedSteps[i - 1]) {
+            int stepIndex = i + (track->selectedPage * 16);
+            const struct Step *lhStep = &track->steps[stepIndex - 1];
+            const struct Step *rhStep = &track->steps[stepIndex];
+            areAllStepPropertiesTheSame[PROPERTY_CC1] &= lhStep->notes[selectedNote].cc1Value == rhStep->notes[selectedNote].cc1Value;
+            areAllStepPropertiesTheSame[PROPERTY_CC2] &= lhStep->notes[selectedNote].cc2Value == rhStep->notes[selectedNote].cc2Value;
+            areAllStepPropertiesTheSame[PROPERTY_NOTE] &= lhStep->notes[selectedNote].note == rhStep->notes[selectedNote].note;
+            areAllStepPropertiesTheSame[PROPERTY_LENGTH] &= lhStep->notes[selectedNote].length == rhStep->notes[selectedNote].length;
+            areAllStepPropertiesTheSame[PROPERTY_VELOCITY] &= lhStep->notes[selectedNote].velocity == rhStep->notes[selectedNote].velocity;
+            areAllStepPropertiesTheSame[PROPERTY_NUDGE] &= lhStep->notes[selectedNote].nudge == rhStep->notes[selectedNote].nudge;
+            areAllStepPropertiesTheSame[PROPERTY_TRIG] &= lhStep->notes[selectedNote].trigg == rhStep->notes[selectedNote].trigg;
+            areAllStepPropertiesTheSame[PROPERTY_ENABLED] &= lhStep->notes[selectedNote].enabled == rhStep->notes[selectedNote].enabled;
+        }
+    }
+}
+
+/**
+ * Check if there are steps selected
+ */
+static bool isStepsSelected() {
+    int count = 0;
+    for (int i=0; i<16; i++) {
+        if (selectedSteps[i]) {
+            count ++;
+        }
+    }
+    return count > 0;
+}
 
 /**
  * Reset the selected step
  */
 void resetSequencerSelectedStep() {
-    selectedStep = -1;
+    for (int i=0; i<16; i++) {
+        selectedSteps[i] = false;
+    }
+    isNoteEditorVisible = false;
+    cutCounter = 0;
+    copyCounter = 0;
 }
 
+/**
+ * Reset the selected note
+ */
 void resetSelectedNote() {
     selectedNote = 0;
 }
 
 /**
+ * Clear note
+ */
+void clearNote(struct Note *note) {
+    note->cc1Value = 0;
+    note->cc2Value = 0;
+    note->enabled = false;
+    note->length = 0;
+    note->velocity = 0;
+    note->trigg = 0;
+    note->note = 0;
+    note->nudge = PP16N;
+}
+
+/**
+ * Clear step
+ */
+void clearStep(struct Step *step) {
+    if (cutCounter == 0) {
+        // This is the first cut, clear only the selected note:
+        clearNote(&step->notes[selectedNote]);
+    } else {
+        // This is the second cut, clear all notes in this step
+        for (int i=0; i<NOTES_IN_STEP; i++) {
+            clearNote(&step->notes[i]);
+        }
+    }
+}
+
+/**
+ * Copy note
+ */
+void copyNote(const struct Note *src, struct Note *dst) {
+    dst->cc1Value = src->cc1Value;
+    dst->cc2Value = src->cc2Value;
+    dst->enabled = src->enabled;
+    dst->length = src->length;
+    dst->velocity = src->velocity;
+    dst->trigg = src->trigg;
+    dst->note = src->note;
+    dst->nudge = src->nudge;
+}
+
+/**
+ * Copy step
+ */
+void copyStep(const struct Step *src, struct Step *dst) {
+    if (copyCounter == 0) {
+        // This is the first copy, only copy the selected note:
+        copyNote(&src->notes[selectedNote], &dst->notes[selectedNote]);
+    } else {
+        // This is the second copy, copy all the notes:
+        for (int i=0; i<NOTES_IN_STEP; i++) {
+            copyNote(&src->notes[i], &dst->notes[i]);
+        }
+    }
+}
+
+/**
+ * Reset template note to default values
+ */
+void resetTemplateNote() {
+    templateNote.enabled = false;
+    templateNote.note = 60;     // C-4
+    templateNote.velocity = 100;
+    templateNote.length = 1;
+    templateNote.nudge = PP16N; // PP16N = middle, nudge 0
+    templateNote.trigg = 0;
+    templateNote.cc1Value = 0;
+    templateNote.cc2Value = 0;
+}
+
+/**
  * Toggle a step
  */
-void toggleStep(struct Step *step) {
-    step->notes[selectedNote].enabled = !step->notes[selectedNote].enabled;
+void toggleStep(struct Step *step, int noteIndex) {
+    step->notes[noteIndex].enabled = !step->notes[noteIndex].enabled;
     // Set default values:
-    if (step->notes[selectedNote].enabled) {
-        step->notes[selectedNote].velocity = defaultVelocity;
-        step->notes[selectedNote].note = defaultNote;
+    if (step->notes[noteIndex].enabled) {
+        // Use template note
+        copyNote(&templateNote, &step->notes[noteIndex]);
+        // Reset enabled state, because template note might be a disabled note :-/
+        step->notes[noteIndex].enabled = true;
     }
 }
 
 /**
  * Toggle velocity
  */
+/*
 void toggleVelocity(struct Step *step) {
     if (step->notes[selectedNote].enabled) {
         if (step->notes[selectedNote].velocity == defaultVelocity) {
@@ -61,6 +203,7 @@ void toggleVelocity(struct Step *step) {
         step->notes[selectedNote].velocity = halfVelocity;
     }
 }
+*/
 
 /**
  * Set selected page
@@ -96,19 +239,15 @@ unsigned char transposeMidiNote(unsigned char midiNote, int steps) {
     } 
 
     // Set default note to this:
-    defaultNote = transposed;
+    templateNote.note = transposed;
 
     return (unsigned char)transposed;   
 }
 
-static void handleKey(
-    struct Track *selectedTrack,
-    SDL_Scancode key
-) {
-    int stepIndex = selectedStep + (selectedTrack->selectedPage * 16);
-    struct Step *step = &selectedTrack->steps[stepIndex];
-    struct Note *note = &selectedTrack->steps[stepIndex].notes[selectedNote];
-    // We're in the step editor, handle keys:
+/**
+ * Apply a key on a single note in the note editor
+ */
+static void applyKeyToNote(struct Note *note, SDL_Scancode key) {
     if (key == BLIPR_KEY_1) { note->note = transposeMidiNote(note->note, -12); } else
     if (key == BLIPR_KEY_2) { note->note = transposeMidiNote(note->note, -1); } else 
     if (key == BLIPR_KEY_3) { note->note = transposeMidiNote(note->note, 1); } else 
@@ -155,86 +294,247 @@ static void handleKey(
     if (key == BLIPR_KEY_13) { note->cc1Value = MAX(0, note->cc1Value - 1); } else 
     if (key == BLIPR_KEY_14) { note->cc1Value = MIN(127, note->cc1Value + 1); } else 
     if (key == BLIPR_KEY_15) { note->cc2Value = MAX(0, note->cc2Value - 1); } else 
-    if (key == BLIPR_KEY_16) { note->cc2Value = MIN(127, note->cc2Value + 1); } else 
-    if (key == BLIPR_KEY_C) {
-        // TODO: Copy (once=copy note, twice=copy step)
-    } else if (key == BLIPR_KEY_D) {
-        // TODO: Paste
-    } 
+    if (key == BLIPR_KEY_16) { note->cc2Value = MIN(127, note->cc2Value + 1); }
+}
+
+/**
+ * Handle a key in the note editor
+ */
+static void handleKey(
+    struct Track *selectedTrack,
+    SDL_Scancode key
+) {
+    for (int i=0; i<16; i++) {
+        if (selectedSteps[i]) {
+            // We need to apply this key input on this step, but only on the selected note
+            int stepIndex = i + (selectedTrack->selectedPage * 16);
+            if (isEditOnAllNotes) {
+                for (int j=0; j<NOTES_IN_STEP; j++) {
+                    struct Note *note = &selectedTrack->steps[stepIndex].notes[j];
+                    applyKeyToNote(note, key);
+                }
+            } else {
+                struct Note *note = &selectedTrack->steps[stepIndex].notes[selectedNote];
+                applyKeyToNote(note, key);
+            }
+        }
+    }   
+}
+
+/**
+ * Select all steps between the first and last selected step
+ */
+void sanitizeSelection(int indexPressed) {
+    int first = -1;
+    int last = -1;
+    for (int i=0; i<16; i++) {
+        if (selectedSteps[i] == true) {
+            first = i;
+            break;
+        } 
+    }
+
+    for (int i=15; i>=0; i--) {
+        if (selectedSteps[i] == true) {
+            last = i;
+            break;
+        }
+    }
+
+    if (first != -1 && last != -1) {
+        // Select from first to last
+        for (int i=first; i<=last; i++) {
+            selectedSteps[i] = true;
+        }        
+        // If the selected step is smaller than the greatest selected step, disable all after:
+        if (indexPressed < last) {
+            for (int i=indexPressed + 1; i<16; i++) {
+                selectedSteps[i] = false;
+            }
+        }
+    }
+}
+
+/**
+ * Get the maximum number of page banks
+ */
+int getMaxPageBanks(const struct Track *track) {
+    int polyCount = getPolyCount(track);
+    // polycount 8=1 page bank
+    // polycount 4=2 page banks
+    // polycount 2=4 page banks
+    // polycount 1=8 page banks
+    int totalPageBanks = 9 - polyCount; // 1 or 8
+    if (polyCount == 4) { totalPageBanks = 2; }
+    if (polyCount == 2) { totalPageBanks = 4; }
+    return totalPageBanks;
 }
 
 /**
  * Update the sequencer according to user input
  */
 void updateSequencer(
-    struct Track *selectedTrack,
+    struct Track *track,
     bool keyStates[SDL_NUM_SCANCODES], 
     SDL_Scancode key
 ) {
     int index = scancodeToStep(key);
-    int stepIndex = index + (selectedTrack->selectedPage * 16);
     if (keyStates[BLIPR_KEY_SHIFT_1]) {
-        if (index >= 0) {
-            // Toggle velocity
-            toggleVelocity(&selectedTrack->steps[stepIndex]);
-        } else {
-            // this is one of the bottom buttons, change page bank, for poly 2 to 8, this is:
-            // A=page 1,2,3,4       (bank 0)
-            // B=page 5,6,7,8       (bank 1)
-            // C=page 9,10,11,12    (bank 2)
-            // D=page 13,14,15,16   (bank 3)
-            // for monophonic (512 steps = 32 pages, this is)
-            // A=page 1,2,3,4       / 5,6,7,8       (bank 0 & 4)
-            // B=page 9,10,11,12    / 13,14,15,16   (bank 1 & 5)
-            // C=page 17,18,19,20   / 21,22,23,24   (bank 2 & 6)
-            // D=page 25,26,27,28   / 29,30,31,32   (bank 3 & 7)
-            int polyCount = getPolyCount(selectedTrack);
-
-            if (polyCount == 1) {
-                if (key == BLIPR_KEY_A) { selectedTrack->selectedPageBank == 0 ? 4 : 0; } else
-                if (key == BLIPR_KEY_B) { selectedTrack->selectedPageBank == 1 ? 5 : 1; } else
-                if (key == BLIPR_KEY_C) { selectedTrack->selectedPageBank == 2 ? 6 : 2; } else
-                if (key == BLIPR_KEY_D) { selectedTrack->selectedPageBank == 3 ? 7 : 3; }
+        // Shift 1 = utils:
+        // ^1 + 1-16 = Select (multiple) step(s)
+        // ^1 + A    = Open note editor for step(s)
+        // ^1 + B    = Cut notes/steps      press once=cut notes,   press twice=cut all notes on step
+        // ^1 + C    = Copy notes/steps
+        // ^1 + D    = Paste notes/steps    press once=paste notes, press twice=paste all notes on step
+        if (!isNoteEditorVisible) {
+            if (index >= 0) {
+                // Set template note:
+                copyNote(&track->steps[index + (track->selectedPage * 16)].notes[selectedNote], &templateNote);
+                // Set selected steps for utilities:
+                selectedSteps[index] = !selectedSteps[index];
+                // Select all steps between the first and last selected step:
+                sanitizeSelection(index);
+                checkIfAllStepPropertiesAreTheSame(track);
+                // If Shift2 is also down, immeadiately open the note editor for this step:
+                if (keyStates[BLIPR_KEY_SHIFT_2]) {
+                    isNoteEditorVisible = true;
+                }
             } else {
-                // PolyCount 8 only allows pageBank 1
-                // PolyCount 4 only allows pageBank 1 & 2
-                // PolyCount 2 only allows pageBank 1, 2, 3 & 4
-                if (key == BLIPR_KEY_A) { selectedTrack->selectedPageBank = 0; } else
-                if (key == BLIPR_KEY_B && polyCount < 8) { selectedTrack->selectedPageBank = 1; } else
-                if (key == BLIPR_KEY_C && polyCount == 2) { selectedTrack->selectedPageBank = 2; } else
-                if (key == BLIPR_KEY_D && polyCount == 2) { selectedTrack->selectedPageBank = 3; }
+                if (isStepsSelected()) {
+                    if (key == BLIPR_KEY_A) {
+                        // Open editor:
+                        isNoteEditorVisible = true;
+                    } else
+                    if (key == BLIPR_KEY_B) {
+                        // Cut all steps:
+                        for (int i=0; i<16; i++) {
+                            if (selectedSteps[i]) {
+                                clearStep(&track->steps[i + (track->selectedPage * 16)]);
+                            }
+                        }
+                        cutCounter ++;
+                        // No resetSequencerSelectedStep(), because paste can be done twice
+                    } else
+                    if (key == BLIPR_KEY_C) {
+                        // Copy steps:
+                        for (int i=0; i<16; i++) {
+                            if (selectedSteps[i]) {
+                                clipBoard[i] = &track->steps[i + (track->selectedPage * 16)];
+                            } else {
+                                clipBoard[i] = NULL;
+                            }
+                        }
+                        // Clear selection after copying to clipboard:
+                        resetSequencerSelectedStep();
+                    } else
+                    if (key == BLIPR_KEY_D) {
+                        // Paste steps (will be pasted on first step in selection):
+                        int pastePosition = 0;
+                        for (int i=0; i<16; i++) {
+                            if (selectedSteps[i]) {
+                                pastePosition = i;
+                                break;
+                            }
+                        }
+                        printLog("paste position is %d", pastePosition);
+                        // Paste copied steps:
+                        // Subtract the first empty entries of the clipboard:
+                        int offset = 0;
+                        for (int i=0; i<16; i++) {
+                            if (clipBoard[i] != NULL) {
+                                // a step is found, so we have our offset:
+                                break;
+                            }
+                            offset++;
+                        }
+                        printLog("clipboard offset is %d", offset);
+                        // Now paste until we reach a NULL object:
+                        for (int i=offset; i<16; i++) {
+                            if (clipBoard[i] != NULL) {
+                                copyStep(
+                                    clipBoard[i],
+                                    &track->steps[pastePosition + (track->selectedPage * 16) + i - offset]
+                                );
+                                printLog("copied step %d from clipboard to position %d", i,pastePosition + (track->selectedPage * 16));
+                            } else {
+                                break;
+                            }
+                        }
+                        copyCounter ++;
+                        // No resetSequencerSelectedStep(), because paste can be done twice
+                    }                    
+                } else {
+                    // #TODO No steps selected,
+                    // cut, copy paste applies to whole track
+                }
+            }
+        } else {
+            // Note editor is visible, handle note editor keys:
+            if (index >= 0) {
+                handleKey(track, key);
+            } else {
+                if (key == BLIPR_KEY_A) {
+                    isEditOnAllNotes = isEditOnAllNotes == false;
+                }
             }
         }
     } else if(keyStates[BLIPR_KEY_SHIFT_2]) {
-        // Update selected note or page:
-        if (index >= 0 && selectedStep == -1) {
-            // Select step
-            selectedStep = index;
-        } else if (selectedStep == -1) {
-            // No step selected, but also no index, so this is one of the bottom buttons
-            // Change selected note:
+        // Shift 2 = page selector / note selector
+        // ^2 + 1-16 = select page
+        // ^2 + A-B  = page bank -/+
+        // ^2 + C-D  = note / channel -/+
+        int polyCount = getPolyCount(track);
+
+        // 1-16 = select page
+        if (index >= 0) {
+            // 1-4   = page bank 0
+            // 5-8   = page bank 1
+            // 9-12  = page bank 2
+            // 13-16 = page bank 3
+            if (index < 4) {
+                track->selectedPageBank = isHighPageBankSelected ? 4 : 0;
+            } else if(index < 8 && polyCount < 8) {
+                track->selectedPageBank = isHighPageBankSelected ? 5 : 1;
+            } else if (index < 12 && polyCount < 4) {
+                track->selectedPageBank = isHighPageBankSelected ? 6 : 2;
+            } else if (polyCount <= 2) {
+                track->selectedPageBank = isHighPageBankSelected ? 7 : 3;
+            }
+            // Set selected page:
+            setSelectedPage(track, (index % 4) + (track->selectedPageBank * 4));
+        } else {
+            // Bottom buttons:
+            if (polyCount < 8) {
+                if (key == BLIPR_KEY_A) {
+                    track->selectedPageBank = MAX(0, track->selectedPageBank - 1);
+                } if (key == BLIPR_KEY_B) {
+                    int totalPageBanks = getMaxPageBanks(track);
+                    track->selectedPageBank = MIN(totalPageBanks - 1, track->selectedPageBank + 1);
+                }
+                isHighPageBankSelected = track->selectedPageBank >= 4;
+            }
             if (key == BLIPR_KEY_C) { 
                 selectedNote = MAX(0, selectedNote - 1); 
             } else if (key == BLIPR_KEY_D) { 
-                selectedNote = MIN(getPolyCount(selectedTrack) - 1, selectedNote + 1); 
+                selectedNote = MIN(getPolyCount(track) - 1, selectedNote + 1); 
             }
-        } else {
-            // Handle key input with selected step
-            handleKey(selectedTrack, key);
         }
     } else if(key == BLIPR_KEY_A) {
-        setSelectedPage(selectedTrack, (selectedTrack->selectedPageBank * 4));
+        setSelectedPage(track, (track->selectedPageBank * 4));
     } else if(key == BLIPR_KEY_B) {
-        setSelectedPage(selectedTrack, (selectedTrack->selectedPageBank * 4) + 1);
+        setSelectedPage(track, (track->selectedPageBank * 4) + 1);
     } else if(key == BLIPR_KEY_C) {
-        setSelectedPage(selectedTrack, (selectedTrack->selectedPageBank * 4) + 2);
+        setSelectedPage(track, (track->selectedPageBank * 4) + 2);
     } else if(key == BLIPR_KEY_D) {
-        setSelectedPage(selectedTrack, (selectedTrack->selectedPageBank * 4) + 3);
+        setSelectedPage(track, (track->selectedPageBank * 4) + 3);
     } else {
-        // Default stp pressed
+        // Default step pressed
         if (index >= 0) {
             // Toggle key
-            toggleStep(&selectedTrack->steps[stepIndex]);
+            int polyCount = getPolyCount(track);
+            int stepIndex = (index + (track->selectedPage * 16)) % 64;
+            printLog("setting note %d on step %d", (track->selectedPageBank * polyCount) + selectedNote, stepIndex);
+            toggleStep(&track->steps[stepIndex], (track->selectedPageBank * polyCount) + selectedNote);
         }
     }
 }
@@ -427,7 +727,6 @@ void setTriggText(int triggValue, char *text) {
         return;
     }
 
-    bool isTrigged = true;
     bool isInversed = get2FByteFlag2(triggValue);
     int value = get2FByteValue(triggValue);
 
@@ -762,7 +1061,7 @@ void isFirstPulseCallback() {
     if (tmpTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
         tmpTrack->repeatCount += 1;
     } else {
-        if (tmpTrack->selectedPage != tmpTrack->queuedPage) {
+        if (tmpTrack->selectedPage != tmpTrack->queuedPage && (tmpTrack->repeatCount + 1) % (tmpTrack->transitionRepeats + 1) == 0) {
             tmpTrack->selectedPage = tmpTrack->queuedPage;
             // Reset repeat count, since we're switching pages:
             tmpTrack->repeatCount = 0;
@@ -776,6 +1075,14 @@ void isFirstPulseCallback() {
  * Callback when a note is played
  */
 void playNoteCallback(const struct Note *note) {
+    // Send CC:
+    if (note->cc1Value > 0) {
+        sendMidiMessage(tmpStream, tmpTrack->midiChannel | 0xB0, tmpTrack->cc1Assignment, note->cc1Value - 1);
+    }
+    if (note->cc2Value > 0) {
+        sendMidiMessage(tmpStream, tmpTrack->midiChannel | 0xB0, tmpTrack->cc2Assignment, note->cc2Value - 1);
+    }
+
     sendMidiNoteOn(tmpStream, tmpTrack->midiChannel, note->note, note->velocity);
     addNoteToTracker(tmpStream, tmpTrack->midiChannel, note);
 }
@@ -850,9 +1157,55 @@ void runSequencer(
 
     // Process pulse
     processPulse(&pulse, selectedTrack, isFirstPulseCallback, playNoteCallback);
+}
 
-    // Decrease note-off counters:
-    updateNotesAndSendOffs(outputStream, selectedTrack->midiChannel);
+/**
+ * Draw the page indicator
+ */
+void drawPageIndicator(const struct Track *track, int playingPage) 
+{
+    char *bottomText[64];
+    int totalPageBanks = getMaxPageBanks(track);
+    sprintf(
+        bottomText, 
+        "PAGE %d/%d - REP %d/%d", 
+        playingPage + 1, 
+        totalPageBanks * 4,
+        (track->repeatCount % (track->transitionRepeats + 1)) + 1,
+        track->transitionRepeats + 1
+    );
+    drawCenteredLine(2, HEIGHT - BUTTON_HEIGHT - 12, bottomText, BUTTON_WIDTH * 4, COLOR_YELLOW);
+}
+
+/**
+ * Draw the template note
+ */
+void drawTemplateNote() {
+    // drawRect(SIDEBAR_OFFSET + 1, 27, SIDEBAR_WIDTH - 2, (CHAR_HEIGHT * 8) + 8, COLOR_BLACK);
+    drawRect(SIDEBAR_OFFSET + 1, 27, SIDEBAR_WIDTH - 2, CHAR_HEIGHT + 2, COLOR_BLACK);
+    drawText(SIDEBAR_OFFSET + 1, 28, "TEMPLATE", 20, COLOR_ORANGE);
+    char text[8];
+    drawSidebarTemplate(34, "NOT");
+    char *midiNote = getMidiNoteName(templateNote.note);
+    drawText(SIDEBAR_OFFSET + 24, 35, midiNote, 20, COLOR_ORANGE);
+    drawSidebarTemplate(40, "VEL");
+    sprintf(text, "%d", templateNote.velocity);
+    drawText(SIDEBAR_OFFSET + 24, 41, text, 18, COLOR_ORANGE);
+    drawSidebarTemplate(46, "LEN");
+    sprintf(text, "%d", templateNote.length);
+    drawText(SIDEBAR_OFFSET + 24, 47, text, 18, COLOR_ORANGE);
+    drawSidebarTemplate(52, "NDG");
+    sprintf(text, "%d", templateNote.nudge - PP16N);
+    drawText(SIDEBAR_OFFSET + 24, 53, text, 18, COLOR_ORANGE);
+    drawSidebarTemplate(58, "TRG");
+    setTriggText(templateNote.trigg, text);
+    drawText(SIDEBAR_OFFSET + 24, 59, text, 18, COLOR_ORANGE);
+    drawSidebarTemplate(64, "CC1");
+    sprintf(text, "%d", templateNote.cc1Value);
+    drawText(SIDEBAR_OFFSET + 24, 65, text, 18, COLOR_ORANGE);
+    drawSidebarTemplate(70, "CC2");
+    sprintf(text, "%d", templateNote.cc2Value);
+    drawText(SIDEBAR_OFFSET + 24, 71, text, 18, COLOR_ORANGE);
 }
 
 /**
@@ -896,17 +1249,29 @@ void drawSequencerMain(
             COLOR_WHITE
         );
     }
-   
-    // Highlight playing page:
-    drawLine(
-        2 + playingPage + (playingPage * BUTTON_WIDTH),
-        HEIGHT - BUTTON_HEIGHT - 5,
-        2 + playingPage + ((playingPage + 1) * BUTTON_WIDTH) - 1,
-        HEIGHT - BUTTON_HEIGHT - 5,
-        COLOR_RED
-    );
 
+    // Highlight playing page:
     int polyCount = getPolyCount(selectedTrack);
+
+    // Show cut & copy information:
+    if (cutCounter > 0 || copyCounter > 0) {
+        char *bottomText[64];
+        if (cutCounter == 1) {
+            sprintf(bottomText, "CUTTED 1 NOTE");
+        } else if (cutCounter > 1) {
+            sprintf(bottomText, "CUTTED ALL NOTES");
+        }
+
+        if (copyCounter == 1) {
+            sprintf(bottomText, "PASTED 1 NOTE");
+        } else if (copyCounter > 1) {
+            sprintf(bottomText, "PASTED ALL NOTES");
+        }
+        drawCenteredLine(2, HEIGHT - BUTTON_HEIGHT - 12, bottomText, BUTTON_WIDTH * 4, COLOR_YELLOW);
+    } else {
+        drawPageIndicator(selectedTrack, playingPage);
+    }
+
     int noteIndicatorOffset = 12 - polyCount;
 
     // Highlight non-empty steps:
@@ -928,9 +1293,11 @@ void drawSequencerMain(
                     COLOR_GRAY
                 );
             } else {
-                if (step.notes[selectedNote].enabled) {
-                    struct Note *note = &step.notes[selectedNote];
-                    SDL_Color noteColor = note->velocity >= defaultVelocity ? COLOR_RED : COLOR_DARK_RED;
+                int noteIndex = (selectedTrack->selectedPageBank * polyCount) + selectedNote;
+
+                if (step.notes[noteIndex].enabled) {
+                    struct Note *note = &step.notes[noteIndex];
+                    SDL_Color noteColor = note->velocity >= 100 ? COLOR_RED : COLOR_DARK_RED;
                     if (isNoteTrigged(note->trigg, selectedTrack->repeatCount)) {
                         drawRect(
                             4 + i + (i * width),
@@ -949,7 +1316,7 @@ void drawSequencerMain(
                                 mixColors(COLOR_RED, COLOR_WHITE, 0.5f)
                             );    
                         }                        
-                        drawTextOnButton((i + (j * 4)), getMidiNoteName(step.notes[selectedNote].note));
+                        drawTextOnButton((i + (j * 4)), getMidiNoteName(step.notes[noteIndex].note));
                     } else {
                         // Here is a note, but it is not trigged by the fill condition:
                         drawSingleLineRectOutline(
@@ -990,6 +1357,17 @@ void drawSequencerMain(
                 COLOR_GRAY
             );
 
+            // Draw selection outline:
+            if (selectedSteps[i + (j * 4)]) {
+                drawSingleLineRectOutline(
+                    4 + i + (i * width),
+                    4 + j + (j * height),
+                    width - 4,
+                    height - 4,
+                    COLOR_YELLOW
+                );
+            }
+            
             // Poly count dots:
             for (int p=0; p<polyCount; p++) {
                 drawPixel(
@@ -1001,30 +1379,47 @@ void drawSequencerMain(
         }
     }   
 
+    // Draw template Note details:
+    drawTemplateNote();
+
     // ABCD Buttons:
     if (keyStates[BLIPR_KEY_SHIFT_1]) {
-        // Show page bank numbers:
-        int polyCount = getPolyCount(selectedTrack);
-        if (polyCount == 1) {
-            char descriptions[4][4] = {"1/5", "2/6", "3/7", "4/8"};
-            drawABCDButtons(descriptions);
-        } else if (polyCount == 2) {
-            char descriptions[4][4] = {"1", "2", "3", "4"};
-            drawABCDButtons(descriptions);    
-        } else if (polyCount == 4) {
-            char descriptions[4][4] = {"1", "2", "-", "-"};
-            drawABCDButtons(descriptions);    
-        } else {
-            // 8 poly only has 1 page bank
-            char descriptions[4][4] = {"1", "-", "-", "-"};
-            drawABCDButtons(descriptions);    
-        }
-        // Draw highlighted page banke:
-        drawHighlightedGridTile((selectedTrack->selectedPageBank % 4) + 16);
+        // Show utilities:
+        char descriptions[4][4] = {"OPT", "CUT", "CPY", "PST"};        
+        // if (isStepsSelected()) {
+        drawABCDButtons(descriptions);
+        // } else {
+        //     drawABCDButtonsInColor(descriptions, COLOR_LIGHT_GRAY);
+        // }
     } else if (keyStates[BLIPR_KEY_SHIFT_2]) {
         // Note (for polyphony)
         char descriptions[4][4] = {"-", "-", "<", ">"};
+        int polyCount = getPolyCount(selectedTrack);
+        if (polyCount < 8) {
+            sprintf(descriptions[0], "<");
+            sprintf(descriptions[1], ">");
+        }
         drawABCDButtons(descriptions);
+        // Draw page bank title:
+        drawCenteredLine(
+            2, 
+            HEIGHT - BUTTON_HEIGHT - 12, 
+            "PAGEBANK",
+            BUTTON_WIDTH * 2,
+            COLOR_YELLOW
+        );
+        // Draw page bank number:
+        char pageBankText[2];
+        sprintf(pageBankText, "%d", selectedTrack->selectedPageBank + 1);
+        drawText(2 + 28, HEIGHT - BUTTON_HEIGHT + 2, pageBankText, BUTTON_WIDTH, COLOR_WHITE);
+        // Draw channel title:
+        drawCenteredLine(
+            6 + (BUTTON_WIDTH * 2), 
+            HEIGHT - BUTTON_HEIGHT - 12, 
+            "CHANNEL",
+            BUTTON_WIDTH * 2,
+            COLOR_YELLOW
+        );
         // Draw channel number:
         char channelText[2];
         sprintf(channelText, "%d", selectedNote + 1);
@@ -1067,7 +1462,7 @@ void drawSequencerMain(
 /**
  * Draw the step editor
  */
-void drawStepEditor(struct Step *step) {
+void drawStepEditor(struct Track *track) {
     /*
         - 1-4   : Transpose -12 / -1 / +1 / +12
         - 5-6   : Increase / decrease velocity
@@ -1078,14 +1473,31 @@ void drawStepEditor(struct Step *step) {
         - 15-16 : Increase / decrease CC2 value    
     */
 
+    // Iterate over selected Steps, and replace the values with "##" if there are differences in selected steps 
+    // for these values. The values will change each on their own.
+    // We can use areAllStepPropertiesTheSame for this
+
     // Title:
     drawCenteredLine(2, 133, "STEP OPTIONS", TITLE_WIDTH, COLOR_WHITE);
 
-    struct Note *note = &step->notes[selectedNote];
+    // Step is the first selected step:
+    struct Note *note;
+    for (int i=0; i<16; i++) {
+        if (selectedSteps[i]) {
+            int stepIndex = i + (track->selectedPage * 16);
+            note = &track->steps[stepIndex].notes[selectedNote];
+            break;
+        }
+    }     
 
-    // Transpose:
+    // Note/Transpose:
     drawCenteredLine(2, 7, "TRANSPOSE", TITLE_WIDTH, COLOR_WHITE);
-    char *midiNoteName = getMidiNoteName(note->note);
+    char *midiNoteName;
+    if (areAllStepPropertiesTheSame[PROPERTY_NOTE]) {
+        midiNoteName = getMidiNoteName(note->note);
+    } else {
+        midiNoteName = "##";
+    }
     drawCenteredLine(2, 22, midiNoteName, TITLE_WIDTH, COLOR_YELLOW);
     drawTextOnButton(0, "-12");
     drawTextOnButton(1, "-1");
@@ -1095,7 +1507,11 @@ void drawStepEditor(struct Step *step) {
     // Velocity:
     drawCenteredLine(2, 37, "VELOCITY", BUTTON_WIDTH * 2, COLOR_WHITE);
     char velocityChar[4];
-    snprintf(velocityChar, sizeof(velocityChar), "%d", note->velocity);
+    if (areAllStepPropertiesTheSame[PROPERTY_VELOCITY]) {
+        snprintf(velocityChar, sizeof(velocityChar), "%d", note->velocity);
+    } else {
+        sprintf(velocityChar, "##");
+    }
     drawCenteredLine(2, 47, velocityChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(4, "-");
     drawTextOnButton(5, "+");
@@ -1103,7 +1519,11 @@ void drawStepEditor(struct Step *step) {
     // Length:
     drawCenteredLine(62, 37, "LENGTH", BUTTON_WIDTH * 2, COLOR_WHITE);
     char lengthChar[4];
-    snprintf(lengthChar, sizeof(lengthChar), "%d", note->length);
+    if (areAllStepPropertiesTheSame[PROPERTY_LENGTH]) {
+        snprintf(lengthChar, sizeof(lengthChar), "%d", note->length);
+    } else {
+        sprintf(lengthChar, "##");
+    }
     drawCenteredLine(62, 47, lengthChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(6, "-");
     drawTextOnButton(7, "+");
@@ -1111,7 +1531,11 @@ void drawStepEditor(struct Step *step) {
     // Nudge:
     drawCenteredLine(2, 67, "NUDGE", BUTTON_WIDTH * 2, COLOR_WHITE);
     char nudgeChar[4];
-    snprintf(nudgeChar, sizeof(nudgeChar), "%d", note->nudge - PP16N);
+    if (areAllStepPropertiesTheSame[PROPERTY_NUDGE]) {
+        snprintf(nudgeChar, sizeof(nudgeChar), "%d", note->nudge - PP16N);
+    } else {
+        sprintf(nudgeChar, "##");
+    }
     drawCenteredLine(2, 77, nudgeChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(8, "-");
     drawTextOnButton(9, "+");
@@ -1119,24 +1543,40 @@ void drawStepEditor(struct Step *step) {
     // Trig:
     drawCenteredLine(62, 67, "TRIGG", BUTTON_WIDTH * 2, COLOR_WHITE);
     char triggChar[4];
-    snprintf(
-        triggChar, 
-        sizeof(triggChar), 
-        "%d", 
-        get2FByteValue(note->trigg) + (get2FByteFlag2(note->trigg) ? TRIG_HIGHEST_VALUE : 0)
-    );
+    if (areAllStepPropertiesTheSame[PROPERTY_TRIG]) {
+        snprintf(
+            triggChar, 
+            sizeof(triggChar), 
+            "%d", 
+            get2FByteValue(note->trigg) + (get2FByteFlag2(note->trigg) ? TRIG_HIGHEST_VALUE : 0)
+        );
+    } else {
+        sprintf(triggChar, "##");
+    }
     drawCenteredLine(62, 77, triggChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(10, "-");
     drawTextOnButton(11, "+");
     // Trigg description:
     char triggText[6];
-    setTriggText(note->trigg, triggText);
+    if (areAllStepPropertiesTheSame[PROPERTY_TRIG]) {
+        setTriggText(note->trigg, triggText);
+    } else {
+        sprintf(triggText, "##");
+    }
     drawCenteredLine(62, 87, triggText, BUTTON_WIDTH * 2, COLOR_WHITE);
 
     // CC1:
     drawCenteredLine(2, 97, "CC1 VALUE", BUTTON_WIDTH * 2, COLOR_WHITE);
     char cc1Value[4];
-    snprintf(cc1Value, sizeof(cc1Value), "%d", note->cc1Value);
+    if (areAllStepPropertiesTheSame[PROPERTY_CC1]) {
+        if (note->cc1Value == 0) {
+            snprintf(cc1Value, sizeof(cc1Value), "OFF");
+        } else {
+            snprintf(cc1Value, sizeof(cc1Value), "%d", note->cc1Value - 1);
+        }
+    } else {
+        sprintf(cc1Value, "##");
+    }
     drawCenteredLine(2, 107, cc1Value, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(12, "-");
     drawTextOnButton(13, "+");
@@ -1144,13 +1584,27 @@ void drawStepEditor(struct Step *step) {
     // CC2:
     drawCenteredLine(62, 97, "CC2 VALUE", BUTTON_WIDTH * 2, COLOR_WHITE);
     char cc2Value[4];
-    snprintf(cc2Value, sizeof(cc2Value), "%d", note->cc2Value);
+    if (areAllStepPropertiesTheSame[PROPERTY_CC2]) {
+        if (note->cc2Value == 0) {
+            snprintf(cc2Value, sizeof(cc2Value), "OFF");
+        } else {
+            snprintf(cc2Value, sizeof(cc2Value), "%d", note->cc2Value);
+        }        
+    } else {
+        sprintf(cc2Value, "##");
+    }
     drawCenteredLine(62, 107, cc2Value, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(14, "-");
     drawTextOnButton(15, "+");
 
-    // Step selected, show copy paste options:
-    char descriptions[4][4] = {"-", "-", "CPY", "PST"};
+    // Step selected, show options:
+    // A = apply to all notes on this step (ALL), or only this note (ONE)
+    // B = note value options (default)
+    // C = ... time options? like increase or decrease of values?
+    // D = ... fx? side chaining?
+
+    char descriptions[4][4] = {"ONE", "OPT", "-", "-"};
+    sprintf(descriptions[0], isEditOnAllNotes ? "ALL" : "ONE");
     drawABCDButtons(descriptions);
 }
 
@@ -1159,11 +1613,11 @@ void drawSequencer(
     bool keyStates[SDL_NUM_SCANCODES],
     struct Track *selectedTrack
 ) {
-    if (selectedStep == -1) {
+    if (!isNoteEditorVisible) {
         drawSequencerMain(ppqnCounter, keyStates, selectedTrack);
     } else {
-        int stepIndex = selectedStep + (selectedTrack->selectedPage * 16);
-        drawStepEditor(&selectedTrack->steps[stepIndex]);
+        // int stepIndex = selectedStep + (selectedTrack->selectedPage * 16);
+        drawStepEditor(selectedTrack);
     }
 }
 
