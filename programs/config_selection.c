@@ -26,7 +26,10 @@ void resetConfigurationScreen() {
 
 void drawConfigSelection(struct Project *project) {
     if (isMainScreen()) {
-        drawIconOnIndex(0, BLIPR_ICON_MIDI);
+        drawIconOnIndex(0, BLIPR_ICON_MIDI);    // Midi Device A
+        drawIconOnIndex(1, BLIPR_ICON_MIDI);    // Midi Device B
+        drawIconOnIndex(2, BLIPR_ICON_MIDI);    // Midi Device C
+        drawIconOnIndex(3, BLIPR_ICON_MIDI);    // Midi Device D
 
         // MIDI PC channel settings:
         char ch[4];
@@ -50,9 +53,28 @@ void drawConfigSelection(struct Project *project) {
     } else {
         if (isMidiConfigActive) {
             drawCenteredLine(2, 130, "SELECT A DEVICE FOR", TITLE_WIDTH, COLOR_WHITE);
-            drawCenteredLine(2, 137, "MIDI SLOT A,B,C OR D", TITLE_WIDTH, COLOR_WHITE);
+            char line2[32];
+            switch (selectedMidiDevice) {
+                case BLIPR_MIDI_DEVICE_A:
+                    strcpy(line2, "MIDI SLOT A");
+                    break;
+                case BLIPR_MIDI_DEVICE_B:
+                    strcpy(line2, "MIDI SLOT B");
+                    break;
+                case BLIPR_MIDI_DEVICE_C:
+                    strcpy(line2, "MIDI SLOT C");
+                    break;
+                case BLIPR_MIDI_DEVICE_D:
+                    strcpy(line2, "MIDI SLOT D");
+                    break;
+                default:
+                    // Should not happen:
+                    strcpy(line2, "MIDI SLOT ?");
+                    break;
+            }
+            drawCenteredLine(2, 137, line2, TITLE_WIDTH, COLOR_WHITE);
             // Highlight current selected Midi device:
-            drawHighlightedGridTile(16 + selectedMidiDevice);
+            // drawHighlightedGridTile(16 + selectedMidiDevice);
 
             // Midi device #0 is "NONE"
             bool isSelected = false;
@@ -146,7 +168,10 @@ void setMidiDeviceName(struct Project *project, int deviceOnProject, int indexIn
 void updateConfiguration(struct Project *project, SDL_Scancode key, bool *reloadMidi, bool *quit) {
     if (isMainScreen()) {
         // No config selected, so we're on the main screen
-        if (key == BLIPR_KEY_1) { isMidiConfigActive = true; } else 
+        if (key == BLIPR_KEY_1) { selectedMidiDevice = BLIPR_MIDI_DEVICE_A; isMidiConfigActive = true; } else 
+        if (key == BLIPR_KEY_2) { selectedMidiDevice = BLIPR_MIDI_DEVICE_B; isMidiConfigActive = true; } else 
+        if (key == BLIPR_KEY_3) { selectedMidiDevice = BLIPR_MIDI_DEVICE_C; isMidiConfigActive = true; } else 
+        if (key == BLIPR_KEY_4) { selectedMidiDevice = BLIPR_MIDI_DEVICE_D; isMidiConfigActive = true; } else 
         if (key == BLIPR_KEY_5) { 
             project->midiDevicePcChannelA = project->midiDevicePcChannelA + 1; 
             if (project->midiDevicePcChannelA >= 16) {
@@ -170,11 +195,11 @@ void updateConfiguration(struct Project *project, SDL_Scancode key, bool *reload
         } else if (key == BLIPR_KEY_16) { *quit = (true); }
     } else {
         if (isMidiConfigActive) {
-            if (key == BLIPR_KEY_A) { selectedMidiDevice = BLIPR_MIDI_DEVICE_A; }
-            else if (key == BLIPR_KEY_B) { selectedMidiDevice = BLIPR_MIDI_DEVICE_B; }
-            else if (key == BLIPR_KEY_C) { selectedMidiDevice = BLIPR_MIDI_DEVICE_C; }
-            else if (key == BLIPR_KEY_D) { selectedMidiDevice = BLIPR_MIDI_DEVICE_D; }
-            else if (key == BLIPR_KEY_1) { setMidiDeviceName (project, selectedMidiDevice, 99); *reloadMidi = (true); }
+            // if (key == BLIPR_KEY_A) { selectedMidiDevice = BLIPR_MIDI_DEVICE_A; }
+            // else if (key == BLIPR_KEY_B) { selectedMidiDevice = BLIPR_MIDI_DEVICE_B; }
+            // else if (key == BLIPR_KEY_C) { selectedMidiDevice = BLIPR_MIDI_DEVICE_C; }
+            // else if (key == BLIPR_KEY_D) { selectedMidiDevice = BLIPR_MIDI_DEVICE_D; }
+            if (key == BLIPR_KEY_1) { setMidiDeviceName (project, selectedMidiDevice, 99); *reloadMidi = (true); }
             else if (key == BLIPR_KEY_2) { setMidiDeviceName (project, selectedMidiDevice, 0); *reloadMidi = (true); }
             else if (key == BLIPR_KEY_3) { setMidiDeviceName (project, selectedMidiDevice, 1); *reloadMidi = (true); }
             else if (key == BLIPR_KEY_4) { setMidiDeviceName (project, selectedMidiDevice, 2); *reloadMidi = (true); }
