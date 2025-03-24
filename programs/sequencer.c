@@ -1478,23 +1478,6 @@ void drawSequencerMain(
                                         width - 4,
                                         height - 4
                                     );
-
-                                    /*
-                                    drawSingleLineRectOutline(
-                                        5 + i + (i * width),
-                                        5 + j + (j * height),
-                                        width - 6,
-                                        height - 6,
-                                        COLOR_BLACK
-                                    );
-                                    drawSingleLineRectOutline(
-                                        7 + i + (i * width),
-                                        7 + j + (j * height),
-                                        width - 10,
-                                        height - 10,
-                                        COLOR_BLACK
-                                    );
-                                    */    
                                 }
                             }
                         } else {

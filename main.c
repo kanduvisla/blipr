@@ -409,6 +409,7 @@ void* sequencerThread(void* arg) {
                 // Run the program:
                 switch (iTrack->program) {
                     case BLIPR_PROGRAM_SEQUENCER:
+                    case BLIPR_PROGRAM_DRUMKIT_SEQUENCER:
                         runSequencer(outputStream[iTrack->midiDevice], &state->ppqnCounter, iTrack);
                         break;
                     case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
