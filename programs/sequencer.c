@@ -17,16 +17,14 @@
 
 // Pages can be global, or per track configured
 int selectedNote = 0;
-// int defaultNote = 60;       // C-4
-// int defaultVelocity = 100;
-// int halfVelocity = 50;
+int selectedPageBank = 0;               // Selected page bank, not currently active playing page bank
 bool selectedSteps[16] = {false};       // Boolean that determines if this step is selected or not
 struct Step* clipBoard[16] = {NULL};
 bool isNoteEditorVisible = false;
 int cutCounter = 0;     // 0=none   1=note  2=step (all notes)
 int copyCounter = 0;
 bool isEditOnAllNotes = false;
-bool isHighPageBankSelected = false;
+// bool isHighPageBankSelected = false;
 
 // Boolean arrays that determine if for a step all note properties are the same:
 #define PROPERTY_CC1 0
@@ -213,6 +211,7 @@ void setSelectedPage(
     int index
 ) {
     if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
+        // Investigate: how is queuing working with continuous play?
         selectedTrack->selectedPage = index;
     } else {
         selectedTrack->queuedPage = index;
@@ -491,6 +490,7 @@ void updateSequencer(
             // 5-8   = page bank 1
             // 9-12  = page bank 2
             // 13-16 = page bank 3
+            /*
             if (index < 4) {
                 track->selectedPageBank = isHighPageBankSelected ? 4 : 0;
             } else if(index < 8 && polyCount < 8) {
@@ -502,16 +502,17 @@ void updateSequencer(
             }
             // Set selected page:
             setSelectedPage(track, (index % 4) + (track->selectedPageBank * 4));
+            */
         } else {
             // Bottom buttons:
             if (polyCount < 8) {
                 if (key == BLIPR_KEY_A) {
-                    track->selectedPageBank = MAX(0, track->selectedPageBank - 1);
+                    selectedPageBank = MAX(0, track->playingPageBank - 1);
                 } if (key == BLIPR_KEY_B) {
                     int totalPageBanks = getMaxPageBanks(track);
-                    track->selectedPageBank = MIN(totalPageBanks - 1, track->selectedPageBank + 1);
+                    selectedPageBank = MIN(totalPageBanks - 1, track->playingPageBank + 1);
                 }
-                isHighPageBankSelected = track->selectedPageBank >= 4;
+                // isHighPageBankSelected = track->selectedPageBank >= 4;
             }
             if (key == BLIPR_KEY_C) { 
                 selectedNote = MAX(0, selectedNote - 1); 
@@ -520,21 +521,21 @@ void updateSequencer(
             }
         }
     } else if(key == BLIPR_KEY_A) {
-        setSelectedPage(track, (track->selectedPageBank * 4));
+        setSelectedPage(track, (selectedPageBank * 4));
     } else if(key == BLIPR_KEY_B) {
-        setSelectedPage(track, (track->selectedPageBank * 4) + 1);
+        setSelectedPage(track, (selectedPageBank * 4) + 1);
     } else if(key == BLIPR_KEY_C) {
-        setSelectedPage(track, (track->selectedPageBank * 4) + 2);
+        setSelectedPage(track, (selectedPageBank * 4) + 2);
     } else if(key == BLIPR_KEY_D) {
-        setSelectedPage(track, (track->selectedPageBank * 4) + 3);
+        setSelectedPage(track, (selectedPageBank * 4) + 3);
     } else {
         // Default step pressed
         if (index >= 0) {
             // Toggle key
             int polyCount = getPolyCount(track);
             int stepIndex = (index + (track->selectedPage * 16)) % 64;
-            printLog("setting note %d on step %d", (track->selectedPageBank * polyCount) + selectedNote, stepIndex);
-            toggleStep(&track->steps[stepIndex], (track->selectedPageBank * polyCount) + selectedNote);
+            printLog("setting note %d on step %d", (track->playingPageBank * polyCount) + selectedNote, stepIndex);
+            toggleStep(&track->steps[stepIndex], (track->playingPageBank * polyCount) + selectedNote);
         }
     }
 }
@@ -953,19 +954,19 @@ void getNotesAtTrackStepIndex(int trackStepIndex, const struct Track *track, str
             break;
         case 4:
             for (int i=0; i<4; i++) {
-                int targetIndex = (track->selectedPageBank * 4) + (i % 4);
+                int targetIndex = (track->playingPageBank * 4) + (i % 4);
                 notes[i] = &track->steps[trackStepIndex].notes[targetIndex];
             }
             break;
         case 2:
             for (int i=0; i<2; i++) {
-                int targetIndex = (track->selectedPageBank * 2) + (i % 2);
+                int targetIndex = (track->playingPageBank * 2) + (i % 2);
                 notes[i] = &track->steps[trackStepIndex].notes[targetIndex];
             }
             break;
         case 1:
             for (int i=0; i<1; i++) {
-                int targetIndex = track->selectedPageBank;
+                int targetIndex = track->playingPageBank;
                 notes[0] = &track->steps[trackStepIndex].notes[targetIndex];
             }
             break;
@@ -1062,6 +1063,7 @@ void isFirstPulseCallback() {
         tmpTrack->repeatCount += 1;
     } else {
         if (tmpTrack->selectedPage != tmpTrack->queuedPage && (tmpTrack->repeatCount + 1) % (tmpTrack->transitionRepeats + 1) == 0) {
+            tmpTrack->playingPageBank = selectedPageBank;
             tmpTrack->selectedPage = tmpTrack->queuedPage;
             // Reset repeat count, since we're switching pages:
             tmpTrack->repeatCount = 0;
@@ -1295,7 +1297,7 @@ void drawSequencerMain(
                     COLOR_GRAY
                 );
             } else {
-                int noteIndex = (selectedTrack->selectedPageBank * polyCount) + selectedNote;
+                int noteIndex = (selectedTrack->playingPageBank * polyCount) + selectedNote;
 
                 if (step.notes[noteIndex].enabled) {
                     struct Note *note = &step.notes[noteIndex];
@@ -1371,7 +1373,7 @@ void drawSequencerMain(
             }
             
             // Poly count dots:
-            int baseNoteIndex = (selectedTrack->selectedPageBank * polyCount);
+            int baseNoteIndex = (selectedTrack->playingPageBank * polyCount);
             for (int p=0; p<polyCount; p++) {
 
                 drawPixel(
@@ -1414,7 +1416,7 @@ void drawSequencerMain(
         );
         // Draw page bank number:
         char pageBankText[2];
-        sprintf(pageBankText, "%d", selectedTrack->selectedPageBank + 1);
+        sprintf(pageBankText, "%d", selectedPageBank + 1);
         drawText(2 + 28, HEIGHT - BUTTON_HEIGHT + 2, pageBankText, BUTTON_WIDTH, COLOR_WHITE);
         // Draw channel title:
         drawCenteredLine(
@@ -1431,7 +1433,7 @@ void drawSequencerMain(
     } else {
         // Page numbers:
         char descriptions[4][4] = {"P00", "P00", "P00", "P00"};
-        int startPage = (selectedTrack->selectedPageBank * 4) + 1;
+        int startPage = (selectedPageBank * 4) + 1;
         
         // Fill the descriptions array
         for (int i = 0; i < 4; i++) {
@@ -1448,16 +1450,25 @@ void drawSequencerMain(
     
         // Draw highlighted page:
         if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
-            if (selectedTrack->selectedPage >= selectedTrack->selectedPageBank * 4 && 
-                selectedTrack->selectedPage < (selectedTrack->selectedPageBank + 1) * 4) {
+            if (selectedTrack->selectedPage >= selectedTrack->playingPageBank * 4 && 
+                selectedTrack->selectedPage < (selectedTrack->playingPageBank + 1) * 4) {
                 // Outline current page:
                 drawHighlightedGridTile((selectedTrack->selectedPage % 4) + 16);
             }
         } else {
-            if (selectedTrack->queuedPage >= selectedTrack->selectedPageBank * 4 && 
-                selectedTrack->queuedPage < (selectedTrack->selectedPageBank + 1) * 4) {
+            // Highlight playing page + queued page:
+            if (selectedTrack->queuedPage != selectedTrack->selectedPage) {
+                if (selectedTrack->queuedPage >= selectedPageBank * 4 && 
+                    selectedTrack->queuedPage < (selectedPageBank + 1) * 4) {
+                    // Outline queued page:
+                    drawHighlightedGridTileInColor((selectedTrack->queuedPage % 4) + 16, COLOR_RED);
+                }
+            }
+
+            if (selectedTrack->selectedPage >= selectedPageBank * 4 && 
+                selectedTrack->selectedPage < (selectedPageBank + 1) * 4) {
                 // Outline queued page:
-                drawHighlightedGridTile((selectedTrack->queuedPage % 4) + 16);
+                drawHighlightedGridTile((selectedTrack->selectedPage % 4) + 16);
             }
         }            
     }
