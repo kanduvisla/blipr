@@ -80,7 +80,7 @@ struct Track {
     unsigned char transitionRepeats;    // How many repeats before a transition kicks in?
     // Not saved, used internally:
     unsigned char selectedPage;
-    unsigned char selectedPageBank;
+    unsigned char playingPageBank;
     unsigned char queuedPage;
     unsigned int repeatCount;
     bool isFirstPulse;
