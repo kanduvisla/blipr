@@ -363,6 +363,7 @@ void* sequencerThread(void* arg) {
                     state->patternStepCounter = 0;
                     // This is the moment to switch from the queued pattern to the selected pattern
                     if (state->selectedPattern != state->queuedPattern) {
+                        pthread_mutex_lock(&state->mutex);
                         state->selectedPattern = state->queuedPattern;
                         // Set proper track + reset repeat count for all track:
                         state->track = &state->project->sequences[state->selectedSequence]
@@ -389,6 +390,9 @@ void* sequencerThread(void* arg) {
                         state->bpm = state->project->sequences[state->selectedSequence]
                             .patterns[state->selectedPattern].bpm + 45;
                         state->nanoSecondsPerPulse = calculateNanoSecondsPerPulse(state->bpm);
+                        // Set proper screen:
+                        setScreenAccordingToActiveTrack(state);
+                        pthread_mutex_unlock(&state->mutex);
                     }                    
                 }
             }

@@ -12,7 +12,12 @@ typedef enum {
     BLIPR_ICON_FOOT_DOWN = 5,
     BLIPR_ICON_FOOT_UP = 6,
     BLIPR_ICON_CROSS = 7,
-    BLIPR_ICON_KICK = 8
+    BLIPR_ICON_KICK = 8,
+    BLIPR_ICON_CHAT_1 = 9,
+    BLIPR_ICON_CHAT_2 = 10,
+    BLIPR_ICON_OHAT = 11,
+    BLIPR_ICON_RIDE = 12,
+    BLIPR_ICON_CRASH = 13,
 } Blipr_Icon;
 
 void drawIcon(

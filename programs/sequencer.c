@@ -12,6 +12,7 @@
 #include "../utils.h"
 #include "../midi.h"
 #include "../print.h"
+#include "../drawing_icons.h"
 
 // TODO: These should be the global things I guess?
 
@@ -185,23 +186,28 @@ void toggleStep(struct Step *step, int noteIndex) {
 }
 
 /**
- * Toggle velocity
+ * Toggle a step when in drumkit mode
  */
-/*
-void toggleVelocity(struct Step *step) {
-    if (step->notes[selectedNote].enabled) {
-        if (step->notes[selectedNote].velocity == defaultVelocity) {
-            step->notes[selectedNote].velocity = halfVelocity;
+void toggleDrumkitStep(struct Step *step, int noteIndex) {
+    if (step->notes[noteIndex].enabled) {
+        // Decrease velocity:
+        if (step->notes[noteIndex].velocity > 100) {
+            step->notes[noteIndex].velocity = 100;
+        } else if (step->notes[noteIndex].velocity > 50) {
+            step->notes[noteIndex].velocity = 50;
+        } else if (step->notes[noteIndex].velocity > 25) {
+            step->notes[noteIndex].velocity = 25;
         } else {
-            step->notes[selectedNote].velocity = defaultVelocity;
+            step->notes[noteIndex].enabled = false;    
         }
     } else {
-        // If no note is set, create a new one on half velocity:
-        toggleStep(step);
-        step->notes[selectedNote].velocity = halfVelocity;
+        step->notes[noteIndex].enabled = true;
+        // Use template note
+        copyNote(&templateNote, &step->notes[noteIndex]);
+        // Reset enabled state, because template note might be a disabled note :-/
+        step->notes[noteIndex].enabled = true;
     }
 }
-*/
 
 /**
  * Set selected page
@@ -246,12 +252,28 @@ unsigned char transposeMidiNote(unsigned char midiNote, int steps) {
 /**
  * Apply a key on a single note in the note editor
  */
-static void applyKeyToNote(struct Note *note, SDL_Scancode key) {
-    if (key == BLIPR_KEY_1) { note->note = transposeMidiNote(note->note, -12); } else
-    if (key == BLIPR_KEY_2) { note->note = transposeMidiNote(note->note, -1); } else 
-    if (key == BLIPR_KEY_3) { note->note = transposeMidiNote(note->note, 1); } else 
-    if (key == BLIPR_KEY_4) { note->note = transposeMidiNote(note->note, 12); } else 
-    if (key == BLIPR_KEY_5) { note->velocity = MAX(0, note->velocity - 1); } else 
+static void applyKeyToNote(
+    struct Note *note, 
+    SDL_Scancode key, 
+    bool isDrumkitSequencer
+) {
+    if (key == BLIPR_KEY_1) { 
+        if (!isDrumkitSequencer) {
+            note->note = transposeMidiNote(note->note, -12); 
+        }
+    } else if (key == BLIPR_KEY_2) { 
+        if (!isDrumkitSequencer) {
+            note->note = transposeMidiNote(note->note, -1); 
+        }
+    } else if (key == BLIPR_KEY_3) { 
+        if (!isDrumkitSequencer) {
+            note->note = transposeMidiNote(note->note, 1); 
+        }
+    } else if (key == BLIPR_KEY_4) { 
+        if (!isDrumkitSequencer) {
+            note->note = transposeMidiNote(note->note, 12); 
+        }
+    } else if (key == BLIPR_KEY_5) { note->velocity = MAX(0, note->velocity - 1); } else 
     if (key == BLIPR_KEY_6) { note->velocity = MIN(127, note->velocity + 1); } else 
     if (key == BLIPR_KEY_7) { note->length = MAX(0, note->length - 1); } else 
     if (key == BLIPR_KEY_8) { note->length = MIN(127, note->length + 1); } else 
@@ -301,7 +323,8 @@ static void applyKeyToNote(struct Note *note, SDL_Scancode key) {
  */
 static void handleKey(
     struct Track *selectedTrack,
-    SDL_Scancode key
+    SDL_Scancode key,
+    bool isDrumkitSequencer
 ) {
     for (int i=0; i<16; i++) {
         if (selectedSteps[i]) {
@@ -310,11 +333,11 @@ static void handleKey(
             if (isEditOnAllNotes) {
                 for (int j=0; j<NOTES_IN_STEP; j++) {
                     struct Note *note = &selectedTrack->steps[stepIndex].notes[j];
-                    applyKeyToNote(note, key);
+                    applyKeyToNote(note, key, isDrumkitSequencer);
                 }
             } else {
                 struct Note *note = &selectedTrack->steps[stepIndex].notes[selectedNote];
-                applyKeyToNote(note, key);
+                applyKeyToNote(note, key, isDrumkitSequencer);
             }
         }
     }   
@@ -471,7 +494,7 @@ void updateSequencer(
         } else {
             // Note editor is visible, handle note editor keys:
             if (index >= 0) {
-                handleKey(track, key);
+                handleKey(track, key, isDrumkitSequencer);
             } else {
                 if (key == BLIPR_KEY_A) {
                     isEditOnAllNotes = isEditOnAllNotes == false;
@@ -487,23 +510,11 @@ void updateSequencer(
 
         // 1-16 = select page
         if (index >= 0) {
-            // 1-4   = page bank 0
-            // 5-8   = page bank 1
-            // 9-12  = page bank 2
-            // 13-16 = page bank 3
-            /*
-            if (index < 4) {
-                track->selectedPageBank = isHighPageBankSelected ? 4 : 0;
-            } else if(index < 8 && polyCount < 8) {
-                track->selectedPageBank = isHighPageBankSelected ? 5 : 1;
-            } else if (index < 12 && polyCount < 4) {
-                track->selectedPageBank = isHighPageBankSelected ? 6 : 2;
-            } else if (polyCount <= 2) {
-                track->selectedPageBank = isHighPageBankSelected ? 7 : 3;
+            // Only the drumkit sequencer has options here
+            if (isDrumkitSequencer) {
+                // Selected note = 1-16 (depending on drumkit note configuration)
+
             }
-            // Set selected page:
-            setSelectedPage(track, (index % 4) + (track->selectedPageBank * 4));
-            */
         } else {
             // Bottom buttons:
             if (polyCount < 8) {
@@ -515,11 +526,14 @@ void updateSequencer(
                 }
                 // isHighPageBankSelected = track->selectedPageBank >= 4;
             }
-            if (key == BLIPR_KEY_C) { 
-                selectedNote = MAX(0, selectedNote - 1); 
-            } else if (key == BLIPR_KEY_D) { 
-                selectedNote = MIN(getPolyCount(track) - 1, selectedNote + 1); 
-            }
+            // Drumkit sequencer has no options to manually select note
+            if (!isDrumkitSequencer) {
+                if (key == BLIPR_KEY_C) { 
+                    selectedNote = MAX(0, selectedNote - 1); 
+                } else if (key == BLIPR_KEY_D) { 
+                    selectedNote = MIN(getPolyCount(track) - 1, selectedNote + 1); 
+                }
+            }   
         }
     } else if(key == BLIPR_KEY_A) {
         setSelectedPage(track, (selectedPageBank * 4));
@@ -536,7 +550,12 @@ void updateSequencer(
             int polyCount = getPolyCount(track);
             int stepIndex = (index + (track->selectedPage * 16)) % 64;
             printLog("setting note %d on step %d", (track->playingPageBank * polyCount) + selectedNote, stepIndex);
-            toggleStep(&track->steps[stepIndex], (track->playingPageBank * polyCount) + selectedNote);
+            if (!isDrumkitSequencer) {
+                toggleStep(&track->steps[stepIndex], (track->playingPageBank * polyCount) + selectedNote);
+            } else {
+                // Set template note to proper drumkit note:
+                toggleDrumkitStep(&track->steps[stepIndex], (track->playingPageBank * polyCount) + selectedNote);
+            }
         }
     }
 }
@@ -544,6 +563,7 @@ void updateSequencer(
 /**
  * Check sequencer for key repeats
  */
+/*
 void checkSequencerForKeyRepeats(
     struct Track *selectedTrack,
     bool keyStates[SDL_NUM_SCANCODES]
@@ -567,6 +587,7 @@ void checkSequencerForKeyRepeats(
         if (keyStates[BLIPR_KEY_16]) { handleKey(selectedTrack, BLIPR_KEY_16); }        
     }
 }
+*/
 
 /**
  * Check if the note is triggered according to the trigg condition
@@ -1220,172 +1241,201 @@ void drawSequencerMain(
     struct Track *selectedTrack,
     bool isDrumkitSequencer
 ) {
-    // Outline currently active step:
-    int width = HEIGHT / 6;
-    int height = width;
+    if (keyStates[BLIPR_KEY_SHIFT_2] && isDrumkitSequencer) {
+        // Draw drumkit instrument selector:
+        drawIconOnIndex(0, BLIPR_ICON_KICK);
+        // Snare
+        // Clap
+        // Rimshot
 
-    // Step indicator:
-    int playingPage = 0;
+        drawIconOnIndex(4, BLIPR_ICON_CHAT_1);
+        drawIconOnIndex(5, BLIPR_ICON_CHAT_2);
+        drawIconOnIndex(6, BLIPR_ICON_OHAT);
+        drawIconOnIndex(7, BLIPR_ICON_RIDE);
 
-    // Check track speed (we do this by manupulating the pulse):
-    uint64_t pulse = *ppqnCounter;
-    applySpeedToPulse(selectedTrack, &pulse);
-    int trackStepIndex = getTrackStepIndex(&pulse, selectedTrack, NULL);
+        drawIconOnIndex(8, BLIPR_ICON_CRASH);
+        // L. Tom
+        // M. Tom
+        // H. Tom
 
-    // Get playing page:
-    if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
-        playingPage = trackStepIndex / 16;
+        // Cowbell
+        // Extra 1
+        // Extra 2
+        // Extra 3
     } else {
-        playingPage = selectedTrack->selectedPage;
-    }    
-    
-    // Draw outline on currently playing note:
-    if (
-        playingPage >= selectedTrack->selectedPage && playingPage < selectedTrack->selectedPage + 1
-    ) {
-            int x = trackStepIndex % 4;
-            int y = (trackStepIndex / 4) % 4;
-            drawSingleLineRectOutline(
-            2 + x + (x * width),
-            2 + y + (y * height),
-            width,
-            height,
-            COLOR_WHITE
-        );
-    }
+        // Draw currently playing steps:
 
-    // Highlight playing page:
-    int polyCount = getPolyCount(selectedTrack);
-
-    // Show cut & copy information:
-    if (cutCounter > 0 || copyCounter > 0) {
-        char *bottomText[64];
-        if (cutCounter == 1) {
-            sprintf(bottomText, "CUTTED 1 NOTE");
-        } else if (cutCounter > 1) {
-            sprintf(bottomText, "CUTTED ALL NOTES");
-        }
-
-        if (copyCounter == 1) {
-            sprintf(bottomText, "PASTED 1 NOTE");
-        } else if (copyCounter > 1) {
-            sprintf(bottomText, "PASTED ALL NOTES");
-        }
-        drawCenteredLine(2, HEIGHT - BUTTON_HEIGHT - 12, bottomText, BUTTON_WIDTH * 4, COLOR_YELLOW);
-    } else if (!keyStates[BLIPR_KEY_SHIFT_2]) {
-        drawPageIndicator(selectedTrack, playingPage);
-    }
-
-    int noteIndicatorOffset = 12 - polyCount;
-
-    // Highlight non-empty steps:
-    for (int j = 0; j < 4; j++) {
+        // Outline currently active step:
+        int width = HEIGHT / 6;
         int height = width;
-        for (int i = 0; i < 4; i++) {
-            int stepIndex = ((i + (j * 4)) + (selectedTrack->selectedPage * 16)) % 64;
 
-            struct Step step = selectedTrack->steps[stepIndex];
-            // Check if this is within the track length, or outside the page length:
-            if (
-                ((selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) && (selectedTrack->selectedPage * 16) + i + (j * 4) > selectedTrack->trackLength) ||
-                ((selectedTrack->pagePlayMode == PAGE_PLAY_MODE_REPEAT) && (i + (j * 4)) > selectedTrack->pageLength)
-            ) {
-                // No note here
-                drawRect(
-                    4 + i + (i * width),
-                    4 + j + (j * height),
-                    width - 4,
-                    height - 4,
-                    COLOR_GRAY
-                );
-            } else {
-                int noteIndex = (selectedTrack->playingPageBank * polyCount) + selectedNote;
+        // Step indicator:
+        int playingPage = 0;
 
-                if (step.notes[noteIndex].enabled) {
-                    struct Note *note = &step.notes[noteIndex];
-                    SDL_Color noteColor = note->velocity >= 100 ? COLOR_RED : COLOR_DARK_RED;
-                    if (isNoteTrigged(note->trigg, selectedTrack->repeatCount)) {
-                        drawRect(
-                            4 + i + (i * width),
-                            4 + j + (j * height),
-                            width - 4,
-                            height - 4,
-                            noteColor
-                        );
-                        // Check if this note has a trigg condition
-                        if (note->trigg > 0) {
+        // Check track speed (we do this by manupulating the pulse):
+        uint64_t pulse = *ppqnCounter;
+        applySpeedToPulse(selectedTrack, &pulse);
+        int trackStepIndex = getTrackStepIndex(&pulse, selectedTrack, NULL);
+
+        // Get playing page:
+        if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
+            playingPage = trackStepIndex / 16;
+        } else {
+            playingPage = selectedTrack->selectedPage;
+        }    
+        
+        // Draw outline on currently playing note:
+        if (
+            playingPage >= selectedTrack->selectedPage && playingPage < selectedTrack->selectedPage + 1
+        ) {
+                int x = trackStepIndex % 4;
+                int y = (trackStepIndex / 4) % 4;
+                drawSingleLineRectOutline(
+                2 + x + (x * width),
+                2 + y + (y * height),
+                width,
+                height,
+                COLOR_WHITE
+            );
+        }
+
+        // Highlight playing page:
+        int polyCount = getPolyCount(selectedTrack);
+
+        // Show cut & copy information:
+        if (cutCounter > 0 || copyCounter > 0) {
+            char *bottomText[64];
+            if (cutCounter == 1) {
+                sprintf(bottomText, "CUTTED 1 NOTE");
+            } else if (cutCounter > 1) {
+                sprintf(bottomText, "CUTTED ALL NOTES");
+            }
+
+            if (copyCounter == 1) {
+                sprintf(bottomText, "PASTED 1 NOTE");
+            } else if (copyCounter > 1) {
+                sprintf(bottomText, "PASTED ALL NOTES");
+            }
+            drawCenteredLine(2, HEIGHT - BUTTON_HEIGHT - 12, bottomText, BUTTON_WIDTH * 4, COLOR_YELLOW);
+        } else if (!keyStates[BLIPR_KEY_SHIFT_2]) {
+            drawPageIndicator(selectedTrack, playingPage);
+        }
+
+        int noteIndicatorOffset = 12 - polyCount;
+
+        // Highlight non-empty steps:
+        for (int j = 0; j < 4; j++) {
+            int height = width;
+            for (int i = 0; i < 4; i++) {
+                int stepIndex = ((i + (j * 4)) + (selectedTrack->selectedPage * 16)) % 64;
+
+                struct Step step = selectedTrack->steps[stepIndex];
+                // Check if this is within the track length, or outside the page length:
+                if (
+                    ((selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) && (selectedTrack->selectedPage * 16) + i + (j * 4) > selectedTrack->trackLength) ||
+                    ((selectedTrack->pagePlayMode == PAGE_PLAY_MODE_REPEAT) && (i + (j * 4)) > selectedTrack->pageLength)
+                ) {
+                    // No note here
+                    drawRect(
+                        4 + i + (i * width),
+                        4 + j + (j * height),
+                        width - 4,
+                        height - 4,
+                        COLOR_GRAY
+                    );
+                } else {
+                    int noteIndex = (selectedTrack->playingPageBank * polyCount) + selectedNote;
+
+                    if (step.notes[noteIndex].enabled) {
+                        struct Note *note = &step.notes[noteIndex];
+                        SDL_Color noteColor = note->velocity >= 100 ? COLOR_RED : 
+                            (note->velocity >= 50 ? COLOR_DARK_RED : COLOR_LIGHT_GRAY);
+                        if (isNoteTrigged(note->trigg, selectedTrack->repeatCount)) {
+                            drawRect(
+                                4 + i + (i * width),
+                                4 + j + (j * height),
+                                width - 4,
+                                height - 4,
+                                noteColor
+                            );
+                            // Check if this note has a trigg condition
+                            if (note->trigg > 0) {
+                                drawSingleLineRectOutline(
+                                    4 + i + (i * width),
+                                    4 + j + (j * height),
+                                    width - 4,
+                                    height - 4,
+                                    mixColors(COLOR_RED, COLOR_WHITE, 0.5f)
+                                );    
+                            }                      
+                            if (!isDrumkitSequencer) {  
+                                drawTextOnButton((i + (j * 4)), getMidiNoteName(step.notes[noteIndex].note));
+                            }
+                        } else {
+                            // Here is a note, but it is not trigged by the fill condition:
                             drawSingleLineRectOutline(
                                 4 + i + (i * width),
                                 4 + j + (j * height),
                                 width - 4,
                                 height - 4,
-                                mixColors(COLOR_RED, COLOR_WHITE, 0.5f)
-                            );    
-                        }                        
-                        drawTextOnButton((i + (j * 4)), getMidiNoteName(step.notes[noteIndex].note));
-                    } else {
-                        // Here is a note, but it is not trigged by the fill condition:
-                        drawSingleLineRectOutline(
-                            4 + i + (i * width),
-                            4 + j + (j * height),
-                            width - 4,
-                            height - 4,
-                            noteColor
-                        );
-                    }
+                                noteColor
+                            );
+                        }
 
-                    // Draw nudge box:
-                    if (note->nudge < PP16N) {
-                        drawRect(
-                            2 + i + (i * width),
-                            2 + j + (j * height) + (BUTTON_HEIGHT * 0.4),
-                            2,
-                            5,
-                            noteColor
-                        );
-                    } else if (note->nudge > PP16N) {
-                        drawRect(
-                            i + (i * width) + BUTTON_WIDTH,
-                            2 + j + (j * height) + (BUTTON_HEIGHT * 0.4),
-                            2,
-                            5,
-                            noteColor
+                        // Draw nudge box:
+                        if (note->nudge < PP16N) {
+                            drawRect(
+                                2 + i + (i * width),
+                                2 + j + (j * height) + (BUTTON_HEIGHT * 0.4),
+                                2,
+                                5,
+                                noteColor
+                            );
+                        } else if (note->nudge > PP16N) {
+                            drawRect(
+                                i + (i * width) + BUTTON_WIDTH,
+                                2 + j + (j * height) + (BUTTON_HEIGHT * 0.4),
+                                2,
+                                5,
+                                noteColor
+                            );
+                        }
+                    }
+                }
+
+                // Draw selection outline:
+                if (selectedSteps[i + (j * 4)]) {
+                    drawSingleLineRectOutline(
+                        4 + i + (i * width),
+                        4 + j + (j * height),
+                        width - 4,
+                        height - 4,
+                        COLOR_YELLOW
+                    );
+                }
+                
+                // Poly count dots:
+                if (!isDrumkitSequencer) {
+                    drawRect(
+                        5 + i + (i * width) + noteIndicatorOffset,
+                        5 + j + (j * height),
+                        (polyCount * 2) + 1,
+                        3,
+                        COLOR_GRAY
+                    );
+
+                    int baseNoteIndex = (selectedTrack->playingPageBank * polyCount);
+                    for (int p=0; p<polyCount; p++) {
+                        drawPixel(
+                            6 + i + (i * width) + (p * 2) + noteIndicatorOffset,
+                            6 + j + (j * height),
+                            p == selectedNote ? COLOR_WHITE : (step.notes[baseNoteIndex + p].enabled ? COLOR_RED : COLOR_LIGHT_GRAY)
                         );
                     }
                 }
             }
-
-            drawRect(
-                5 + i + (i * width) + noteIndicatorOffset,
-                5 + j + (j * height),
-                (polyCount * 2) + 1,
-                3,
-                COLOR_GRAY
-            );
-
-            // Draw selection outline:
-            if (selectedSteps[i + (j * 4)]) {
-                drawSingleLineRectOutline(
-                    4 + i + (i * width),
-                    4 + j + (j * height),
-                    width - 4,
-                    height - 4,
-                    COLOR_YELLOW
-                );
-            }
-            
-            // Poly count dots:
-            int baseNoteIndex = (selectedTrack->playingPageBank * polyCount);
-            for (int p=0; p<polyCount; p++) {
-
-                drawPixel(
-                    6 + i + (i * width) + (p * 2) + noteIndicatorOffset,
-                    6 + j + (j * height),
-                    p == selectedNote ? COLOR_WHITE : (step.notes[baseNoteIndex + p].enabled ? COLOR_RED : COLOR_LIGHT_GRAY)
-                );
-            }
-        }
-    }   
+        }   
+    }
 
     // Draw template Note details:
     drawTemplateNote();
@@ -1475,7 +1525,7 @@ void drawSequencerMain(
 /**
  * Draw the step editor
  */
-void drawStepEditor(struct Track *track) {
+void drawStepEditor(struct Track *track, bool isDrumkitSequencer) {
     /*
         - 1-4   : Transpose -12 / -1 / +1 / +12
         - 5-6   : Increase / decrease velocity
@@ -1504,18 +1554,20 @@ void drawStepEditor(struct Track *track) {
     }     
 
     // Note/Transpose:
-    drawCenteredLine(2, 7, "TRANSPOSE", TITLE_WIDTH, COLOR_WHITE);
-    char *midiNoteName;
-    if (areAllStepPropertiesTheSame[PROPERTY_NOTE]) {
-        midiNoteName = getMidiNoteName(note->note);
-    } else {
-        midiNoteName = "##";
+    if (!isDrumkitSequencer) {
+        drawCenteredLine(2, 7, "TRANSPOSE", TITLE_WIDTH, COLOR_WHITE);
+        char *midiNoteName;
+        if (areAllStepPropertiesTheSame[PROPERTY_NOTE]) {
+            midiNoteName = getMidiNoteName(note->note);
+        } else {
+            midiNoteName = "##";
+        }
+        drawCenteredLine(2, 22, midiNoteName, TITLE_WIDTH, COLOR_YELLOW);
+        drawTextOnButton(0, "-12");
+        drawTextOnButton(1, "-1");
+        drawTextOnButton(2, "+1");
+        drawTextOnButton(3, "+12");
     }
-    drawCenteredLine(2, 22, midiNoteName, TITLE_WIDTH, COLOR_YELLOW);
-    drawTextOnButton(0, "-12");
-    drawTextOnButton(1, "-1");
-    drawTextOnButton(2, "+1");
-    drawTextOnButton(3, "+12");
 
     // Velocity:
     drawCenteredLine(2, 37, "VELOCITY", BUTTON_WIDTH * 2, COLOR_WHITE);
@@ -1631,7 +1683,7 @@ void drawSequencer(
         drawSequencerMain(ppqnCounter, keyStates, selectedTrack, isDrumkitSequencer);
     } else {
         // int stepIndex = selectedStep + (selectedTrack->selectedPage * 16);
-        drawStepEditor(selectedTrack);
+        drawStepEditor(selectedTrack, isDrumkitSequencer);
     }
 }
 
