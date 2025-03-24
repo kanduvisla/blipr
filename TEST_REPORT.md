@@ -13,6 +13,7 @@ These are observations done while testing Blipr with real hardware.
 
 --- Improvements:
 
+- Add option to reset template note (maybe when Shift1 is pressed or something?)
 - When no notes are selected cut/copy/paste = on notes/track/step
 - Missing transport / option to start / stop
 - When track has no program, shift 3 should start on program selection

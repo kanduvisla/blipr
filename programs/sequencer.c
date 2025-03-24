@@ -210,6 +210,105 @@ void toggleDrumkitStep(struct Step *step, int noteIndex) {
 }
 
 /**
+ * Set the proper template note for the drumkit sequencer
+ * @TODO: Does this need to be fetched from the configuration? Or is this per pattern / track (seems cumbersome)
+ */
+void setTemplateNoteForDrumkitSequencer(const struct Track *track, int index) {
+    // Also set selected note
+    int polyCount = getPolyCount(track);
+    templateNote.velocity = 100;
+    switch(index) {
+        case 0:
+            // Kick
+            selectedNote = 0;
+            templateNote.note = 36;
+            break;
+        case 1:
+            // Snare
+            selectedNote = 1;
+            templateNote.note = 40;
+            break;
+        case 2:
+            // Clap
+            selectedNote = polyCount > 4 ? 3 : 2;
+            templateNote.note = 39;
+            break;
+        case 3:
+            // Rimshot
+            selectedNote = 1;
+            templateNote.note = 37;
+            break;
+        case 4:
+            // C.Hat 1
+            selectedNote = polyCount == 8 ? 3 : (polyCount == 4 ? 2 : 1);
+            templateNote.note = 42;
+            break;
+        case 5:
+            // C.Hat 2
+            selectedNote = polyCount == 8 ? 3 : (polyCount == 4 ? 2 : 1);
+            templateNote.note = 44;
+            break;
+        case 6:
+            // O.Hat
+            selectedNote = polyCount == 8 ? 4 : (polyCount == 4 ? 3 : 1);
+            templateNote.note = 46;
+            break;
+        case 7:
+            // Ride
+            selectedNote = polyCount == 8 ? 4 : (polyCount == 4 ? 3 : 1);
+            templateNote.note = 51;
+            break;
+        case 8:
+            // Crash
+            selectedNote = polyCount == 8 ? 4 : (polyCount == 4 ? 3 : 1);
+            templateNote.note = 55;
+            break;
+        case 9:
+            // L.Tom
+            selectedNote = polyCount == 8 ? 5 : 1;
+            templateNote.note = 45;
+            break;
+        case 10:
+            // M.Tom
+            selectedNote = polyCount == 8 ? 5 : 1;
+            templateNote.note = 48;
+            break;
+        case 11:
+            // H.Tom
+            selectedNote = polyCount == 8 ? 5 : 1;
+            templateNote.note = 50;
+            break;
+        case 12:
+            // Cowbell
+            selectedNote = polyCount == 8 ? 6 : 1;
+            templateNote.note = 56;
+            break;
+        case 13:
+            // Extra 1
+            selectedNote = polyCount == 8 ? 6 : 0;
+            templateNote.note = 71;
+            break;
+        case 14:
+            // Extra 2
+            selectedNote = polyCount == 8 ? 7 : (polyCount == 4 ? 2 : 1);
+            templateNote.note = 73;
+            break;
+        case 15:
+            // Extra 3
+            selectedNote = polyCount == 8 ? 7 : (polyCount == 4 ? 3 : 1);
+            templateNote.note = 75;
+            break;
+        default:
+            // Nothing
+            break;
+    }
+
+    if (polyCount == 1) {
+        selectedNote = 0;
+    }
+}
+
+/**
  * Set selected page
  */
 void setSelectedPage(
@@ -512,8 +611,8 @@ void updateSequencer(
         if (index >= 0) {
             // Only the drumkit sequencer has options here
             if (isDrumkitSequencer) {
-                // Selected note = 1-16 (depending on drumkit note configuration)
-
+                // Set template note to proper drumkit note:
+                setTemplateNoteForDrumkitSequencer(track, index);
             }
         } else {
             // Bottom buttons:
@@ -553,7 +652,6 @@ void updateSequencer(
             if (!isDrumkitSequencer) {
                 toggleStep(&track->steps[stepIndex], (track->playingPageBank * polyCount) + selectedNote);
             } else {
-                // Set template note to proper drumkit note:
                 toggleDrumkitStep(&track->steps[stepIndex], (track->playingPageBank * polyCount) + selectedNote);
             }
         }
@@ -1453,6 +1551,10 @@ void drawSequencerMain(
             sprintf(descriptions[0], "<");
             sprintf(descriptions[1], ">");
         }
+        if (isDrumkitSequencer) {
+            sprintf(descriptions[2], "-");
+            sprintf(descriptions[3], "-");
+        }
         drawABCDButtons(descriptions);
         // Draw page bank title:
         drawCenteredLine(
@@ -1466,18 +1568,20 @@ void drawSequencerMain(
         char pageBankText[2];
         sprintf(pageBankText, "%d", selectedPageBank + 1);
         drawText(2 + 28, HEIGHT - BUTTON_HEIGHT + 2, pageBankText, BUTTON_WIDTH, COLOR_WHITE);
-        // Draw channel title:
-        drawCenteredLine(
-            6 + (BUTTON_WIDTH * 2), 
-            HEIGHT - BUTTON_HEIGHT - 12, 
-            "CHANNEL",
-            BUTTON_WIDTH * 2,
-            COLOR_YELLOW
-        );
-        // Draw channel number:
-        char channelText[2];
-        sprintf(channelText, "%d", selectedNote + 1);
-        drawText(92, HEIGHT - BUTTON_HEIGHT + 2, channelText, BUTTON_WIDTH, COLOR_WHITE);
+        if (!isDrumkitSequencer) {
+            // Draw channel title:
+            drawCenteredLine(
+                6 + (BUTTON_WIDTH * 2), 
+                HEIGHT - BUTTON_HEIGHT - 12, 
+                "CHANNEL",
+                BUTTON_WIDTH * 2,
+                COLOR_YELLOW
+            );
+            // Draw channel number:
+            char channelText[2];
+            sprintf(channelText, "%d", selectedNote + 1);
+            drawText(92, HEIGHT - BUTTON_HEIGHT + 2, channelText, BUTTON_WIDTH, COLOR_WHITE);
+        }
     } else {
         // Page numbers:
         char descriptions[4][4] = {"P00", "P00", "P00", "P00"};
