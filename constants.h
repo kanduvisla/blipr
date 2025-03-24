@@ -64,8 +64,8 @@
 
 #define BLIPR_KEY_SHIFT_1 SDL_SCANCODE_LSHIFT
 #define BLIPR_KEY_SHIFT_2 SDL_SCANCODE_LCTRL
+#define BLIPR_KEY_SHIFT_3 SDL_SCANCODE_RALT // SDL_SCANCODE_RCTRL
 #define BLIPR_KEY_FUNC SDL_SCANCODE_RSHIFT
-#define BLIPR_KEY_SHIFT_3 SDL_SCANCODE_RCTRL
 
 // Midi devices
 #define BLIPR_MIDI_DEVICE_A 0
@@ -77,7 +77,8 @@
 // blipr programs
 #define BLIPR_PROGRAM_NONE 0
 #define BLIPR_PROGRAM_SEQUENCER 1
-#define BLIPR_PROGRAM_FOUR_ON_THE_FLOOR 2
+#define BLIPR_PROGRAM_DRUMKIT_SEQUENCER 2
+#define BLIPR_PROGRAM_FOUR_ON_THE_FLOOR 3
 
 /*
 bool isSetupMidiDevicesRequired;    // Boolean flag to determine if midi devices needs to be set-up (required after changing midi assignment)
@@ -107,7 +108,8 @@ typedef enum {
     BLIPR_SCREEN_PROGRAM_SELECTION = 9,
     BLIPR_SCREEN_SEQUENCER = 10,
     BLIPR_SCREEN_NO_PROGRAM = 11,
-    BLIPR_SCREEN_FOUR_ON_THE_FLOOR = 12
+    BLIPR_SCREEN_FOUR_ON_THE_FLOOR = 12,
+    BLIPR_SCREEN_DRUMKIT_SEQUENCER = 13,
 } BliprScreen;
 
 #endif // CONSTANTS_H

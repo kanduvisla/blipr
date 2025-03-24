@@ -97,7 +97,8 @@
 void updateSequencer(
     struct Track *selectedTrack,
     bool keyStates[SDL_NUM_SCANCODES], 
-    SDL_Scancode key
+    SDL_Scancode key,
+    bool isDrumkitSequencer
 );
 
 /**
@@ -123,7 +124,8 @@ void runSequencer(
 void drawSequencer(
     uint64_t *ppqnCounter,
     bool keyStates[SDL_NUM_SCANCODES],
-    struct Track *track
+    struct Track *track,
+    bool isDrumkitSequencer
 );
 
 /**

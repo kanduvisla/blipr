@@ -135,7 +135,7 @@ struct Track* byteArrayToTrack(const unsigned char bytes[TRACK_BYTE_SIZE]) {
  */
 void resetTrack(struct Track *track) {
     track->selectedPage = 0;
-    track->selectedPageBank = 0;
+    track->playingPageBank = 0;
     track->queuedPage = 0;
     track->repeatCount = 0;
 }

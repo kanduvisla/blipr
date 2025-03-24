@@ -11,9 +11,12 @@
  * Draw the program selection
  */
 void drawProgramSelection(struct Track *track) {
+    // Draw program icons:
     drawIconOnIndex(BLIPR_PROGRAM_NONE, BLIPR_ICON_CROSS);
     drawIconOnIndex(BLIPR_PROGRAM_SEQUENCER, BLIPR_ICON_SEQUENCER);
+    drawIconOnIndex(BLIPR_PROGRAM_DRUMKIT_SEQUENCER, BLIPR_ICON_SEQUENCER); // TODO: create drumkit sequencer icon
     drawIconOnIndex(BLIPR_PROGRAM_FOUR_ON_THE_FLOOR, BLIPR_ICON_FOOT_DOWN);
+
     drawHighlightedGridTile(track->program);
 
     // Title:

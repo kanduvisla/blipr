@@ -184,24 +184,34 @@ Here is a bit of explanation how to think of steps, pages and notes.
 
 ### Drumkit sequencer
 
-This sequencer can be used if there is a drumkit assigned to notes. It's basically the same as the basic sequencer, but instead of notes, the drum names are used. Drum names / note configurations can be configured in the configuration menu. Kits contain:
+This sequencer can be used if there is a drumkit assigned to notes. It's basically the same as the basic sequencer, but instead of notes, the drum names are used. Drum names / note configurations can be configured in the configuration menu. 
 
-- Kick
-- Snare
-- Clap
-- Rimshot
-- Closed Hat
-- Open Hat
-- Ride
-- Cymbal
-- L. Tom
-- M. Tom
-- H. Tom
-- Cowbell
-- ...
-- ...
-- ...
-- ...
+The main differences with the basic sequencer are:
+
+- Tapping on a step does not toggle it, but changes it's velocity to 100, 50, 25 or OFF.
+- When holding down Shift-2, buttons 1-16 are used to select the drum
+- Drums are shared between different channels, depending on polyphony:
+
+| Sample    | P8 Ch | P4 Ch | P2 Ch |
+| --------- | ----- | ----- | ----- |
+| Kick      |   1   |   1   |   1   |
+| Snare     |   2   |   2   |   2   |
+| Clap      |   3   |   2   |   2   |
+| Rimshot   |   2   |   2   |   2   |
+| C.Hat 1   |   4   |   3   |   2   |
+| C.Hat 2   |   4   |   3   |   2   |
+| O.Hat     |   5   |   4   |   2   |
+| Ride      |   5   |   4   |   2   |
+| Cymbal    |   5   |   4   |   2   |
+| L. Tom    |   6   |   2   |   2   |
+| M. Tom    |   6   |   2   |   2   |
+| H. Tom    |   6   |   2   |   2   |
+| Cowbell   |   7   |   2   |   2   |
+| Extra 1   |   7   |   1   |   1   |
+| Extra 2   |   8   |   3   |   2   |
+| Extra 3   |   8   |   4   |   2   |
+
+With a polyphony of 1, everything is on the same channel, obviously.
 
 ### Cycles kick machine
 

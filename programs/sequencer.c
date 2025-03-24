@@ -375,7 +375,8 @@ int getMaxPageBanks(const struct Track *track) {
 void updateSequencer(
     struct Track *track,
     bool keyStates[SDL_NUM_SCANCODES], 
-    SDL_Scancode key
+    SDL_Scancode key,
+    bool isDrumkitSequencer
 ) {
     int index = scancodeToStep(key);
     if (keyStates[BLIPR_KEY_SHIFT_1]) {
@@ -1216,7 +1217,8 @@ void drawTemplateNote() {
 void drawSequencerMain(
     uint64_t *ppqnCounter, 
     bool keyStates[SDL_NUM_SCANCODES],
-    struct Track *selectedTrack
+    struct Track *selectedTrack,
+    bool isDrumkitSequencer
 ) {
     // Outline currently active step:
     int width = HEIGHT / 6;
@@ -1622,10 +1624,11 @@ void drawStepEditor(struct Track *track) {
 void drawSequencer(
     uint64_t *ppqnCounter, 
     bool keyStates[SDL_NUM_SCANCODES],
-    struct Track *selectedTrack
+    struct Track *selectedTrack,
+    bool isDrumkitSequencer
 ) {
     if (!isNoteEditorVisible) {
-        drawSequencerMain(ppqnCounter, keyStates, selectedTrack);
+        drawSequencerMain(ppqnCounter, keyStates, selectedTrack, isDrumkitSequencer);
     } else {
         // int stepIndex = selectedStep + (selectedTrack->selectedPage * 16);
         drawStepEditor(selectedTrack);
