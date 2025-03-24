@@ -174,4 +174,9 @@ void processPulse(
     void (*playNoteCallback)(const struct Note *note)
 );
 
+/**
+ * Prepare the template note for the drumkit sequencer
+ */
+void setTemplateNoteForDrumkitSequencer(const struct Track *track, int index);
+
 #endif

@@ -312,3 +312,14 @@ void drawRotatingButton(
     );
     drawTextOnButton(index, value);
 }
+
+/**
+ * Draw a dimmed, pixelated overlay
+ */
+void drawDimmedOverlay(int x, int y, int width, int height) {
+    for (int yPos=0; yPos<height; yPos++) {
+        for (int xPos=0; xPos<width; xPos+=2) {
+            drawPixel(x + xPos + (yPos % 2), y + yPos, COLOR_BLACK);
+        }
+    }
+}

@@ -230,7 +230,7 @@ void setTemplateNoteForDrumkitSequencer(const struct Track *track, int index) {
             break;
         case 2:
             // Clap
-            selectedNote = polyCount > 4 ? 3 : 2;
+            selectedNote = polyCount == 8 ? 2 : 1;
             templateNote.note = 39;
             break;
         case 3:
@@ -1468,6 +1468,34 @@ void drawSequencerMain(
                             }                      
                             if (!isDrumkitSequencer) {  
                                 drawTextOnButton((i + (j * 4)), getMidiNoteName(step.notes[noteIndex].note));
+                            } else {
+                                // If this note is not equal to the template note, it means that it is a different drumkit
+                                // Instrument. So we need to make that visually clear:
+                                if (note->note != templateNote.note) {
+                                    drawDimmedOverlay(
+                                        4 + i + (i * width),
+                                        4 + j + (j * height),
+                                        width - 4,
+                                        height - 4
+                                    );
+
+                                    /*
+                                    drawSingleLineRectOutline(
+                                        5 + i + (i * width),
+                                        5 + j + (j * height),
+                                        width - 6,
+                                        height - 6,
+                                        COLOR_BLACK
+                                    );
+                                    drawSingleLineRectOutline(
+                                        7 + i + (i * width),
+                                        7 + j + (j * height),
+                                        width - 10,
+                                        height - 10,
+                                        COLOR_BLACK
+                                    );
+                                    */    
+                                }
                             }
                         } else {
                             // Here is a note, but it is not trigged by the fill condition:
@@ -1568,20 +1596,18 @@ void drawSequencerMain(
         char pageBankText[2];
         sprintf(pageBankText, "%d", selectedPageBank + 1);
         drawText(2 + 28, HEIGHT - BUTTON_HEIGHT + 2, pageBankText, BUTTON_WIDTH, COLOR_WHITE);
-        if (!isDrumkitSequencer) {
-            // Draw channel title:
-            drawCenteredLine(
-                6 + (BUTTON_WIDTH * 2), 
-                HEIGHT - BUTTON_HEIGHT - 12, 
-                "CHANNEL",
-                BUTTON_WIDTH * 2,
-                COLOR_YELLOW
-            );
-            // Draw channel number:
-            char channelText[2];
-            sprintf(channelText, "%d", selectedNote + 1);
-            drawText(92, HEIGHT - BUTTON_HEIGHT + 2, channelText, BUTTON_WIDTH, COLOR_WHITE);
-        }
+        // Draw channel title:
+        drawCenteredLine(
+            6 + (BUTTON_WIDTH * 2), 
+            HEIGHT - BUTTON_HEIGHT - 12, 
+            "CHANNEL",
+            BUTTON_WIDTH * 2,
+            COLOR_YELLOW
+        );
+        // Draw channel number:
+        char channelText[2];
+        sprintf(channelText, "%d", selectedNote + 1);
+        drawText(92, HEIGHT - BUTTON_HEIGHT + 2, channelText, BUTTON_WIDTH, COLOR_WHITE);
     } else {
         // Page numbers:
         char descriptions[4][4] = {"P00", "P00", "P00", "P00"};

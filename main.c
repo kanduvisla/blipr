@@ -363,6 +363,7 @@ void* sequencerThread(void* arg) {
                     state->patternStepCounter = 0;
                     // This is the moment to switch from the queued pattern to the selected pattern
                     if (state->selectedPattern != state->queuedPattern) {
+                        // Perform actions when switching pattern:
                         pthread_mutex_lock(&state->mutex);
                         state->selectedPattern = state->queuedPattern;
                         // Set proper track + reset repeat count for all track:
@@ -392,6 +393,9 @@ void* sequencerThread(void* arg) {
                         state->nanoSecondsPerPulse = calculateNanoSecondsPerPulse(state->bpm);
                         // Set proper screen:
                         setScreenAccordingToActiveTrack(state);
+                        if (state->screen == BLIPR_SCREEN_DRUMKIT_SEQUENCER) {
+                            setTemplateNoteForDrumkitSequencer(state->track, 0);
+                        }
                         pthread_mutex_unlock(&state->mutex);
                     }                    
                 }

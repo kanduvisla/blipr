@@ -83,4 +83,9 @@ void drawIncreaseAndDecreaseButtons(int firstButtonIndex, const char *header, co
  */
 void drawRotatingButton(int index, const char *header, const char *value);
 
+/**
+ * Draw a dimmed overlay
+ */
+void drawDimmedOverlay(int x, int y, int width, int height);
+
 #endif
