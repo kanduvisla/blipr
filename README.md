@@ -52,7 +52,8 @@ Basically the functionality for all programs is identical, with the following ma
 - Shift2    : _(depends on program)_
 - Shift3    : Track Options / Pattern Options / Sequence Options / Utilities
     - When holding Shift3, ABCD is for different options:
-        - A     : Track Options
+        - A     : Select Track
+        - B     : Track Options
             - 1     : ✅ Change track play mode (continuous or by page)
             - 2     : ✅ Change track polyphony (8, 4, 2, 1)
             - 3-4   : ✅ Increase / decrease track / page length (depending on play mode)
@@ -60,31 +61,31 @@ Basically the functionality for all programs is identical, with the following ma
             - 7-8   : ✅ Set shuffle
             - 9     : ✅ Set Midi Device
             - 10    : ✅ Set Midi Channel
-            - 11    : Change page repeat (how many times repeat a page before the transition happens?)
-            - 12    : Change track name
-            - 13-14 : Increase / decrease CC1 mapping (default=0)
-            - 15-16 : Increase / decrease CC2 mapping (default=0)
-        - B     : ✅ Program Selector for this Track
-        - C     : Pattern Options & Sequence Options
-            - 1     : Sync pages (when switching pages with repeat page mode, do all tracks play the same page (true), or are the pages individually configured?)
-            - 12    : Change pattern name
-            - 13-14 : Increase / decrease Midi Program Bank (default=0)
-            - 15-16 : Increase / decrease Midi Program Pattern (default=0)
-        - D     : Utilities
-            - 1     : Copy
-            - 2     : Paste
-            - 3     : Cut
-            - 4     : Clear
-            - 5-6   : Nudge
-            - 7-8   : Transpose
-- Func-1-16 : ✅ Select Track 1-16
+            - 11-12 : ✅ Change page repeat (how many times repeat a page before the transition happens?)
+            - 13-14 : ✅ Increase / decrease CC1 mapping (default=0)
+            - 15-16 : ✅ Increase / decrease CC2 mapping (default=0)
+        - C     : ✅ Program Selector for this Track
+        - D     : Pattern Options
+            - 1-2   : ✅ Change BPM
+            - 3-4   : ✅ Change Pattern Length (used for determine pattern transition)
+            - ...   : Sync pages (when switching pages with repeat page mode, do all tracks play the same page (true), or are the pages individually configured?)
+            - ...   : Change pattern name
+            - 8-9   : ✅ Set Midi device A PC
+            - 10-11 : ✅ Set Midi device B PC
+            - 12-13 : ✅ Set Midi device C PC
+            - 14-15 : ✅ Set Midi device D PC
 - Func-A    : ✅ Pattern Selector (while still holding Func down, select 1-16)
 - Func-B    : ✅ Sequence Selector (while still holding Func down, select 1-16)
-- Func-C    : Transport (Start / Stop / BPM / Clock Settings)
-- Func-D    : Configuration
-    - 1         : ✅ Midi Configuration
-        - ABCD  : ✅ Select Midi Device Slot A, B, C or D
-        - 1-16  : ✅ Select Midi Device
+- Func-C    : Configuration
+            - 1     : ✅ Set Midi Device A
+            - 2     : ✅ Set Midi Device B
+            - 3     : ✅ Set Midi Device C
+            - 4     : ✅ Set Midi Device D
+            - 5     : ✅ Set Midi Device A PC Channel
+            - 6     : ✅ Set Midi Device B PC Channel
+            - 7     : ✅ Set Midi Device C PC Channel
+            - 8     : ✅ Set Midi Device D PC Channel
+- Func-D    : Transport (Start / Stop / BPM / Clock Settings)
 
 ## configuration
 
@@ -146,26 +147,24 @@ Each pattern has 64 steps, divided in 4 pages. Each step can have up to 8 notes.
 
 - 16-pad    : Steps
     - ✅ Toggle on/off
-    - ✅ Shift1: Half velocity
-    - Shift2: Select note
-        - When no note selected:
-            - 1-16  : ✅ Select note
-            - C-D   : ✅ (For polyphony) Channel -/+
-        - 1-4   : ✅ Transpose -12 / -1 / +1 / +12
-        - 5-6   : ✅ Increase / decrease velocity
-        - 7-8   : ✅ Increase / decrease length
-        - 9-10  : ✅ Increase / decrease nudge
-        - 11-12 : ✅ Increase / decrease trig condition
-        - 13-14 : Increase / decrease CC1 value
-        - 15-16 : Increase / decrease CC2 value
-        - C     : Copy Note (2x to copy entire step/all notes on step)
-        - D     : Paste Note/Step
+    - ✅ Shift1: Select step(s)
+        - A : ✅ Open Note editor for current note
+            - 1-4   : ✅ Transpose -12 / -1 / +1 / +12
+            - 5-6   : ✅ Increase / decrease velocity
+            - 7-8   : ✅ Increase / decrease length
+            - 9-10  : ✅ Increase / decrease nudge
+            - 11-12 : ✅ Increase / decrease trig condition
+            - 13-14 : ✅ Increase / decrease CC1 value
+            - 15-16 : ✅ Increase / decrease CC2 value
+        - B : ✅ Cut (once for note(s), twice for step(s))
+        - C : ✅ Copy
+        - D : ✅ Paste (once for note(s), twice for step(s))
+    - Shift2: 
+        - A-B : ✅ Increase / decrease page bank
+        - C-D : ✅ Increase / decrease selected note / channel
 - ABCD  : ✅ Select page for playing (or next in queue, depending on page play mode)
     - ✅ When pages are playing after each other (play mode), this button selects which page to edit
     - ✅ When page play mode is repeat page, this button queues the next page
-    - When holding multiple pages, a chain is created
-    - Shift1    : Select page bank
-    - Shift2    : Select page size (1-512) (default=16) (note 1-8 is used for page information)
 
 #### Steps / Pages / Notes / Polyphony
 
@@ -183,32 +182,9 @@ Here is a bit of explanation how to think of steps, pages and notes.
     - 256 Steps:    A:1,5,9     B:2,6,10    C:3,7,11    D:4,8,12
     - 512 Steps:    A:1,5,9,13  B:2,6,10,14 C:3,7,11,15 D:4,8,12,16
 
-### Basic poly sequencer
+### Drumkit sequencer
 
-Each pattern has 64 steps, divided in 4 pages. Each step can have up to 8 notes.
-
-Track length determins how many pages / polyphony is possible:
-
-- with 8-voice polyphony, you can have max. 64 steps.
-- with 4-voice polyphony, you can have max. 128 steps.
-- with 2-voice polyphony, you can have max. 256 steps.
-- with monophony, you can have 512 steps.
-
-Same as "Basic 16 step sequencer, but pages are sacrified for polyphony. The following is different between the 2 sequencers:
-
-- Shift2-1-16   : When holding Shift-2, ABCD can be used to select voice:
-    - A : Voice 1/2
-    - B : Voice 3/4 (if applicable)
-    - C : Voice 5/6 (if applicable)
-    - D : Voice 7/8 (if applicable)
-- Shift2-ABCD   : Select page size / polyphony count
-    - 16 steps : 8 voices
-    - 32 steps : 4 voices
-    - 64 steps : 2 voices
-
-### SH4D-sequencer / Drumkit sequencer
-
-This sequencer can be used if there is a drumkit assigned to notes. It's basically the same as the basic poly sequencer, but instead of notes, the drum names are used. Drum names / note configurations can be configured in the configuration menu. Kits contain:
+This sequencer can be used if there is a drumkit assigned to notes. It's basically the same as the basic sequencer, but instead of notes, the drum names are used. Drum names / note configurations can be configured in the configuration menu. Kits contain:
 
 - Kick
 - Snare

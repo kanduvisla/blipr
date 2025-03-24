@@ -6,9 +6,7 @@ These are observations done while testing Blipr with real hardware.
 
 --- Bugs:
 
-- When switching page bank, page is also changed. Defferentiate in playingPageBank and selectedPageBank
 - Double speed does not seem to work good
-- When selecting a pagebank but not yet a page, the page already starts playing
 - Key repeat is repeating also on steps
 - Steps are set on disabled tiles (takes not in account page length (possible also track length))
 - (confirm if this still happens) It still appears that something goes wrong when setting steps in the sequencer; other pages seem affected.
@@ -89,6 +87,8 @@ These are observations done while testing Blipr with real hardware.
 - Cannot set midi device for slot B, C and D (need to review configuration layout)
 - Page bank seems to show steps from different track?
 - Page bank > 5 shows in step editor but is not playing
+- When switching page bank, page is also changed. Defferentiate in playingPageBank and selectedPageBank
+- When selecting a pagebank but not yet a page, the page already starts playing
 
 -- Won't fix / not related:
 
