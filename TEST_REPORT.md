@@ -8,9 +8,8 @@ These are observations done while testing Blipr with real hardware.
 
 - Copy / Paste is flaky
 - Double speed does not seem to work good (retest now pp16n is x4)
-- Key repeat is repeating also on steps
+- Key repeat is repeating also on steps (not sure if this is a major issue)
 - Steps are set on disabled tiles (takes not in account page length (possible also track length))
-- (confirm if this still happens) It still appears that something goes wrong when setting steps in the sequencer; other pages seem affected.
 
 --- Improvements:
 
@@ -91,6 +90,7 @@ These are observations done while testing Blipr with real hardware.
 - Page bank > 5 shows in step editor but is not playing
 - When switching page bank, page is also changed. Defferentiate in playingPageBank and selectedPageBank
 - When selecting a pagebank but not yet a page, the page already starts playing
+- It still appears that something goes wrong when setting steps in the sequencer; other pages seem affected.
 
 -- Won't fix / not related:
 
