@@ -2,9 +2,12 @@ CC = gcc
 CFLAGS = -Wall -Wextra $(shell sdl2-config --cflags) $(shell pkg-config --cflags portmidi)
 LIBS = $(shell sdl2-config --libs) $(shell pkg-config --libs portmidi)
 
+# Add C++ compiler
+CXX = g++
+CXXFLAGS = $(CFLAGS)
+
 TARGET = build/blipr
-SRCS = print.c \
-	main.c \
+C_SRCS = print.c \
 	midi.c \
 	utils.c \
 	drawing.c \
@@ -22,9 +25,16 @@ SRCS = print.c \
 	programs/config_selection.c \
 	programs/program_selection.c \
 	programs/track_options.c \
-	programs/pattern_options.c \
-	programs/four_on_the_floor.c
-OBJS = $(SRCS:.c=.o)
+	programs/pattern_options.c	
+
+CPP_SRCS = 	main.cpp \
+	programs/abstract_program.cpp \
+	programs/four_on_the_floor.cpp
+SRCS = $(C_SRCS) $(CPP_SRCS)
+
+C_OBJS = $(patsubst %.c,%.o,$(filter %.c,$(SRCS)))
+CPP_OBJS = $(patsubst %.cpp,%.o,$(filter %.cpp,$(SRCS)))
+OBJS = $(C_OBJS) $(CPP_OBJS)
 
 TEST_TARGET = build/test_blipr
 TEST_SRCS = $(SRCS:main.c=tests/main_test.c)
@@ -38,15 +48,19 @@ TEST_OBJS = $(TEST_SRCS:.c=.o)
 
 # Main build target
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS) $(LIBS)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS) $(LIBS)
 
 # Test build target
 $(TEST_TARGET): $(TEST_OBJS)
-	$(CC) $(CFLAGS) -o $(TEST_TARGET) $(TEST_OBJS) $(LIBS)
+	$(CXX) $(CXXFLAGS) -o $(TEST_TARGET) $(TEST_OBJS) $(LIBS)
 
 # Generic rule for compiling .c to .o
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
+
+# Rule for compiling .cpp to .o
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Make & Run target
 run: $(TARGET)
@@ -70,6 +84,7 @@ icon: build/icon_tool
 
 # Clean targets
 clean:
-	rm -f $(TARGET) $(TEST_EXECUTABLE) $(OBJS) $(TEST_OBJS) build/icon_tool
+	rm -f $(TARGET) $(TEST_EXECUTABLE) build/icon_tool
+	rm -f $(OBJS:.cpp=.o) $(TEST_OBJS:.cpp=.o)
 
 .PHONY: clean test

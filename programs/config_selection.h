@@ -4,6 +4,10 @@
 #include <SDL.h>
 #include "../project.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Draw the config selection
  */
@@ -19,5 +23,9 @@ void updateConfiguration(struct Project *project, SDL_Scancode key, bool *reload
  * Reset configuration screen to start state
  */
 void resetConfigurationScreen();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

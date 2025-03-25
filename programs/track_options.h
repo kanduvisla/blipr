@@ -4,6 +4,10 @@
 #include <SDL.h>
 #include "../project.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void drawTrackOptions(struct Track* track);
 void updateTrackOptions(struct Track* track, SDL_Scancode key);
 
@@ -14,5 +18,9 @@ void checkTrackOptionsForKeyRepeats(
     struct Track *selectedTrack,
     bool keyStates[SDL_NUM_SCANCODES]
 );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

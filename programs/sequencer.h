@@ -91,6 +91,10 @@
 
 #define TRIG_HIGHEST_VALUE 56         // Used internally for decision making, make sure to change this if you add new trigg conditions
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Update the sequencer according to user input
  */
@@ -178,5 +182,9 @@ void processPulse(
  * Prepare the template note for the drumkit sequencer
  */
 void setTemplateNoteForDrumkitSequencer(const struct Track *track, int index);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

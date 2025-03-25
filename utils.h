@@ -5,6 +5,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Convert a scancode to a step index
  */
@@ -39,5 +43,9 @@ unsigned char incrementHighNibble(unsigned char byte);
 unsigned char decrementHighNibble(unsigned char byte);
 unsigned char incrementLowNibble(unsigned char byte);
 unsigned char decrementLowNibble(unsigned char byte);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

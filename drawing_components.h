@@ -4,6 +4,10 @@
 #include <stdbool.h>
 #include <SDL.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void drawButton(int x, int y, int width, int height);
 void drawSequencerButton(int x, int y, int width, int height, bool isActive);
 void drawBPMBlinker(uint64_t *ppqnCounter);
@@ -87,5 +91,9 @@ void drawRotatingButton(int index, const char *header, const char *value);
  * Draw a dimmed overlay
  */
 void drawDimmedOverlay(int x, int y, int width, int height);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

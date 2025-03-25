@@ -22,7 +22,7 @@
 #include "programs/config_selection.h"
 #include "programs/program_selection.h"
 #include "programs/track_options.h"
-#include "programs/four_on_the_floor.h"
+#include "programs/four_on_the_floor.hpp"
 #include "programs/pattern_options.h"
 #include "midi.h"
 #include "print.h"
@@ -182,7 +182,7 @@ void initSharedState(SharedState* state) {
     state->project = readProjectFile(projectFile);
     if (state->project == NULL) {
         print("No project found, creating new project");
-        state->project = malloc(PROJECT_BYTE_SIZE);
+        state->project = (struct Project*)malloc(PROJECT_BYTE_SIZE);
         if (state->project == NULL) {
             printError("Memory allocation failed");
         } else {
@@ -413,7 +413,7 @@ void* sequencerThread(void* arg) {
                         runSequencer(outputStream[iTrack->midiDevice], &state->ppqnCounter, iTrack);
                         break;
                     case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
-                        runFourOnTheFloor(outputStream[iTrack->midiDevice], &state->ppqnCounter, iTrack);
+                        // runFourOnTheFloor(outputStream[iTrack->midiDevice], &state->ppqnCounter, iTrack);
                         break;
                 }
             }
@@ -792,7 +792,7 @@ int main(int argc, char *argv[]) {
                     );
                     break;
                 case BLIPR_SCREEN_FOUR_ON_THE_FLOOR:
-                    drawFourOnTheFloor(&state.ppqnCounter, state.track);
+                    // drawFourOnTheFloor(&state.ppqnCounter, state.track);
                     break;
                 default:
                     // Should not happen, but just in case

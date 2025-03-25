@@ -20,6 +20,10 @@ typedef enum {
     BLIPR_ICON_CRASH = 13,
 } Blipr_Icon;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void drawIcon(
     int startX, 
     int startY, 
@@ -30,5 +34,9 @@ void drawIconOnIndex(
     int index, 
     Blipr_Icon icon
 );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -4,6 +4,13 @@
 #include <portmidi.h>
 #include <porttime.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * Handle midi error
+ */
 void handleMidiError(PmError error);
 
 /**
@@ -58,5 +65,9 @@ void updateNotesAndSendOffs();
 char* getMidiNoteName(unsigned char midiNote);
 
 void sendProgramChange(PortMidiStream *stream, int channel, int program);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

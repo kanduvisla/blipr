@@ -25,6 +25,10 @@
 #define TRACK_SPEED_DIV_FOUR 2 
 #define TRACK_SPEED_DIV_EIGHT 1
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * A Note
  */
@@ -153,5 +157,9 @@ void initializeProject(struct Project* project);
  * Get polyphony count for a given track
  */
 int getPolyCount(const struct Track* track);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

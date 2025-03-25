@@ -3,6 +3,10 @@
 
 #include <SDL.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Draw a single character
  */
@@ -27,5 +31,9 @@ void initializeTextures();
  * Cleanup textures
  */
 void cleanupTextures();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
