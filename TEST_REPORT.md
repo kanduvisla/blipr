@@ -6,13 +6,14 @@ These are observations done while testing Blipr with real hardware.
 
 --- Bugs:
 
-- Double speed does not seem to work good
-- Key repeat is repeating also on steps
+- Copy / Paste is flaky
+- Double speed does not seem to work good (retest now pp16n is x4)
+- Key repeat is repeating also on steps (not sure if this is a major issue)
 - Steps are set on disabled tiles (takes not in account page length (possible also track length))
-- (confirm if this still happens) It still appears that something goes wrong when setting steps in the sequencer; other pages seem affected.
 
 --- Improvements:
 
+- Add option to reset template note (maybe when Shift1 is pressed or something?)
 - When no notes are selected cut/copy/paste = on notes/track/step
 - Missing transport / option to start / stop
 - When track has no program, shift 3 should start on program selection
@@ -89,6 +90,7 @@ These are observations done while testing Blipr with real hardware.
 - Page bank > 5 shows in step editor but is not playing
 - When switching page bank, page is also changed. Defferentiate in playingPageBank and selectedPageBank
 - When selecting a pagebank but not yet a page, the page already starts playing
+- It still appears that something goes wrong when setting steps in the sequencer; other pages seem affected.
 
 -- Won't fix / not related:
 

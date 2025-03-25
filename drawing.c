@@ -3,6 +3,7 @@
 #include "globals.h"
 #include "drawing_utils.h"
 #include "drawing.h"
+#include "colors.h"
 
 /**
  * Draw a rectangle

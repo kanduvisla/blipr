@@ -137,6 +137,9 @@ void setScreenAccordingToActiveTrack(SharedState *state) {
         case BLIPR_PROGRAM_SEQUENCER:
             state->screen = BLIPR_SCREEN_SEQUENCER;
             break;
+        case BLIPR_PROGRAM_DRUMKIT_SEQUENCER:
+            state->screen = BLIPR_SCREEN_DRUMKIT_SEQUENCER;
+            break;
         case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
             state->screen = BLIPR_SCREEN_FOUR_ON_THE_FLOOR;
             break;
@@ -360,6 +363,8 @@ void* sequencerThread(void* arg) {
                     state->patternStepCounter = 0;
                     // This is the moment to switch from the queued pattern to the selected pattern
                     if (state->selectedPattern != state->queuedPattern) {
+                        // Perform actions when switching pattern:
+                        pthread_mutex_lock(&state->mutex);
                         state->selectedPattern = state->queuedPattern;
                         // Set proper track + reset repeat count for all track:
                         state->track = &state->project->sequences[state->selectedSequence]
@@ -386,6 +391,12 @@ void* sequencerThread(void* arg) {
                         state->bpm = state->project->sequences[state->selectedSequence]
                             .patterns[state->selectedPattern].bpm + 45;
                         state->nanoSecondsPerPulse = calculateNanoSecondsPerPulse(state->bpm);
+                        // Set proper screen:
+                        setScreenAccordingToActiveTrack(state);
+                        if (state->screen == BLIPR_SCREEN_DRUMKIT_SEQUENCER) {
+                            setTemplateNoteForDrumkitSequencer(state->track, 0);
+                        }
+                        pthread_mutex_unlock(&state->mutex);
                     }                    
                 }
             }
@@ -398,6 +409,7 @@ void* sequencerThread(void* arg) {
                 // Run the program:
                 switch (iTrack->program) {
                     case BLIPR_PROGRAM_SEQUENCER:
+                    case BLIPR_PROGRAM_DRUMKIT_SEQUENCER:
                         runSequencer(outputStream[iTrack->midiDevice], &state->ppqnCounter, iTrack);
                         break;
                     case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
@@ -567,7 +579,13 @@ void* keyThread(void* arg) {
                 setScreenAccordingToActiveTrack(state);
                 switch (state->track->program) {
                     case BLIPR_PROGRAM_SEQUENCER:
-                        updateSequencer(state->track, state->keyStates, state->scanCodeKeyDown);                        
+                    case BLIPR_PROGRAM_DRUMKIT_SEQUENCER:
+                        updateSequencer(
+                            state->track, 
+                            state->keyStates, 
+                            state->scanCodeKeyDown,
+                            state->track->program == BLIPR_PROGRAM_DRUMKIT_SEQUENCER
+                        );                        
                         break;
                 }
                 // Handle key:
@@ -764,8 +782,14 @@ int main(int argc, char *argv[]) {
                 case BLIPR_SCREEN_NO_PROGRAM:
                     drawCenteredLine(2, 61, "(NO PROGRAM)", TITLE_WIDTH, COLOR_WHITE);
                     break;
-                case BLIPR_SCREEN_SEQUENCER:
-                    drawSequencer(&state.ppqnCounter, state.keyStates, state.track);
+                case BLIPR_SCREEN_SEQUENCER: 
+                case BLIPR_SCREEN_DRUMKIT_SEQUENCER:
+                    drawSequencer(
+                        &state.ppqnCounter, 
+                        state.keyStates, 
+                        state.track,
+                        state.screen == BLIPR_SCREEN_DRUMKIT_SEQUENCER
+                    );
                     break;
                 case BLIPR_SCREEN_FOUR_ON_THE_FLOOR:
                     drawFourOnTheFloor(&state.ppqnCounter, state.track);

@@ -97,16 +97,19 @@
 void updateSequencer(
     struct Track *selectedTrack,
     bool keyStates[SDL_NUM_SCANCODES], 
-    SDL_Scancode key
+    SDL_Scancode key,
+    bool isDrumkitSequencer
 );
 
 /**
  * Check if we need to do some key repeat actions
  */
+/*
 void checkSequencerForKeyRepeats(
     struct Track *selectedTrack,
     bool keyStates[SDL_NUM_SCANCODES]
 );
+*/
 
 /**
  * Run the sequencer
@@ -123,7 +126,8 @@ void runSequencer(
 void drawSequencer(
     uint64_t *ppqnCounter,
     bool keyStates[SDL_NUM_SCANCODES],
-    struct Track *track
+    struct Track *track,
+    bool isDrumkitSequencer
 );
 
 /**
@@ -169,5 +173,10 @@ void processPulse(
     void (*isFirstPulseCallback)(void),
     void (*playNoteCallback)(const struct Note *note)
 );
+
+/**
+ * Prepare the template note for the drumkit sequencer
+ */
+void setTemplateNoteForDrumkitSequencer(const struct Track *track, int index);
 
 #endif
