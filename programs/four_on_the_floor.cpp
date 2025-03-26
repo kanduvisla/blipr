@@ -22,7 +22,7 @@ FourOnTheFloor::~FourOnTheFloor() {
 /**
  * Update according to user input
  */
-void FourOnTheFloor::update(struct Track *selectedTrack, bool keyStates[SDL_NUM_SCANCODES]) {
+void FourOnTheFloor::update(struct Track *selectedTrack, bool keyStates[SDL_NUM_SCANCODES], SDL_Scancode key) {
     // TODO
 }
 

@@ -18,7 +18,6 @@ C_SRCS = print.c \
 	colors.c \
 	file_handling.c \
 	project.c \
-	programs/sequencer.c \
 	programs/track_selection.c \
 	programs/pattern_selection.c \
 	programs/sequence_selection.c \
@@ -29,6 +28,7 @@ C_SRCS = print.c \
 
 CPP_SRCS = 	main.cpp \
 	programs/abstract_program.cpp \
+	programs/sequencer.cpp \
 	programs/four_on_the_floor.cpp
 SRCS = $(C_SRCS) $(CPP_SRCS)
 

@@ -14,7 +14,7 @@ public:
     virtual ~Program();
 
     // Update method. This happens if there is input to update the parameters (such as a keydown event)
-    virtual void update(struct Track *selectedTrack, bool keyStates[SDL_NUM_SCANCODES]) = 0;
+    virtual void update(struct Track *selectedTrack, bool keyStates[SDL_NUM_SCANCODES], SDL_Scancode key) = 0;
 
     // Run this program, gets triggered every clock pulse
     virtual void run(PmStream *outputStream, const uint64_t *ppqnCounter, struct Track *selectedTrack) = 0;

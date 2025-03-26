@@ -15,7 +15,7 @@ public:
     virtual ~FourOnTheFloor();
 
     // Update method. This happens if there is input to update the parameters (such as a keydown event)
-    void update(struct Track *selectedTrack, bool keyStates[SDL_NUM_SCANCODES]) override;
+    void update(struct Track *selectedTrack, bool keyStates[SDL_NUM_SCANCODES], SDL_Scancode key) override;
 
     // Run this program, gets triggered every clock pulse
     void run(PmStream *outputStream, const uint64_t *ppqnCounter, struct Track *selectedTrack) override;

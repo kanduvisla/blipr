@@ -15,7 +15,7 @@
 #include "constants.h"
 #include "project.h"
 #include "file_handling.h"
-#include "programs/sequencer.h"
+#include "programs/sequencer.hpp"
 #include "programs/track_selection.h"
 #include "programs/pattern_selection.h"
 #include "programs/sequence_selection.h"
@@ -45,6 +45,7 @@ char *projectFile = "data.blipr";
 
 // Programs:
 FourOnTheFloor progFourOnTheFloor;
+Sequencer progSequencer;
 
 /**
  * Calculate nano seconds per pulse for a given BPM

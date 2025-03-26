@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <portmidi.h>
 #include <string.h>
-#include "sequencer.h"
+#include "sequencer.hpp"
 #include "../project.h"
 #include "../constants.h"
 #include "../colors.h"
@@ -17,15 +17,14 @@
 // TODO: These should be the global things I guess?
 
 // Pages can be global, or per track configured
-int selectedNote = 0;
-int selectedPageBank = 0;               // Selected page bank, not currently active playing page bank
-bool selectedSteps[16] = {false};       // Boolean that determines if this step is selected or not
-struct Step* clipBoard[16] = {NULL};
-bool isNoteEditorVisible = false;
-int cutCounter = 0;     // 0=none   1=note  2=step (all notes)
-int copyCounter = 0;
-bool isEditOnAllNotes = false;
-// bool isHighPageBankSelected = false;
+static int selectedNote = 0;
+static int selectedPageBank = 0;               // Selected page bank, not currently active playing page bank
+static bool selectedSteps[16] = {false};       // Boolean that determines if this step is selected or not
+static struct Step* clipBoard[16] = {NULL};
+static bool isNoteEditorVisible = false;
+static int cutCounter = 0;     // 0=none   1=note  2=step (all notes)
+static int copyCounter = 0;
+static bool isEditOnAllNotes = false;
 
 // Boolean arrays that determine if for a step all note properties are the same:
 #define PROPERTY_CC1 0
@@ -36,15 +35,22 @@ bool isEditOnAllNotes = false;
 #define PROPERTY_NUDGE 5
 #define PROPERTY_TRIG 6
 #define PROPERTY_ENABLED 7
-bool areAllStepPropertiesTheSame[8] = {false};
+
+static bool areAllStepPropertiesTheSame[8] = {false};
 
 // Template note that is used for pipet tooling
-struct Note templateNote;
+static struct Note templateNote;
+
+// Constructor
+Sequencer::Sequencer() {}
+
+// Destructor
+Sequencer::~Sequencer() {}
 
 /**
  * Method to check if all step properties are the same
  */
-void checkIfAllStepPropertiesAreTheSame(const struct Track *track) {
+void Sequencer::checkIfAllStepPropertiesAreTheSame(const struct Track *track) {
     for (int i=0; i<8; i++) {
         areAllStepPropertiesTheSame[i] = true;
     }
@@ -70,7 +76,7 @@ void checkIfAllStepPropertiesAreTheSame(const struct Track *track) {
 /**
  * Check if there are steps selected
  */
-static bool isStepsSelected() {
+bool Sequencer::isStepsSelected() {
     int count = 0;
     for (int i=0; i<16; i++) {
         if (selectedSteps[i]) {
@@ -83,7 +89,7 @@ static bool isStepsSelected() {
 /**
  * Reset the selected step
  */
-void resetSequencerSelectedStep() {
+void Sequencer::resetSequencerSelectedStep() {
     for (int i=0; i<16; i++) {
         selectedSteps[i] = false;
     }
@@ -95,14 +101,14 @@ void resetSequencerSelectedStep() {
 /**
  * Reset the selected note
  */
-void resetSelectedNote() {
+void Sequencer::resetSelectedNote() {
     selectedNote = 0;
 }
 
 /**
  * Clear note
  */
-void clearNote(struct Note *note) {
+void Sequencer::clearNote(struct Note *note) {
     note->cc1Value = 0;
     note->cc2Value = 0;
     note->enabled = false;
@@ -116,7 +122,7 @@ void clearNote(struct Note *note) {
 /**
  * Clear step
  */
-void clearStep(struct Step *step) {
+void Sequencer::clearStep(struct Step *step) {
     if (cutCounter == 0) {
         // This is the first cut, clear only the selected note:
         clearNote(&step->notes[selectedNote]);
@@ -131,7 +137,7 @@ void clearStep(struct Step *step) {
 /**
  * Copy note
  */
-void copyNote(const struct Note *src, struct Note *dst) {
+void Sequencer::copyNote(const struct Note *src, struct Note *dst) {
     dst->cc1Value = src->cc1Value;
     dst->cc2Value = src->cc2Value;
     dst->enabled = src->enabled;
@@ -145,7 +151,7 @@ void copyNote(const struct Note *src, struct Note *dst) {
 /**
  * Copy step
  */
-void copyStep(const struct Step *src, struct Step *dst) {
+void Sequencer::copyStep(const struct Step *src, struct Step *dst) {
     if (copyCounter == 0) {
         // This is the first copy, only copy the selected note:
         copyNote(&src->notes[selectedNote], &dst->notes[selectedNote]);
@@ -160,7 +166,7 @@ void copyStep(const struct Step *src, struct Step *dst) {
 /**
  * Reset template note to default values
  */
-void resetTemplateNote() {
+void Sequencer::resetTemplateNote() {
     templateNote.enabled = false;
     templateNote.note = 60;     // C-4
     templateNote.velocity = 100;
@@ -174,7 +180,7 @@ void resetTemplateNote() {
 /**
  * Toggle a step
  */
-void toggleStep(struct Step *step, int noteIndex) {
+void Sequencer::toggleStep(struct Step *step, int noteIndex) {
     step->notes[noteIndex].enabled = !step->notes[noteIndex].enabled;
     // Set default values:
     if (step->notes[noteIndex].enabled) {
@@ -188,7 +194,7 @@ void toggleStep(struct Step *step, int noteIndex) {
 /**
  * Toggle a step when in drumkit mode
  */
-void toggleDrumkitStep(struct Step *step, int noteIndex) {
+void Sequencer::toggleDrumkitStep(struct Step *step, int noteIndex) {
     if (step->notes[noteIndex].enabled) {
         // Decrease velocity:
         if (step->notes[noteIndex].velocity > 100) {
@@ -213,7 +219,7 @@ void toggleDrumkitStep(struct Step *step, int noteIndex) {
  * Set the proper template note for the drumkit sequencer
  * @TODO: Does this need to be fetched from the configuration? Or is this per pattern / track (seems cumbersome)
  */
-void setTemplateNoteForDrumkitSequencer(const struct Track *track, int index) {
+void Sequencer::setTemplateNoteForDrumkitSequencer(const struct Track *track, int index) {
     // Also set selected note
     int polyCount = getPolyCount(track);
     templateNote.velocity = 100;
@@ -311,10 +317,7 @@ void setTemplateNoteForDrumkitSequencer(const struct Track *track, int index) {
 /**
  * Set selected page
  */
-void setSelectedPage(
-    struct Track *selectedTrack,
-    int index
-) {
+void Sequencer::setSelectedPage(struct Track *selectedTrack, int index) {
     if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
         // Investigate: how is queuing working with continuous play?
         selectedTrack->selectedPage = index;
@@ -326,7 +329,7 @@ void setSelectedPage(
 /**
  * Transpose an amount of steps, clamped
  */
-unsigned char transposeMidiNote(unsigned char midiNote, int steps) {
+unsigned char Sequencer::transposeMidiNote(unsigned char midiNote, int steps) {
     // Ensure the input is a valid MIDI note
     if (midiNote > 127) {
         return 0;  // Return 0 (lowest note) for invalid input
@@ -351,11 +354,7 @@ unsigned char transposeMidiNote(unsigned char midiNote, int steps) {
 /**
  * Apply a key on a single note in the note editor
  */
-static void applyKeyToNote(
-    struct Note *note, 
-    SDL_Scancode key, 
-    bool isDrumkitSequencer
-) {
+void Sequencer::applyKeyToNote(struct Note *note, SDL_Scancode key, bool isDrumkitSequencer) {
     if (key == BLIPR_KEY_1) { 
         if (!isDrumkitSequencer) {
             note->note = transposeMidiNote(note->note, -12); 
@@ -420,11 +419,7 @@ static void applyKeyToNote(
 /**
  * Handle a key in the note editor
  */
-static void handleKey(
-    struct Track *selectedTrack,
-    SDL_Scancode key,
-    bool isDrumkitSequencer
-) {
+void Sequencer::handleKey(struct Track *selectedTrack, SDL_Scancode key, bool isDrumkitSequencer) {
     for (int i=0; i<16; i++) {
         if (selectedSteps[i]) {
             // We need to apply this key input on this step, but only on the selected note
@@ -445,7 +440,7 @@ static void handleKey(
 /**
  * Select all steps between the first and last selected step
  */
-void sanitizeSelection(int indexPressed) {
+void Sequencer::sanitizeSelection(int indexPressed) {
     int first = -1;
     int last = -1;
     for (int i=0; i<16; i++) {
@@ -479,7 +474,7 @@ void sanitizeSelection(int indexPressed) {
 /**
  * Get the maximum number of page banks
  */
-int getMaxPageBanks(const struct Track *track) {
+int Sequencer::getMaxPageBanks(const struct Track *track) {
     int polyCount = getPolyCount(track);
     // polycount 8=1 page bank
     // polycount 4=2 page banks
@@ -494,7 +489,7 @@ int getMaxPageBanks(const struct Track *track) {
 /**
  * Update the sequencer according to user input
  */
-void updateSequencer(
+void Sequencer::update(
     struct Track *track,
     bool keyStates[SDL_NUM_SCANCODES], 
     SDL_Scancode key,
@@ -692,7 +687,7 @@ void checkSequencerForKeyRepeats(
  * @param triggValue    The Trigg value
  * @param repeatCount   How many times this note has already been played (determined by tracklength or page size)
  */
-bool isNoteTrigged(int triggValue, int repeatCount) {
+bool Sequencer::isNoteTrigged(int triggValue, int repeatCount) {
     bool isEnabled = triggValue > 0; // get2FByteFlag1(triggValue);
     if (!isEnabled) {
         // If a trig condition is not enabled it will always pass:
@@ -841,7 +836,7 @@ bool isNoteTrigged(int triggValue, int repeatCount) {
 /**
  * Set the trigg text to a given string
  */
-void setTriggText(int triggValue, char *text) {
+void Sequencer::setTriggText(int triggValue, char *text) {
     bool isEnabled = get2FByteFlag1(triggValue);
     if (!isEnabled) {
         sprintf(text, "OFF");
@@ -1032,7 +1027,7 @@ void setTriggText(int triggValue, char *text) {
  * Get track step index - this is the index in the steps-array on the track
  * The property "isFirstPulseCallback" is called the first pulse of the step
  */
-int getTrackStepIndex(
+int Sequencer::getTrackStepIndex(
     const uint64_t *ppqnCounter, 
     const struct Track *track, 
     void (*isFirstPulseCallback)(void)
@@ -1064,7 +1059,7 @@ int getTrackStepIndex(
 /**
  * Get notes at a given track index - this takes into account the polyphony sacrifice for more steps
  */
-void getNotesAtTrackStepIndex(int trackStepIndex, const struct Track *track, struct Note **notes) {
+void Sequencer::getNotesAtTrackStepIndex(int trackStepIndex, const struct Track *track, struct Note **notes) {
     switch (getPolyCount(track)) {
         case 8:
             // All enabled notes for this step
@@ -1096,11 +1091,7 @@ void getNotesAtTrackStepIndex(int trackStepIndex, const struct Track *track, str
 /**
  * Helper method to contain all the conditions that define if a note is played or not
  */
-bool isNotePlayed(
-    const struct Note *note,
-    const struct Track *track,
-    int nudgeCheck
-) {
+bool Sequencer::isNotePlayed(const struct Note *note, const struct Track *track, int nudgeCheck) {
     return 
         note != NULL &&
         note->enabled && 
@@ -1111,7 +1102,7 @@ bool isNotePlayed(
 /**
  * Standalone method to process a pulse
  */
-void processPulse(
+void Sequencer::processPulse(
     const uint64_t *currentPulse,
     const struct Track *track,
     void (*isFirstPulseCallback)(void),
@@ -1177,7 +1168,7 @@ static struct Track *tmpTrack;
  * Callback when the first pulse of a page/track is played
  * Note that this is AFTER the note has already played
  */
-void isFirstPulseCallback() {
+void Sequencer::isFirstPulseCallback() {
     tmpTrack->isFirstPulse = true;
     if (tmpTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
         tmpTrack->repeatCount += 1;
@@ -1196,7 +1187,7 @@ void isFirstPulseCallback() {
 /**
  * Callback when a note is played
  */
-void playNoteCallback(const struct Note *note) {
+void Sequencer::playNoteCallback(const struct Note *note) {
     // Send CC:
     if (note->cc1Value > 0) {
         sendMidiMessage(tmpStream, tmpTrack->midiChannel | 0xB0, tmpTrack->cc1Assignment, note->cc1Value - 1);
@@ -1213,7 +1204,7 @@ void playNoteCallback(const struct Note *note) {
  * Apply track speed to pulse
  * returns FALSE if further processing is not required
  */
-bool applySpeedToPulse(
+bool Sequencer::applySpeedToPulse(
     const struct Track *track,
     uint64_t *pulse
 ) {
@@ -1258,9 +1249,8 @@ bool applySpeedToPulse(
 
 /**
  * Run the sequencer
- * @todo refactor this so it can be testable
  */
-void runSequencer(
+void Sequencer::run(
     PmStream *outputStream,
     const uint64_t *ppqnCounter, 
     struct Track *selectedTrack
@@ -1284,7 +1274,7 @@ void runSequencer(
 /**
  * Draw the page indicator
  */
-void drawPageIndicator(const struct Track *track, int playingPage) 
+void Sequencer::drawPageIndicator(const struct Track *track, int playingPage) 
 {
     char *bottomText[64];
     int totalPageBanks = getMaxPageBanks(track);
@@ -1302,7 +1292,7 @@ void drawPageIndicator(const struct Track *track, int playingPage)
 /**
  * Draw the template note
  */
-void drawTemplateNote() {
+void Sequencer::drawTemplateNote() {
     // drawRect(SIDEBAR_OFFSET + 1, 27, SIDEBAR_WIDTH - 2, (CHAR_HEIGHT * 8) + 8, COLOR_BLACK);
     drawRect(SIDEBAR_OFFSET + 1, 27, SIDEBAR_WIDTH - 2, CHAR_HEIGHT + 2, COLOR_BLACK);
     drawText(SIDEBAR_OFFSET + 1, 28, "TEMPLATE", 20, COLOR_ORANGE);
@@ -1333,7 +1323,7 @@ void drawTemplateNote() {
 /**
  * Draw the sequencer
  */
-void drawSequencerMain(
+void Sequencer::drawSequencerMain(
     uint64_t *ppqnCounter, 
     bool keyStates[SDL_NUM_SCANCODES],
     struct Track *selectedTrack,
@@ -1638,7 +1628,7 @@ void drawSequencerMain(
 /**
  * Draw the step editor
  */
-void drawStepEditor(struct Track *track, bool isDrumkitSequencer) {
+void Sequencer::drawStepEditor(struct Track *track, bool isDrumkitSequencer) {
     /*
         - 1-4   : Transpose -12 / -1 / +1 / +12
         - 5-6   : Increase / decrease velocity
@@ -1786,7 +1776,7 @@ void drawStepEditor(struct Track *track, bool isDrumkitSequencer) {
     drawABCDButtons(descriptions);
 }
 
-void drawSequencer(
+void Sequencer::draw(
     uint64_t *ppqnCounter, 
     bool keyStates[SDL_NUM_SCANCODES],
     struct Track *selectedTrack,
