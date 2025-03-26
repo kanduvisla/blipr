@@ -3,6 +3,7 @@
 #include <portmidi.h>
 #include <string.h>
 #include <cstdio>
+#include <functional>
 #include "sequencer.hpp"
 #include "../project.h"
 #include "../constants.h"
@@ -1039,14 +1040,14 @@ void Sequencer::setTriggText(int triggValue, char *text) {
 int Sequencer::getTrackStepIndex(
     const uint64_t *ppqnCounter, 
     const struct Track *track, 
-    void (*isFirstPulseCallback)(void)
+    std::function<void()> isFirstPulseCallback
 ) {
     uint64_t clampedCounter;
     if (track->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
         // By track:
         clampedCounter = *ppqnCounter % (PP16N * (track->trackLength + 1));
         // Set isFirstPulse-flag
-        if (isFirstPulseCallback != NULL && clampedCounter == 0) {
+        if (isFirstPulseCallback && clampedCounter == 0) {
             isFirstPulseCallback();
         }
     } else {
@@ -1054,7 +1055,7 @@ int Sequencer::getTrackStepIndex(
         int pageLength = track->pageLength + 1; // 1-16
         clampedCounter = *ppqnCounter % (PP16N * pageLength);
         // We need a callback here, because selectedPage might be changed to queued page, affecting the next note to be played
-        if (isFirstPulseCallback != NULL && clampedCounter == 0) {
+        if (isFirstPulseCallback && clampedCounter == 0) {
             isFirstPulseCallback();
         }
 
@@ -1114,11 +1115,18 @@ bool Sequencer::isNotePlayed(const struct Note *note, const struct Track *track,
 void Sequencer::processPulse(
     const uint64_t *currentPulse,
     const struct Track *track,
-    void (*isFirstPulseCallback)(void),
-    void (*playNoteCallback)(const struct Note *note)
+    std::function<void()> firstPulseCallback,
+    std::function<void(const struct Note*)> playNoteCallback
 ) {
     // Get the index for the current step
-    int trackStepIndex = getTrackStepIndex(currentPulse, track, isFirstPulseCallback);
+    // int trackStepIndex = getTrackStepIndex(currentPulse, track, isFirstPulseCallback);
+
+    // Create a lambda function that calls the member function
+    auto firstPulseCallbackFn = [this]() {
+        this->isFirstPulseCallback();
+    };
+
+    int trackStepIndex = getTrackStepIndex(currentPulse, track, firstPulseCallbackFn);
 
     // Get the nudge value that needs to be applied:
     int nudgeCheck = *currentPulse % PP16N;
@@ -1149,7 +1157,7 @@ void Sequencer::processPulse(
     // Ignore next nudge check of it's equal to PP16N * -1, because that equals the current step and would send a double note
     if (nextNudgeCheck != PP16N * -1) {
         uint64_t nextStepPulse = *currentPulse + PP16N;
-        int nextTrackStepIndex = getTrackStepIndex(&nextStepPulse, track, NULL);
+        int nextTrackStepIndex = getTrackStepIndex(&nextStepPulse, track, std::function<void()>());
 
         // Check for shuffle:
         if (nextTrackStepIndex % 2 == 1) {
@@ -1169,9 +1177,9 @@ void Sequencer::processPulse(
     }
 }
 
-// Global properties used in callbacks:
-static PmStream *tmpStream;
-static struct Track *tmpTrack;
+// Private properties used in callbacks:
+// static PmStream *tmpStream;
+// static struct Track *tmpTrack;
 
 /**
  * Callback when the first pulse of a page/track is played
@@ -1277,7 +1285,12 @@ void Sequencer::run(
     }
 
     // Process pulse
-    processPulse(&pulse, selectedTrack, isFirstPulseCallback, playNoteCallback);
+    processPulse(
+        &pulse, 
+        selectedTrack, 
+        std::bind(&Sequencer::isFirstPulseCallback, this),
+        std::bind(&Sequencer::playNoteCallback, this, std::placeholders::_1)
+    );
 }
 
 /**
@@ -1373,7 +1386,7 @@ void Sequencer::drawSequencerMain(
         // Check track speed (we do this by manupulating the pulse):
         uint64_t pulse = *ppqnCounter;
         applySpeedToPulse(selectedTrack, &pulse);
-        int trackStepIndex = getTrackStepIndex(&pulse, selectedTrack, NULL);
+        int trackStepIndex = getTrackStepIndex(&pulse, selectedTrack, std::function<void()>());
 
         // Get playing page:
         if (selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {

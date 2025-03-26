@@ -4,6 +4,7 @@
 #include <SDL.h>
 #include <stdbool.h>
 #include <portmidi.h>
+#include <functional>
 #include "abstract_program.hpp"
 #include "../project.h"
 
@@ -154,7 +155,7 @@ public:
     int getTrackStepIndex(
         const uint64_t *ppqnCounter, 
         const struct Track *track, 
-        void (*isFirstPulseCallback)(void)
+        std::function<void()> isFirstPulseCallback
     );
 
     /**
@@ -168,8 +169,8 @@ public:
     void processPulse(
         const uint64_t *currentPulse,
         const struct Track *track,
-        void (*isFirstPulseCallback)(void),
-        void (*playNoteCallback)(const struct Note *note)
+        std::function<void()> firstPulseCallback,
+        std::function<void(const struct Note*)> playNoteCallback
     );
 
     /**
@@ -177,6 +178,11 @@ public:
      */
     void setTemplateNoteForDrumkitSequencer(const struct Track *track, int index);
 private:
+    // MARK: - Properties:
+    PmStream *tmpStream;
+    struct Track *tmpTrack;
+
+    // MARK: - Methods:
     void checkIfAllStepPropertiesAreTheSame(const struct Track *track);
     bool isStepsSelected();
     void clearNote(struct Note *note);
