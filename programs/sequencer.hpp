@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <portmidi.h>
 #include <functional>
-#include "abstract_program.hpp"
+#include "base_sequencer.hpp"
 #include "../project.h"
 
 // Speed conditions:
@@ -90,14 +90,13 @@
 #define TRIG_FIRST_PAGE_PLAY 55         // Trigged when the page is played the 1st time (does not re-trig when the page is played a second time when coming back from another page)
 #define TRIG_FIRST_PATTERN_PLAY 56      // Trigged when the pattern is played the 1st time (does not re-trig when the pattern is played a second time when coming back from another pattern)
 #define TRIG_TRANSITION_LAST_PAGE 57     // When transitioning to another page and the last repeat of transition repeats is played
-
 #define TRIG_HIGHEST_VALUE 56         // Used internally for decision making, make sure to change this if you add new trigg conditions
 
 /**
  * Sequencer class
  * @TODO: Drumkit sequencer should inherit from this and override some methods
  */
-class Sequencer : public Program {
+class Sequencer : public BaseSequencer {
 public:
     /**
      * Constructor 
@@ -128,16 +127,6 @@ public:
     void draw(uint64_t *ppqnCounter, bool keyStates[SDL_NUM_SCANCODES], struct Track *track, bool isDrumkitSequencer);
     
     // MARK: - Sequencer specific methods:
-
-    /**
-     * Reset the selected step
-     */
-    void resetSequencerSelectedStep();
-
-    /**
-     * Reset the selected note
-     */
-    void resetSelectedNote();
 
     /**
      * Reset template note to default values
@@ -178,20 +167,9 @@ public:
      */
     void setTemplateNoteForDrumkitSequencer(const struct Track *track, int index);
 private:
-    // MARK: - Properties:
-    PmStream *tmpStream;
-    struct Track *tmpTrack;
-
     // MARK: - Methods:
-    void checkIfAllStepPropertiesAreTheSame(const struct Track *track);
-    bool isStepsSelected();
-    void clearNote(struct Note *note);
-    void clearStep(struct Step *step);
-    void copyNote(const struct Note *src, struct Note *dst);
-    void copyStep(const struct Step *src, struct Step *dst);
     void toggleStep(struct Step *step, int noteIndex);
     void toggleDrumkitStep(struct Step *step, int noteIndex);
-    // void setTemplateNoteForDrumkitSequencer(const struct Track *track, int index);
     void setSelectedPage(struct Track *selectedTrack, int index);
     unsigned char transposeMidiNote(unsigned char midiNote, int steps);
     void applyKeyToNote(struct Note *note, SDL_Scancode key, bool isDrumkitSequencer);
@@ -201,18 +179,7 @@ private:
     bool isNoteTrigged(int triggValue, int repeatCount);
     void setTriggText(int triggValue, char *text);
     bool isNotePlayed(const struct Note *note, const struct Track *track, int nudgeCheck);
-    // void processPulse(
-    //     const uint64_t *currentPulse,
-    //     const struct Track *track,
-    //     void (*isFirstPulseCallback)(void),
-    //     void (*playNoteCallback)(const struct Note *note)
-    // );
     void isFirstPulseCallback();
-    void playNoteCallback(const struct Note *note);
-    bool applySpeedToPulse(
-        const struct Track *track,
-        uint64_t *pulse
-    );
     void drawPageIndicator(const struct Track *track, int playingPage);
     void drawTemplateNote();
     void drawSequencerMain(
@@ -223,101 +190,5 @@ private:
     );
     void drawStepEditor(struct Track *track, bool isDrumkitSequencer);
 };
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**
- * Update the sequencer according to user input
- */
-// void updateSequencer(
-//     struct Track *selectedTrack,
-//     bool keyStates[SDL_NUM_SCANCODES], 
-//     SDL_Scancode key,
-//     bool isDrumkitSequencer
-// );
-
-/**
- * Check if we need to do some key repeat actions
- */
-/*
-void checkSequencerForKeyRepeats(
-    struct Track *selectedTrack,
-    bool keyStates[SDL_NUM_SCANCODES]
-);
-*/
-
-/**
- * Run the sequencer
- */
-// void runSequencer(
-//     PmStream *outputStream,
-//     const uint64_t *ppqnCounter, 
-//     struct Track *selectedTrack
-// );
-
-/**
- * Draw the sequencer
- */
-// void drawSequencer(
-//     uint64_t *ppqnCounter,
-//     bool keyStates[SDL_NUM_SCANCODES],
-//     struct Track *track,
-//     bool isDrumkitSequencer
-// );
-
-// /**
-//  * Reset the selected step
-//  */
-// void resetSequencerSelectedStep();
-
-// /**
-//  * Reset the selected note
-//  */
-// void resetSelectedNote();
-
-// /**
-//  * Reset template note to default values
-//  */
-// void resetTemplateNote();
-
-// /**
-//  * Determine if a note is trigged according to it's TRIG condition
-//  */
-// bool isNoteTrigged(int triggValue, int repeatCount);
-
-// /**
-//  * Get track step index - this is the index in the steps-array on the track
-//  */
-// int getTrackStepIndex(
-//     const uint64_t *ppqnCounter, 
-//     const struct Track *track, 
-//     void (*isFirstPulseCallback)(void)
-// );
-
-// /**
-//  * Get notes at a given track index - this takes into account the polyphony sacrifice for more steps
-//  */
-// void getNotesAtTrackStepIndex(int trackStepIndex, const struct Track *track, struct Note **notes);
-
-// /**
-//  * Process a single pulse - keeps track of things like trigg, nudge, length, speed, shuffle, etc.
-//  */
-// void processPulse(
-//     const uint64_t *currentPulse,
-//     const struct Track *track,
-//     void (*isFirstPulseCallback)(void),
-//     void (*playNoteCallback)(const struct Note *note)
-// );
-
-// /**
-//  * Prepare the template note for the drumkit sequencer
-//  */
-// void setTemplateNoteForDrumkitSequencer(const struct Track *track, int index);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

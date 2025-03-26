@@ -614,7 +614,7 @@ void* keyThread(void* arg) {
                 pthread_mutex_unlock(&state->mutex);
                 resetConfigurationScreen();
             } else if (state->scanCodeKeyUp == BLIPR_KEY_SHIFT_1) {
-                progSequencer.resetSequencerSelectedStep();
+                progSequencer.resetSelectedSteps();
             }
             
             // Reset flag:

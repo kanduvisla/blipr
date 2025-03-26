@@ -28,6 +28,7 @@ C_SRCS = print.c \
 
 CPP_SRCS = 	main.cpp \
 	programs/abstract_program.cpp \
+	programs/base_sequencer.cpp \
 	programs/sequencer.cpp \
 	programs/four_on_the_floor.cpp
 SRCS = $(C_SRCS) $(CPP_SRCS)

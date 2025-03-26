@@ -7,7 +7,7 @@
 #include "../midi.h"
 #include "four_on_the_floor.hpp"
 
-static bool isNotePlaying = false;
+// static bool isNotePlaying = false;
 
 // Constructor implementation
 FourOnTheFloor::FourOnTheFloor() {
@@ -32,11 +32,16 @@ void FourOnTheFloor::update(struct Track *selectedTrack, bool keyStates[SDL_NUM_
 void FourOnTheFloor::run(PmStream *outputStream, const uint64_t *ppqnCounter, struct Track *selectedTrack) {
     // Very basic program, just send a note every beat (whole note)
     if (*ppqnCounter % (PPQN_MULTIPLIED) == 0) {
-        sendMidiNoteOn(outputStream, selectedTrack->midiChannel, 60, 100);
-        isNotePlaying = true;
-    } else if(isNotePlaying) {
-        sendMidiNoteOff(outputStream, selectedTrack->midiChannel, 60);
-        isNotePlaying = false;
+        // Set proper stream + track:
+        tmpStream = outputStream;
+        tmpTrack = selectedTrack;
+
+        // Send a note:
+        struct Note note;
+        note.note = 40;
+        note.velocity = 100;
+        note.length = PP16N;
+        playNote(&note);
     }
 }
 

@@ -19,26 +19,9 @@
 // TODO: These should be the global things I guess?
 
 // Pages can be global, or per track configured
-static int selectedNote = 0;
 static int selectedPageBank = 0;               // Selected page bank, not currently active playing page bank
-static bool selectedSteps[16] = {false};       // Boolean that determines if this step is selected or not
 static struct Step* clipBoard[16] = {NULL};
-static bool isNoteEditorVisible = false;
-static int cutCounter = 0;     // 0=none   1=note  2=step (all notes)
-static int copyCounter = 0;
 static bool isEditOnAllNotes = false;
-
-// Boolean arrays that determine if for a step all note properties are the same:
-#define PROPERTY_CC1 0
-#define PROPERTY_CC2 1
-#define PROPERTY_NOTE 2
-#define PROPERTY_LENGTH 3
-#define PROPERTY_VELOCITY 4
-#define PROPERTY_NUDGE 5
-#define PROPERTY_TRIG 6
-#define PROPERTY_ENABLED 7
-
-static bool areAllStepPropertiesTheSame[8] = {false};
 
 // Template note that is used for pipet tooling
 static struct Note templateNote;
@@ -48,122 +31,6 @@ Sequencer::Sequencer() {}
 
 // Destructor
 Sequencer::~Sequencer() {}
-
-/**
- * Method to check if all step properties are the same
- */
-void Sequencer::checkIfAllStepPropertiesAreTheSame(const struct Track *track) {
-    for (int i=0; i<8; i++) {
-        areAllStepPropertiesTheSame[i] = true;
-    }
-
-    // Iterate over the selected steps, and check if there is difference in properties of the selected steps:
-    for (int i=1; i<16; i++) {
-        if (selectedSteps[i] && selectedSteps[i - 1]) {
-            int stepIndex = i + (track->selectedPage * 16);
-            const struct Step *lhStep = &track->steps[stepIndex - 1];
-            const struct Step *rhStep = &track->steps[stepIndex];
-            areAllStepPropertiesTheSame[PROPERTY_CC1] &= lhStep->notes[selectedNote].cc1Value == rhStep->notes[selectedNote].cc1Value;
-            areAllStepPropertiesTheSame[PROPERTY_CC2] &= lhStep->notes[selectedNote].cc2Value == rhStep->notes[selectedNote].cc2Value;
-            areAllStepPropertiesTheSame[PROPERTY_NOTE] &= lhStep->notes[selectedNote].note == rhStep->notes[selectedNote].note;
-            areAllStepPropertiesTheSame[PROPERTY_LENGTH] &= lhStep->notes[selectedNote].length == rhStep->notes[selectedNote].length;
-            areAllStepPropertiesTheSame[PROPERTY_VELOCITY] &= lhStep->notes[selectedNote].velocity == rhStep->notes[selectedNote].velocity;
-            areAllStepPropertiesTheSame[PROPERTY_NUDGE] &= lhStep->notes[selectedNote].nudge == rhStep->notes[selectedNote].nudge;
-            areAllStepPropertiesTheSame[PROPERTY_TRIG] &= lhStep->notes[selectedNote].trigg == rhStep->notes[selectedNote].trigg;
-            areAllStepPropertiesTheSame[PROPERTY_ENABLED] &= lhStep->notes[selectedNote].enabled == rhStep->notes[selectedNote].enabled;
-        }
-    }
-}
-
-/**
- * Check if there are steps selected
- */
-bool Sequencer::isStepsSelected() {
-    int count = 0;
-    for (int i=0; i<16; i++) {
-        if (selectedSteps[i]) {
-            count ++;
-        }
-    }
-    return count > 0;
-}
-
-/**
- * Reset the selected step
- */
-void Sequencer::resetSequencerSelectedStep() {
-    for (int i=0; i<16; i++) {
-        selectedSteps[i] = false;
-    }
-    isNoteEditorVisible = false;
-    cutCounter = 0;
-    copyCounter = 0;
-}
-
-/**
- * Reset the selected note
- */
-void Sequencer::resetSelectedNote() {
-    selectedNote = 0;
-}
-
-/**
- * Clear note
- */
-void Sequencer::clearNote(struct Note *note) {
-    note->cc1Value = 0;
-    note->cc2Value = 0;
-    note->enabled = false;
-    note->length = 0;
-    note->velocity = 0;
-    note->trigg = 0;
-    note->note = 0;
-    note->nudge = PP16N;
-}
-
-/**
- * Clear step
- */
-void Sequencer::clearStep(struct Step *step) {
-    if (cutCounter == 0) {
-        // This is the first cut, clear only the selected note:
-        clearNote(&step->notes[selectedNote]);
-    } else {
-        // This is the second cut, clear all notes in this step
-        for (int i=0; i<NOTES_IN_STEP; i++) {
-            clearNote(&step->notes[i]);
-        }
-    }
-}
-
-/**
- * Copy note
- */
-void Sequencer::copyNote(const struct Note *src, struct Note *dst) {
-    dst->cc1Value = src->cc1Value;
-    dst->cc2Value = src->cc2Value;
-    dst->enabled = src->enabled;
-    dst->length = src->length;
-    dst->velocity = src->velocity;
-    dst->trigg = src->trigg;
-    dst->note = src->note;
-    dst->nudge = src->nudge;
-}
-
-/**
- * Copy step
- */
-void Sequencer::copyStep(const struct Step *src, struct Step *dst) {
-    if (copyCounter == 0) {
-        // This is the first copy, only copy the selected note:
-        copyNote(&src->notes[selectedNote], &dst->notes[selectedNote]);
-    } else {
-        // This is the second copy, copy all the notes:
-        for (int i=0; i<NOTES_IN_STEP; i++) {
-            copyNote(&src->notes[i], &dst->notes[i]);
-        }
-    }
-}
 
 /**
  * Reset template note to default values
@@ -544,7 +411,7 @@ void Sequencer::update(
                             }
                         }
                         // Clear selection after copying to clipboard:
-                        resetSequencerSelectedStep();
+                        resetSelectedSteps();
                     } else
                     if (key == BLIPR_KEY_D) {
                         // Paste steps (will be pasted on first step in selection):
@@ -1202,69 +1069,6 @@ void Sequencer::isFirstPulseCallback() {
 }
 
 /**
- * Callback when a note is played
- */
-void Sequencer::playNoteCallback(const struct Note *note) {
-    // Send CC:
-    if (note->cc1Value > 0) {
-        sendMidiMessage(tmpStream, tmpTrack->midiChannel | 0xB0, tmpTrack->cc1Assignment, note->cc1Value - 1);
-    }
-    if (note->cc2Value > 0) {
-        sendMidiMessage(tmpStream, tmpTrack->midiChannel | 0xB0, tmpTrack->cc2Assignment, note->cc2Value - 1);
-    }
-
-    sendMidiNoteOn(tmpStream, tmpTrack->midiChannel, note->note, note->velocity);
-    addNoteToTracker(tmpStream, tmpTrack->midiChannel, note);
-}
-
-/**
- * Apply track speed to pulse
- * returns FALSE if further processing is not required
- */
-bool Sequencer::applySpeedToPulse(
-    const struct Track *track,
-    uint64_t *pulse
-) {
-    switch (track->speed) {
-        case TRACK_SPEED_DIV_TWO:
-            // Only process when modulo is 0 (to prevent doubles)
-            if (*pulse % 2 != 0) {
-                *pulse /= 2;
-                return false;
-            }
-            *pulse /= 2;
-            break;
-        case TRACK_SPEED_DIV_FOUR:
-            // Only process when modulo is 0 (to prevent doubles)
-            if (*pulse % 4 != 0) {
-                *pulse /= 4;
-                return false;
-            }
-            *pulse /= 4;
-            break;
-        case TRACK_SPEED_DIV_EIGHT:
-            // Only process when modulo is 0 (to prevent doubles)
-            if (*pulse % 8 != 0) {
-                *pulse /= 8;
-                return false;
-            }        
-            *pulse /= 8;
-            break;
-        case TRACK_SPEED_TIMES_TWO:
-            *pulse *= 2;
-            break;
-        case TRACK_SPEED_TIMES_FOUR:
-            *pulse *= 4;
-            break;
-        case TRACK_SPEED_TIMES_EIGHT:
-            *pulse *= 8;
-            break;
-    }
-
-    return true;
-}
-
-/**
  * Run the sequencer
  */
 void Sequencer::run(
@@ -1289,7 +1093,7 @@ void Sequencer::run(
         &pulse, 
         selectedTrack, 
         std::bind(&Sequencer::isFirstPulseCallback, this),
-        std::bind(&Sequencer::playNoteCallback, this, std::placeholders::_1)
+        std::bind(&Sequencer::playNote, this, std::placeholders::_1)
     );
 }
 

@@ -108,7 +108,7 @@ int getOutputDeviceIdByDeviceName(char* deviceName) {
  * Tracker to keep track of note off calls
  */
 typedef struct {
-    struct Note note;  // Pointer to the original note
+    struct Note note;         // Copy of the original note
     PmStream* outputStream;   // The MIDI output stream
     int midiChannel;          // The MIDI channel
     int counter;              // Counter for pulses
