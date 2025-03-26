@@ -43,6 +43,9 @@ char *projectFile = "data.blipr";
 #define INPUT_BUFFER_SIZE 100
 #define OUTPUT_BUFFER_SIZE 100
 
+// Programs:
+FourOnTheFloor progFourOnTheFloor;
+
 /**
  * Calculate nano seconds per pulse for a given BPM
  */
@@ -413,7 +416,7 @@ void* sequencerThread(void* arg) {
                         runSequencer(outputStream[iTrack->midiDevice], &state->ppqnCounter, iTrack);
                         break;
                     case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
-                        // runFourOnTheFloor(outputStream[iTrack->midiDevice], &state->ppqnCounter, iTrack);
+                        progFourOnTheFloor.run(outputStream[iTrack->midiDevice], &state->ppqnCounter, iTrack);
                         break;
                 }
             }
@@ -792,7 +795,7 @@ int main(int argc, char *argv[]) {
                     );
                     break;
                 case BLIPR_SCREEN_FOUR_ON_THE_FLOOR:
-                    // drawFourOnTheFloor(&state.ppqnCounter, state.track);
+                    progFourOnTheFloor.draw(&state.ppqnCounter, state.keyStates, state.track);
                     break;
                 default:
                     // Should not happen, but just in case

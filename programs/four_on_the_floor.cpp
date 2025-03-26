@@ -5,48 +5,49 @@
 #include "../drawing_icons.h"
 #include "../project.h"
 #include "../midi.h"
-#include "abstract_program.hpp"
+#include "four_on_the_floor.hpp"
 
 static bool isNotePlaying = false;
 
-class FourOnTheFloor : public Program {
-    /**
-     * Update according to user input
-     */
-    void update(struct Track *selectedTrack, bool keyStates[SDL_NUM_SCANCODES]) {
-        // TODO
-    }
+// Constructor implementation
+FourOnTheFloor::FourOnTheFloor() {
+    // Initialization code if needed
+}
 
-    /**
-     * Run FOTF
-     */
-    void run(
-        PmStream *outputStream,
-        uint64_t *ppqnCounter, 
-        struct Track *selectedTrack
-    ) {
-        // Very basic program, just send a note every beat (whole note)
-        if (*ppqnCounter % (PPQN_MULTIPLIED) == 0) {
-            sendMidiNoteOn(outputStream, selectedTrack->midiChannel, 60, 100);
-            isNotePlaying = true;
-        } else if(isNotePlaying) {
-            sendMidiNoteOff(outputStream, selectedTrack->midiChannel, 60);
-            isNotePlaying = false;
-        }
-    }
+// Destructor implementation
+FourOnTheFloor::~FourOnTheFloor() {
+    // Cleanup code if needed
+}
 
-    /**
-     * Draw FOTF
-     */
-    void draw(
-        uint64_t *ppqnCounter, 
-        struct Track *track
-    ) {
-        // Draw foot, stomping on the floor
-        drawIcon(
-            55, 
-            55, 
-            *ppqnCounter % (PPQN_MULTIPLIED) == 0 ? BLIPR_ICON_FOOT_DOWN : BLIPR_ICON_FOOT_UP
-        );
+/**
+ * Update according to user input
+ */
+void FourOnTheFloor::update(struct Track *selectedTrack, bool keyStates[SDL_NUM_SCANCODES]) {
+    // TODO
+}
+
+/**
+ * Run FOTF
+ */
+void FourOnTheFloor::run(PmStream *outputStream, const uint64_t *ppqnCounter, struct Track *selectedTrack) {
+    // Very basic program, just send a note every beat (whole note)
+    if (*ppqnCounter % (PPQN_MULTIPLIED) == 0) {
+        sendMidiNoteOn(outputStream, selectedTrack->midiChannel, 60, 100);
+        isNotePlaying = true;
+    } else if(isNotePlaying) {
+        sendMidiNoteOff(outputStream, selectedTrack->midiChannel, 60);
+        isNotePlaying = false;
     }
-};
+}
+
+/**
+ * Draw FOTF
+ */
+void FourOnTheFloor::draw(uint64_t *ppqnCounter, bool keyStates[SDL_NUM_SCANCODES], struct Track *track) {
+    // Draw foot, stomping on the floor
+    drawIcon(
+        55, 
+        55, 
+        *ppqnCounter % (PPQN_MULTIPLIED) == 0 ? BLIPR_ICON_FOOT_DOWN : BLIPR_ICON_FOOT_UP
+    );
+}

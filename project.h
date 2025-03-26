@@ -111,6 +111,7 @@ struct Pattern {
     unsigned char programB;
     unsigned char programC;
     unsigned char programD;
+    
     unsigned char length;   // How many steps before a transition to take effect? (take into account page play mode)
     struct Track tracks[16];
 };
