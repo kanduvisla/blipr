@@ -259,7 +259,8 @@ void* sequencerThread(void* arg) {
     PmStream *outputStream[4]; // 4 streams, for A, B, C and D
     int midiDevice[4];          // 4 midi devices, for A, B, C and D
 
-    resetTemplateNote();
+    progSequencer.resetTemplateNote();
+    //resetTemplateNote();
 
     // Sequencer loop:
     while (!state->quit) {
@@ -398,7 +399,7 @@ void* sequencerThread(void* arg) {
                         // Set proper screen:
                         setScreenAccordingToActiveTrack(state);
                         if (state->screen == BLIPR_SCREEN_DRUMKIT_SEQUENCER) {
-                            setTemplateNoteForDrumkitSequencer(state->track, 0);
+                            progSequencer.setTemplateNoteForDrumkitSequencer(state->track, 0);
                         }
                         pthread_mutex_unlock(&state->mutex);
                     }                    
@@ -414,7 +415,7 @@ void* sequencerThread(void* arg) {
                 switch (iTrack->program) {
                     case BLIPR_PROGRAM_SEQUENCER:
                     case BLIPR_PROGRAM_DRUMKIT_SEQUENCER:
-                        runSequencer(outputStream[iTrack->midiDevice], &state->ppqnCounter, iTrack);
+                        progSequencer.run(outputStream[iTrack->midiDevice], &state->ppqnCounter, iTrack);
                         break;
                     case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
                         progFourOnTheFloor.run(outputStream[iTrack->midiDevice], &state->ppqnCounter, iTrack);
@@ -539,7 +540,7 @@ void* keyThread(void* arg) {
                         .patterns[state->selectedPattern]
                         .tracks[state->selectedTrack];
                     // Set selected note to 0:
-                    resetSelectedNote();
+                    progSequencer.resetSelectedNote();
                 } else if (state->screen == BLIPR_SCREEN_PATTERN_OPTIONS) {
                     struct Sequence *sequence = &state->project->sequences[state->selectedSequence];
                     struct Pattern *pattern = &sequence->patterns[state->selectedPattern];
@@ -584,7 +585,7 @@ void* keyThread(void* arg) {
                 switch (state->track->program) {
                     case BLIPR_PROGRAM_SEQUENCER:
                     case BLIPR_PROGRAM_DRUMKIT_SEQUENCER:
-                        updateSequencer(
+                        progSequencer.update(
                             state->track, 
                             state->keyStates, 
                             state->scanCodeKeyDown,
@@ -613,7 +614,7 @@ void* keyThread(void* arg) {
                 pthread_mutex_unlock(&state->mutex);
                 resetConfigurationScreen();
             } else if (state->scanCodeKeyUp == BLIPR_KEY_SHIFT_1) {
-                resetSequencerSelectedStep();
+                progSequencer.resetSequencerSelectedStep();
             }
             
             // Reset flag:
@@ -788,7 +789,7 @@ int main(int argc, char *argv[]) {
                     break;
                 case BLIPR_SCREEN_SEQUENCER: 
                 case BLIPR_SCREEN_DRUMKIT_SEQUENCER:
-                    drawSequencer(
+                    progSequencer.draw(
                         &state.ppqnCounter, 
                         state.keyStates, 
                         state.track,

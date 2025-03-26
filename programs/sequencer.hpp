@@ -112,7 +112,8 @@ public:
      * Update method. 
      * This happens if there is input to update the parameters (such as a keydown event)
      */ 
-    void update(struct Track *selectedTrack, bool keyStates[SDL_NUM_SCANCODES], bool isDrumkitSequencer) override;
+    void update(struct Track *selectedTrack, bool keyStates[SDL_NUM_SCANCODES], SDL_Scancode key) override;
+    void update(struct Track *selectedTrack, bool keyStates[SDL_NUM_SCANCODES], SDL_Scancode key, bool isDrumkitSequencer);
 
     /**
      * Run this program, gets triggered every clock pulse
@@ -122,7 +123,8 @@ public:
     /**
      * Draw this program, gets triggered every step
      */ 
-    void draw(uint64_t *ppqnCounter, bool keyStates[SDL_NUM_SCANCODES], struct Track *track, bool isDrumkitSequencer) override;
+    void draw(uint64_t *ppqnCounter, bool keyStates[SDL_NUM_SCANCODES], struct Track *track) override;
+    void draw(uint64_t *ppqnCounter, bool keyStates[SDL_NUM_SCANCODES], struct Track *track, bool isDrumkitSequencer);
     
     // MARK: - Sequencer specific methods:
 
@@ -158,7 +160,7 @@ public:
     /**
      * Get notes at a given track index - this takes into account the polyphony sacrifice for more steps
      */
-    void getNotesAtTrackStepIndex(int trackStepIndex, const struct Track *track, struct Note **notes);
+    void getNotesAtTrackStepIndex(int trackStepIndex, const struct Track *track, const struct Note **notes);
 
     /**
      * Process a single pulse - keeps track of things like trigg, nudge, length, speed, shuffle, etc.
@@ -175,6 +177,7 @@ public:
      */
     void setTemplateNoteForDrumkitSequencer(const struct Track *track, int index);
 private:
+    void checkIfAllStepPropertiesAreTheSame(const struct Track *track);
     bool isStepsSelected();
     void clearNote(struct Note *note);
     void clearStep(struct Step *step);
@@ -182,7 +185,7 @@ private:
     void copyStep(const struct Step *src, struct Step *dst);
     void toggleStep(struct Step *step, int noteIndex);
     void toggleDrumkitStep(struct Step *step, int noteIndex);
-    void setTemplateNoteForDrumkitSequencer(const struct Track *track, int index);
+    // void setTemplateNoteForDrumkitSequencer(const struct Track *track, int index);
     void setSelectedPage(struct Track *selectedTrack, int index);
     unsigned char transposeMidiNote(unsigned char midiNote, int steps);
     void applyKeyToNote(struct Note *note, SDL_Scancode key, bool isDrumkitSequencer);
@@ -192,12 +195,12 @@ private:
     bool isNoteTrigged(int triggValue, int repeatCount);
     void setTriggText(int triggValue, char *text);
     bool isNotePlayed(const struct Note *note, const struct Track *track, int nudgeCheck);
-    void processPulse(
-        const uint64_t *currentPulse,
-        const struct Track *track,
-        void (*isFirstPulseCallback)(void),
-        void (*playNoteCallback)(const struct Note *note)
-    );
+    // void processPulse(
+    //     const uint64_t *currentPulse,
+    //     const struct Track *track,
+    //     void (*isFirstPulseCallback)(void),
+    //     void (*playNoteCallback)(const struct Note *note)
+    // );
     void isFirstPulseCallback();
     void playNoteCallback(const struct Note *note);
     bool applySpeedToPulse(

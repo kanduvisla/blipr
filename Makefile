@@ -4,7 +4,7 @@ LIBS = $(shell sdl2-config --libs) $(shell pkg-config --libs portmidi)
 
 # Add C++ compiler
 CXX = g++
-CXXFLAGS = $(CFLAGS)
+CXXFLAGS = $(CFLAGS) -std=c++11
 
 TARGET = build/blipr
 C_SRCS = print.c \

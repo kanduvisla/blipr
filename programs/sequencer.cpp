@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <portmidi.h>
 #include <string.h>
+#include <cstdio>
 #include "sequencer.hpp"
 #include "../project.h"
 #include "../constants.h"
@@ -653,6 +654,14 @@ void Sequencer::update(
     }
 }
 
+void Sequencer::update(
+    struct Track *track,
+    bool keyStates[SDL_NUM_SCANCODES], 
+    SDL_Scancode key
+) {
+    update(track, keyStates, key, false);
+}
+
 /**
  * Check sequencer for key repeats
  */
@@ -839,7 +848,7 @@ bool Sequencer::isNoteTrigged(int triggValue, int repeatCount) {
 void Sequencer::setTriggText(int triggValue, char *text) {
     bool isEnabled = get2FByteFlag1(triggValue);
     if (!isEnabled) {
-        sprintf(text, "OFF");
+        snprintf(text, 4, "OFF");
         return;
     }
 
@@ -848,108 +857,108 @@ void Sequencer::setTriggText(int triggValue, char *text) {
 
     switch (value) {
         case TRIG_DISABLED:
-            sprintf(text, "OFF");       
+            snprintf(text, 4, "OFF");       
             case TRIG_1_2:
-            sprintf(text, "%s1:2", isInversed? "!" : "");
+            snprintf(text, 4, "%s1:2", isInversed? "!" : "");
             break;
         case TRIG_1_3:
-            sprintf(text, "%s1:3", isInversed? "!" : "");
+            snprintf(text, 4, "%s1:3", isInversed? "!" : "");
             break;
         case TRIG_2_3:
-            sprintf(text, "%s2:3", isInversed? "!" : "");
+            snprintf(text, 4, "%s2:3", isInversed? "!" : "");
             break;
         case TRIG_3_3:
-            sprintf(text, "%s3:3", isInversed? "!" : "");
+            snprintf(text, 4, "%s3:3", isInversed? "!" : "");
             break;
         case TRIG_1_4:
-            sprintf(text, "%s1:4", isInversed? "!" : "");
+            snprintf(text, 4, "%s1:4", isInversed? "!" : "");
             break;
         case TRIG_2_4:
-            sprintf(text, "%s2:4", isInversed? "!" : "");
+            snprintf(text, 4, "%s2:4", isInversed? "!" : "");
             break;
         case TRIG_3_4:
-            sprintf(text, "%s3:4", isInversed? "!" : "");
+            snprintf(text, 4, "%s3:4", isInversed? "!" : "");
             break;
         case TRIG_4_4:
-            sprintf(text, "%s4:4", isInversed? "!" : "");
+            snprintf(text, 4, "%s4:4", isInversed? "!" : "");
             break;
         case TRIG_1_5:
-            sprintf(text, "%s1:5", isInversed? "!" : "");
+            snprintf(text, 4, "%s1:5", isInversed? "!" : "");
             break;
         case TRIG_2_5:
-            sprintf(text, "%s2:5", isInversed? "!" : "");
+            snprintf(text, 4, "%s2:5", isInversed? "!" : "");
             break;
         case TRIG_3_5:
-            sprintf(text, "%s3:5", isInversed? "!" : "");
+            snprintf(text, 4, "%s3:5", isInversed? "!" : "");
             break;
         case TRIG_4_5:
-            sprintf(text, "%s4:5", isInversed? "!" : "");
+            snprintf(text, 4, "%s4:5", isInversed? "!" : "");
             break;
         case TRIG_5_5:
-            sprintf(text, "%s5:5", isInversed? "!" : "");
+            snprintf(text, 4, "%s5:5", isInversed? "!" : "");
             break;
         case TRIG_1_6:
-            sprintf(text, "%s1:6", isInversed? "!" : "");
+            snprintf(text, 4, "%s1:6", isInversed? "!" : "");
             break;
         case TRIG_2_6:
-            sprintf(text, "%s2:6", isInversed? "!" : "");
+            snprintf(text, 4, "%s2:6", isInversed? "!" : "");
             break;
         case TRIG_3_6:
-            sprintf(text, "%s3:6", isInversed? "!" : "");
+            snprintf(text, 4, "%s3:6", isInversed? "!" : "");
             break;
         case TRIG_4_6:
-            sprintf(text, "%s4:6", isInversed? "!" : "");
+            snprintf(text, 4, "%s4:6", isInversed? "!" : "");
             break;
         case TRIG_5_6:
-            sprintf(text, "%s5:6", isInversed? "!" : "");
+            snprintf(text, 4, "%s5:6", isInversed? "!" : "");
             break;
         case TRIG_6_6:
-            sprintf(text, "%s6:6", isInversed? "!" : "");
+            snprintf(text, 4, "%s6:6", isInversed? "!" : "");
             break;
         case TRIG_1_7:
-            sprintf(text, "%s1:7", isInversed? "!" : "");
+            snprintf(text, 4, "%s1:7", isInversed? "!" : "");
             break;
         case TRIG_2_7:
-            sprintf(text, "%s2:7", isInversed? "!" : "");
+            snprintf(text, 4, "%s2:7", isInversed? "!" : "");
             break;
         case TRIG_3_7:
-            sprintf(text, "%s3:7", isInversed? "!" : "");
+            snprintf(text, 4, "%s3:7", isInversed? "!" : "");
             break;
         case TRIG_4_7:
-            sprintf(text, "%s4:7", isInversed? "!" : "");
+            snprintf(text, 4, "%s4:7", isInversed? "!" : "");
             break;
         case TRIG_5_7:
-            sprintf(text, "%s5:7", isInversed? "!" : "");
+            snprintf(text, 4, "%s5:7", isInversed? "!" : "");
             break;
         case TRIG_6_7:
-            sprintf(text, "%s6:7", isInversed? "!" : "");
+            snprintf(text, 4, "%s6:7", isInversed? "!" : "");
             break;
         case TRIG_7_7:
-            sprintf(text, "%s7:7", isInversed? "!" : "");
+            snprintf(text, 4, "%s7:7", isInversed? "!" : "");
             break;
         case TRIG_1_8:
-            sprintf(text, "%s1:8", isInversed? "!" : "");
+            snprintf(text, 4, "%s1:8", isInversed? "!" : "");
             break;
         case TRIG_2_8:
-            sprintf(text, "%s2:8", isInversed? "!" : "");
+            snprintf(text, 4, "%s2:8", isInversed? "!" : "");
             break;
         case TRIG_3_8:
-            sprintf(text, "%s3:8", isInversed? "!" : "");
+            snprintf(text, 4, "%s3:8", isInversed? "!" : "");
             break;
         case TRIG_4_8:
-            sprintf(text, "%s4:8", isInversed? "!" : "");
+            snprintf(text, 4, "%s4:8", isInversed? "!" : "");
             break;
         case TRIG_5_8:
-            sprintf(text, "%s5:8", isInversed? "!" : "");
+            snprintf(text, 4, "%s5:8", isInversed? "!" : "");
             break;
         case TRIG_6_8:
-            sprintf(text, "%s6:8", isInversed? "!" : "");
+            snprintf(text, 4, "%s6:8", isInversed? "!" : "");
             break;
         case TRIG_7_8:
-            sprintf(text, "%s7:8", isInversed? "!" : "");
+            snprintf(text, 4, "%s7:8", isInversed? "!" : "");
             break;
         case TRIG_8_8:
-            sprintf(text, "%s8:8", isInversed? "!" : "");
+            snprintf(text, 4, "%s8:8", isInversed? "!" : "");
             break;
         case TRIG_1_PERCENT:
             strcpy(text, isInversed ? "99%" : "1%");
@@ -973,49 +982,49 @@ void Sequencer::setTriggText(int triggValue, char *text) {
             strcpy(text, "50%");
             break;
         case TRIG_FILL:
-            sprintf(text, "%sFILL", isInversed? "!" : "");
+            snprintf(text, 4, "%sFILL", isInversed? "!" : "");
             break;
         case TRIG_FIRST:
-            sprintf(text, "%s1ST", isInversed? "!" : "");
+            snprintf(text, 4, "%s1ST", isInversed? "!" : "");
             break;
         case TRIG_TRANSITION:
-            sprintf(text, "%sTRANS", isInversed? "!" : "");
+            snprintf(text, 4, "%sTRANS", isInversed? "!" : "");
             break;
         case TRIG_FIRST_PAGE:
-            sprintf(text, "%s1ST.P", isInversed? "!" : "");
+            snprintf(text, 4, "%s1ST.P", isInversed? "!" : "");
             break;
         case TRIG_TRANSITION_PAGE:
-            sprintf(text, "%sTRN.P", isInversed? "!" : "");
+            snprintf(text, 4, "%sTRN.P", isInversed? "!" : "");
             break;
         case TRIG_HIGHER_FIRST:
-            sprintf(text, "%s1ST.H", isInversed? "!" : "");
+            snprintf(text, 4, "%s1ST.H", isInversed? "!" : "");
             break;
         case TRIG_HIGHER_TRANSITION:
-            sprintf(text, "%sTRN.H", isInversed? "!" : "");
+            snprintf(text, 4, "%sTRN.H", isInversed? "!" : "");
             break;
         case TRIG_HIGHER_FIRST_PAGE:
-            sprintf(text, "%s1ST.HP", isInversed? "!" : "");
+            snprintf(text, 4, "%s1ST.HP", isInversed? "!" : "");
             break;
         case TRIG_HIGHER_TRANSITION_PAGE:
-            sprintf(text, "%sTRN.HP", isInversed? "!" : "");
+            snprintf(text, 4, "%sTRN.HP", isInversed? "!" : "");
             break;
         case TRIG_LOWER_FIRST:
-            sprintf(text, "%s1ST.L", isInversed? "!" : "");
+            snprintf(text, 4, "%s1ST.L", isInversed? "!" : "");
             break;
         case TRIG_LOWER_TRANSITION:
-            sprintf(text, "%sTRN.L", isInversed? "!" : "");
+            snprintf(text, 4, "%sTRN.L", isInversed? "!" : "");
             break;
         case TRIG_LOWER_FIRST_PAGE:
-            sprintf(text, "%s1ST.LP", isInversed? "!" : "");
+            snprintf(text, 4, "%s1ST.LP", isInversed? "!" : "");
             break;
         case TRIG_LOWER_TRANSITION_PAGE:
-            sprintf(text, "%sTRN.LP", isInversed? "!" : "");
+            snprintf(text, 4, "%sTRN.LP", isInversed? "!" : "");
             break;
         case TRIG_FIRST_PAGE_PLAY:
-            sprintf(text, "%s1ST.PG", isInversed? "!" : "");
+            snprintf(text, 4, "%s1ST.PG", isInversed? "!" : "");
             break;
         case TRIG_FIRST_PATTERN_PLAY:
-            sprintf(text, "%s1ST.PT", isInversed? "!" : "");
+            snprintf(text, 4, "%s1ST.PT", isInversed? "!" : "");
             break;
         default:
             strcpy(text, "---");
@@ -1059,7 +1068,7 @@ int Sequencer::getTrackStepIndex(
 /**
  * Get notes at a given track index - this takes into account the polyphony sacrifice for more steps
  */
-void Sequencer::getNotesAtTrackStepIndex(int trackStepIndex, const struct Track *track, struct Note **notes) {
+void Sequencer::getNotesAtTrackStepIndex(int trackStepIndex, const struct Track *track, const struct Note **notes) {
     switch (getPolyCount(track)) {
         case 8:
             // All enabled notes for this step
@@ -1121,13 +1130,13 @@ void Sequencer::processPulse(
 
     // Get all notes that are in this step
     int polyCount = getPolyCount(track);
-    struct Note *notes[polyCount];
+    const struct Note *notes[polyCount];
     getNotesAtTrackStepIndex(trackStepIndex, track, notes);
 
     // Iterate over all notes in this step:
     for (int i=0; i < polyCount; i++) {
         // Get the note:
-        struct Note *note = notes[i];
+        const struct Note *note = notes[i];
 
         // If it's not null and matches the note boundaries it's viable for playing:
         if (isNotePlayed(note, track, nudgeCheck)) {
@@ -1147,11 +1156,11 @@ void Sequencer::processPulse(
             nextNudgeCheck -= (track->shuffle - PP16N);
         }
 
-        struct Note *nextStepNotes[polyCount];
+        const struct Note *nextStepNotes[polyCount];
         getNotesAtTrackStepIndex(nextTrackStepIndex, track, nextStepNotes);
         for (int i=0; i < polyCount; i++) {
             // Get the note:
-            struct Note *note = nextStepNotes[i];
+            const struct Note *note = nextStepNotes[i];
 
             if (isNotePlayed(note, track, nextNudgeCheck)) {
                 playNoteCallback(note);
@@ -1276,10 +1285,11 @@ void Sequencer::run(
  */
 void Sequencer::drawPageIndicator(const struct Track *track, int playingPage) 
 {
-    char *bottomText[64];
+    char bottomText[64];
     int totalPageBanks = getMaxPageBanks(track);
-    sprintf(
+    snprintf(
         bottomText, 
+        64,
         "PAGE %d/%d - REP %d/%d", 
         playingPage + 1, 
         totalPageBanks * 4,
@@ -1298,25 +1308,25 @@ void Sequencer::drawTemplateNote() {
     drawText(SIDEBAR_OFFSET + 1, 28, "TEMPLATE", 20, COLOR_ORANGE);
     char text[8];
     drawSidebarTemplate(34, "NOT");
-    char *midiNote = getMidiNoteName(templateNote.note);
+    const char *midiNote = getMidiNoteName(templateNote.note);
     drawText(SIDEBAR_OFFSET + 24, 35, midiNote, 20, COLOR_ORANGE);
     drawSidebarTemplate(40, "VEL");
-    sprintf(text, "%d", templateNote.velocity);
+    snprintf(text, sizeof(text), "%d", templateNote.velocity);
     drawText(SIDEBAR_OFFSET + 24, 41, text, 18, COLOR_ORANGE);
     drawSidebarTemplate(46, "LEN");
-    sprintf(text, "%d", templateNote.length);
+    snprintf(text, sizeof(text), "%d", templateNote.length);
     drawText(SIDEBAR_OFFSET + 24, 47, text, 18, COLOR_ORANGE);
     drawSidebarTemplate(52, "NDG");
-    sprintf(text, "%d", templateNote.nudge - PP16N);
+    snprintf(text, sizeof(text), "%d", templateNote.nudge - PP16N);
     drawText(SIDEBAR_OFFSET + 24, 53, text, 18, COLOR_ORANGE);
     drawSidebarTemplate(58, "TRG");
     setTriggText(templateNote.trigg, text);
     drawText(SIDEBAR_OFFSET + 24, 59, text, 18, COLOR_ORANGE);
     drawSidebarTemplate(64, "CC1");
-    sprintf(text, "%d", templateNote.cc1Value);
+    snprintf(text, sizeof(text), "%d", templateNote.cc1Value);
     drawText(SIDEBAR_OFFSET + 24, 65, text, 18, COLOR_ORANGE);
     drawSidebarTemplate(70, "CC2");
-    sprintf(text, "%d", templateNote.cc2Value);
+    snprintf(text, sizeof(text), "%d", templateNote.cc2Value);
     drawText(SIDEBAR_OFFSET + 24, 71, text, 18, COLOR_ORANGE);
 }
 
@@ -1392,17 +1402,17 @@ void Sequencer::drawSequencerMain(
 
         // Show cut & copy information:
         if (cutCounter > 0 || copyCounter > 0) {
-            char *bottomText[64];
+            char bottomText[64];
             if (cutCounter == 1) {
-                sprintf(bottomText, "CUTTED 1 NOTE");
+                snprintf(bottomText, 64, "CUTTED 1 NOTE");
             } else if (cutCounter > 1) {
-                sprintf(bottomText, "CUTTED ALL NOTES");
+                snprintf(bottomText, 64, "CUTTED ALL NOTES");
             }
 
             if (copyCounter == 1) {
-                sprintf(bottomText, "PASTED 1 NOTE");
+                snprintf(bottomText, 64, "PASTED 1 NOTE");
             } else if (copyCounter > 1) {
-                sprintf(bottomText, "PASTED ALL NOTES");
+                snprintf(bottomText, 64, "PASTED ALL NOTES");
             }
             drawCenteredLine(2, HEIGHT - BUTTON_HEIGHT - 12, bottomText, BUTTON_WIDTH * 4, COLOR_YELLOW);
         } else if (!keyStates[BLIPR_KEY_SHIFT_2]) {
@@ -1549,12 +1559,12 @@ void Sequencer::drawSequencerMain(
         char descriptions[4][4] = {"-", "-", "<", ">"};
         int polyCount = getPolyCount(selectedTrack);
         if (polyCount < 8) {
-            sprintf(descriptions[0], "<");
-            sprintf(descriptions[1], ">");
+            snprintf(descriptions[0], 4, "<");
+            snprintf(descriptions[1], 4, ">");
         }
         if (isDrumkitSequencer) {
-            sprintf(descriptions[2], "-");
-            sprintf(descriptions[3], "-");
+            snprintf(descriptions[2], 4, "-");
+            snprintf(descriptions[3], 4, "-");
         }
         drawABCDButtons(descriptions);
         // Draw page bank title:
@@ -1567,7 +1577,7 @@ void Sequencer::drawSequencerMain(
         );
         // Draw page bank number:
         char pageBankText[2];
-        sprintf(pageBankText, "%d", selectedPageBank + 1);
+        snprintf(pageBankText, 2, "%d", selectedPageBank + 1);
         drawText(2 + 28, HEIGHT - BUTTON_HEIGHT + 2, pageBankText, BUTTON_WIDTH, COLOR_WHITE);
         // Draw channel title:
         drawCenteredLine(
@@ -1579,7 +1589,7 @@ void Sequencer::drawSequencerMain(
         );
         // Draw channel number:
         char channelText[2];
-        sprintf(channelText, "%d", selectedNote + 1);
+        snprintf(channelText, 2, "%d", selectedNote + 1);
         drawText(92, HEIGHT - BUTTON_HEIGHT + 2, channelText, BUTTON_WIDTH, COLOR_WHITE);
     } else {
         // Page numbers:
@@ -1591,9 +1601,9 @@ void Sequencer::drawSequencerMain(
             int pageNumber = startPage + i;
             // Format with leading zero if needed
             if (pageNumber < 10) {
-                sprintf(descriptions[i], "P0%d", pageNumber);
+                snprintf(descriptions[i], 4, "P0%d", pageNumber);
             } else {
-                sprintf(descriptions[i], "P%d", pageNumber);
+                snprintf(descriptions[i], 4, "P%d", pageNumber);
             }
         }
 
@@ -1659,7 +1669,7 @@ void Sequencer::drawStepEditor(struct Track *track, bool isDrumkitSequencer) {
     // Note/Transpose:
     if (!isDrumkitSequencer) {
         drawCenteredLine(2, 7, "TRANSPOSE", TITLE_WIDTH, COLOR_WHITE);
-        char *midiNoteName;
+        const char *midiNoteName;
         if (areAllStepPropertiesTheSame[PROPERTY_NOTE]) {
             midiNoteName = getMidiNoteName(note->note);
         } else {
@@ -1678,7 +1688,7 @@ void Sequencer::drawStepEditor(struct Track *track, bool isDrumkitSequencer) {
     if (areAllStepPropertiesTheSame[PROPERTY_VELOCITY]) {
         snprintf(velocityChar, sizeof(velocityChar), "%d", note->velocity);
     } else {
-        sprintf(velocityChar, "##");
+        snprintf(velocityChar, sizeof(velocityChar), "##");
     }
     drawCenteredLine(2, 47, velocityChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(4, "-");
@@ -1690,7 +1700,7 @@ void Sequencer::drawStepEditor(struct Track *track, bool isDrumkitSequencer) {
     if (areAllStepPropertiesTheSame[PROPERTY_LENGTH]) {
         snprintf(lengthChar, sizeof(lengthChar), "%d", note->length);
     } else {
-        sprintf(lengthChar, "##");
+        snprintf(lengthChar, sizeof(lengthChar), "##");
     }
     drawCenteredLine(62, 47, lengthChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(6, "-");
@@ -1702,7 +1712,7 @@ void Sequencer::drawStepEditor(struct Track *track, bool isDrumkitSequencer) {
     if (areAllStepPropertiesTheSame[PROPERTY_NUDGE]) {
         snprintf(nudgeChar, sizeof(nudgeChar), "%d", note->nudge - PP16N);
     } else {
-        sprintf(nudgeChar, "##");
+        snprintf(nudgeChar, sizeof(nudgeChar), "##");
     }
     drawCenteredLine(2, 77, nudgeChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(8, "-");
@@ -1719,7 +1729,7 @@ void Sequencer::drawStepEditor(struct Track *track, bool isDrumkitSequencer) {
             get2FByteValue(note->trigg) + (get2FByteFlag2(note->trigg) ? TRIG_HIGHEST_VALUE : 0)
         );
     } else {
-        sprintf(triggChar, "##");
+        snprintf(triggChar, sizeof(triggChar), "##");
     }
     drawCenteredLine(62, 77, triggChar, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(10, "-");
@@ -1729,7 +1739,7 @@ void Sequencer::drawStepEditor(struct Track *track, bool isDrumkitSequencer) {
     if (areAllStepPropertiesTheSame[PROPERTY_TRIG]) {
         setTriggText(note->trigg, triggText);
     } else {
-        sprintf(triggText, "##");
+        snprintf(triggText, 6, "##");
     }
     drawCenteredLine(62, 87, triggText, BUTTON_WIDTH * 2, COLOR_WHITE);
 
@@ -1743,7 +1753,7 @@ void Sequencer::drawStepEditor(struct Track *track, bool isDrumkitSequencer) {
             snprintf(cc1Value, sizeof(cc1Value), "%d", note->cc1Value - 1);
         }
     } else {
-        sprintf(cc1Value, "##");
+        snprintf(cc1Value,  sizeof(cc1Value), "##");
     }
     drawCenteredLine(2, 107, cc1Value, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(12, "-");
@@ -1759,7 +1769,7 @@ void Sequencer::drawStepEditor(struct Track *track, bool isDrumkitSequencer) {
             snprintf(cc2Value, sizeof(cc2Value), "%d", note->cc2Value);
         }        
     } else {
-        sprintf(cc2Value, "##");
+        snprintf(cc2Value, sizeof(cc2Value), "##");
     }
     drawCenteredLine(62, 107, cc2Value, BUTTON_WIDTH * 2, COLOR_YELLOW);
     drawTextOnButton(14, "-");
@@ -1772,7 +1782,7 @@ void Sequencer::drawStepEditor(struct Track *track, bool isDrumkitSequencer) {
     // D = ... fx? side chaining?
 
     char descriptions[4][4] = {"ONE", "OPT", "-", "-"};
-    sprintf(descriptions[0], isEditOnAllNotes ? "ALL" : "ONE");
+    snprintf(descriptions[0], 4, isEditOnAllNotes ? "ALL" : "ONE");
     drawABCDButtons(descriptions);
 }
 
@@ -1790,3 +1800,10 @@ void Sequencer::draw(
     }
 }
 
+void Sequencer::draw(
+    uint64_t *ppqnCounter, 
+    bool keyStates[SDL_NUM_SCANCODES],
+    struct Track *selectedTrack
+) {
+    draw(ppqnCounter, keyStates, selectedTrack, false);
+}
