@@ -27,9 +27,11 @@ C_SRCS = print.c \
 	programs/pattern_options.c	
 
 CPP_SRCS = 	main.cpp \
+	note_utilities.hpp \
 	programs/abstract_program.cpp \
 	programs/base_sequencer.cpp \
 	programs/sequencer.cpp \
+	programs/drumkit_sequencer.cpp \
 	programs/four_on_the_floor.cpp
 SRCS = $(C_SRCS) $(CPP_SRCS)
 

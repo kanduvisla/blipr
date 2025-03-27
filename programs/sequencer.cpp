@@ -15,13 +15,14 @@
 #include "../midi.h"
 #include "../print.h"
 #include "../drawing_icons.h"
+#include "../note_utilities.hpp"
 
 // TODO: These should be the global things I guess?
 
 // Pages can be global, or per track configured
 static int selectedPageBank = 0;               // Selected page bank, not currently active playing page bank
 static struct Step* clipBoard[16] = {NULL};
-static bool isEditOnAllNotes = false;
+// static bool isEditOnAllNotes = false;
 
 // Template note that is used for pipet tooling
 static struct Note templateNote;
@@ -61,125 +62,23 @@ void Sequencer::toggleStep(struct Step *step, int noteIndex) {
 }
 
 /**
- * Toggle a step when in drumkit mode
+ * Apply a key on a single note in the note editor
  */
-void Sequencer::toggleDrumkitStep(struct Step *step, int noteIndex) {
-    if (step->notes[noteIndex].enabled) {
-        // Decrease velocity:
-        if (step->notes[noteIndex].velocity > 100) {
-            step->notes[noteIndex].velocity = 100;
-        } else if (step->notes[noteIndex].velocity > 50) {
-            step->notes[noteIndex].velocity = 50;
-        } else if (step->notes[noteIndex].velocity > 25) {
-            step->notes[noteIndex].velocity = 25;
-        } else {
-            step->notes[noteIndex].enabled = false;    
-        }
+void Sequencer::applyKeyToNoteInNoteEditor(struct Note *note, SDL_Scancode key) {
+    if (key == BLIPR_KEY_1) { 
+        note->note = NoteUtilities::transpose(note->note, -12); 
+        templateNote.note = note->note;
+    } else if (key == BLIPR_KEY_2) {
+        note->note = NoteUtilities::transpose(note->note, -1); 
+        templateNote.note = note->note;
+    } else if (key == BLIPR_KEY_3) {
+        note->note = NoteUtilities::transpose(note->note, 1); 
+        templateNote.note = note->note;
+    } else if (key == BLIPR_KEY_4) {
+        note->note = NoteUtilities::transpose(note->note, 12); 
+        templateNote.note = note->note;
     } else {
-        step->notes[noteIndex].enabled = true;
-        // Use template note
-        copyNote(&templateNote, &step->notes[noteIndex]);
-        // Reset enabled state, because template note might be a disabled note :-/
-        step->notes[noteIndex].enabled = true;
-    }
-}
-
-/**
- * Set the proper template note for the drumkit sequencer
- * @TODO: Does this need to be fetched from the configuration? Or is this per pattern / track (seems cumbersome)
- */
-void Sequencer::setTemplateNoteForDrumkitSequencer(const struct Track *track, int index) {
-    // Also set selected note
-    int polyCount = getPolyCount(track);
-    templateNote.velocity = 100;
-    switch(index) {
-        case 0:
-            // Kick
-            selectedNote = 0;
-            templateNote.note = 36;
-            break;
-        case 1:
-            // Snare
-            selectedNote = 1;
-            templateNote.note = 40;
-            break;
-        case 2:
-            // Clap
-            selectedNote = polyCount == 8 ? 2 : 1;
-            templateNote.note = 39;
-            break;
-        case 3:
-            // Rimshot
-            selectedNote = 1;
-            templateNote.note = 37;
-            break;
-        case 4:
-            // C.Hat 1
-            selectedNote = polyCount == 8 ? 3 : (polyCount == 4 ? 2 : 1);
-            templateNote.note = 42;
-            break;
-        case 5:
-            // C.Hat 2
-            selectedNote = polyCount == 8 ? 3 : (polyCount == 4 ? 2 : 1);
-            templateNote.note = 44;
-            break;
-        case 6:
-            // O.Hat
-            selectedNote = polyCount == 8 ? 4 : (polyCount == 4 ? 3 : 1);
-            templateNote.note = 46;
-            break;
-        case 7:
-            // Ride
-            selectedNote = polyCount == 8 ? 4 : (polyCount == 4 ? 3 : 1);
-            templateNote.note = 51;
-            break;
-        case 8:
-            // Crash
-            selectedNote = polyCount == 8 ? 4 : (polyCount == 4 ? 3 : 1);
-            templateNote.note = 55;
-            break;
-        case 9:
-            // L.Tom
-            selectedNote = polyCount == 8 ? 5 : 1;
-            templateNote.note = 45;
-            break;
-        case 10:
-            // M.Tom
-            selectedNote = polyCount == 8 ? 5 : 1;
-            templateNote.note = 48;
-            break;
-        case 11:
-            // H.Tom
-            selectedNote = polyCount == 8 ? 5 : 1;
-            templateNote.note = 50;
-            break;
-        case 12:
-            // Cowbell
-            selectedNote = polyCount == 8 ? 6 : 1;
-            templateNote.note = 56;
-            break;
-        case 13:
-            // Extra 1
-            selectedNote = polyCount == 8 ? 6 : 0;
-            templateNote.note = 71;
-            break;
-        case 14:
-            // Extra 2
-            selectedNote = polyCount == 8 ? 7 : (polyCount == 4 ? 2 : 1);
-            templateNote.note = 73;
-            break;
-        case 15:
-            // Extra 3
-            selectedNote = polyCount == 8 ? 7 : (polyCount == 4 ? 3 : 1);
-            templateNote.note = 75;
-            break;
-        default:
-            // Nothing
-            break;
-    }
-
-    if (polyCount == 1) {
-        selectedNote = 0;
+        BaseSequencer::applyKeyToNoteInNoteEditor(note, key);
     }
 }
 
@@ -193,117 +92,6 @@ void Sequencer::setSelectedPage(struct Track *selectedTrack, int index) {
     } else {
         selectedTrack->queuedPage = index;
     }
-}
-
-/**
- * Transpose an amount of steps, clamped
- */
-unsigned char Sequencer::transposeMidiNote(unsigned char midiNote, int steps) {
-    // Ensure the input is a valid MIDI note
-    if (midiNote > 127) {
-        return 0;  // Return 0 (lowest note) for invalid input
-    }
-
-    // Perform the transposition
-    int transposed = (int)midiNote + steps;
-
-    // Clamp the result to the valid MIDI note range (0-127)
-    if (transposed < 0) {
-        transposed = 0;
-    } else if (transposed > 127) {
-        transposed = 127;
-    } 
-
-    // Set default note to this:
-    templateNote.note = transposed;
-
-    return (unsigned char)transposed;   
-}
-
-/**
- * Apply a key on a single note in the note editor
- */
-void Sequencer::applyKeyToNote(struct Note *note, SDL_Scancode key, bool isDrumkitSequencer) {
-    if (key == BLIPR_KEY_1) { 
-        if (!isDrumkitSequencer) {
-            note->note = transposeMidiNote(note->note, -12); 
-        }
-    } else if (key == BLIPR_KEY_2) { 
-        if (!isDrumkitSequencer) {
-            note->note = transposeMidiNote(note->note, -1); 
-        }
-    } else if (key == BLIPR_KEY_3) { 
-        if (!isDrumkitSequencer) {
-            note->note = transposeMidiNote(note->note, 1); 
-        }
-    } else if (key == BLIPR_KEY_4) { 
-        if (!isDrumkitSequencer) {
-            note->note = transposeMidiNote(note->note, 12); 
-        }
-    } else if (key == BLIPR_KEY_5) { note->velocity = MAX(0, note->velocity - 1); } else 
-    if (key == BLIPR_KEY_6) { note->velocity = MIN(127, note->velocity + 1); } else 
-    if (key == BLIPR_KEY_7) { note->length = MAX(0, note->length - 1); } else 
-    if (key == BLIPR_KEY_8) { note->length = MIN(127, note->length + 1); } else 
-    if (key == BLIPR_KEY_9) { 
-        note->nudge = MAX(0, note->nudge - 1); 
-    } else if (key == BLIPR_KEY_10) { 
-        note->nudge = MIN(PP16N * 2, note->nudge + 1); 
-    } else if (key == BLIPR_KEY_11) { 
-        int value = get2FByteValue(note->trigg);
-        bool isInversed = get2FByteFlag2(note->trigg);
-        if (isInversed) {
-            value += TRIG_HIGHEST_VALUE;
-        }
-        if (value > 0) {
-            value--;
-            isInversed = value > TRIG_HIGHEST_VALUE;
-            note->trigg = create2FByte(
-                value > 0,
-                isInversed,
-                isInversed ? (value - TRIG_HIGHEST_VALUE) : value
-            );
-        }
-    } else if (key == BLIPR_KEY_12) { 
-        int value = get2FByteValue(note->trigg);
-        bool isInversed = get2FByteFlag2(note->trigg);
-        if (isInversed) {
-            value += TRIG_HIGHEST_VALUE;
-        }
-        if (value < TRIG_HIGHEST_VALUE * 2) {
-            value++;
-            isInversed = value > TRIG_HIGHEST_VALUE;
-            note->trigg = create2FByte(
-                value > 0,
-                isInversed,
-                isInversed ? (value - TRIG_HIGHEST_VALUE) : value
-            );
-        }
-    } else 
-    if (key == BLIPR_KEY_13) { note->cc1Value = MAX(0, note->cc1Value - 1); } else 
-    if (key == BLIPR_KEY_14) { note->cc1Value = MIN(127, note->cc1Value + 1); } else 
-    if (key == BLIPR_KEY_15) { note->cc2Value = MAX(0, note->cc2Value - 1); } else 
-    if (key == BLIPR_KEY_16) { note->cc2Value = MIN(127, note->cc2Value + 1); }
-}
-
-/**
- * Handle a key in the note editor
- */
-void Sequencer::handleKey(struct Track *selectedTrack, SDL_Scancode key, bool isDrumkitSequencer) {
-    for (int i=0; i<16; i++) {
-        if (selectedSteps[i]) {
-            // We need to apply this key input on this step, but only on the selected note
-            int stepIndex = i + (selectedTrack->selectedPage * 16);
-            if (isEditOnAllNotes) {
-                for (int j=0; j<NOTES_IN_STEP; j++) {
-                    struct Note *note = &selectedTrack->steps[stepIndex].notes[j];
-                    applyKeyToNote(note, key, isDrumkitSequencer);
-                }
-            } else {
-                struct Note *note = &selectedTrack->steps[stepIndex].notes[selectedNote];
-                applyKeyToNote(note, key, isDrumkitSequencer);
-            }
-        }
-    }   
 }
 
 /**
@@ -361,8 +149,7 @@ int Sequencer::getMaxPageBanks(const struct Track *track) {
 void Sequencer::update(
     struct Track *track,
     bool keyStates[SDL_NUM_SCANCODES], 
-    SDL_Scancode key,
-    bool isDrumkitSequencer
+    SDL_Scancode key
 ) {
     int index = scancodeToStep(key);
     if (keyStates[BLIPR_KEY_SHIFT_1]) {
@@ -457,7 +244,7 @@ void Sequencer::update(
         } else {
             // Note editor is visible, handle note editor keys:
             if (index >= 0) {
-                handleKey(track, key, isDrumkitSequencer);
+                handleKeyInNoteEditor(track, key);
             } else {
                 if (key == BLIPR_KEY_A) {
                     isEditOnAllNotes = isEditOnAllNotes == false;
@@ -473,11 +260,7 @@ void Sequencer::update(
 
         // 1-16 = select page
         if (index >= 0) {
-            // Only the drumkit sequencer has options here
-            if (isDrumkitSequencer) {
-                // Set template note to proper drumkit note:
-                setTemplateNoteForDrumkitSequencer(track, index);
-            }
+            handleKeyWithShift2Down(track, index);
         } else {
             // Bottom buttons:
             if (polyCount < 8) {
@@ -487,7 +270,6 @@ void Sequencer::update(
                     int totalPageBanks = getMaxPageBanks(track);
                     selectedPageBank = MIN(totalPageBanks - 1, track->playingPageBank + 1);
                 }
-                // isHighPageBankSelected = track->selectedPageBank >= 4;
             }
             // Drumkit sequencer has no options to manually select note
             if (!isDrumkitSequencer) {
@@ -515,20 +297,18 @@ void Sequencer::update(
             printLog("setting note %d on step %d", (track->playingPageBank * polyCount) + selectedNote, stepIndex);
             if (!isDrumkitSequencer) {
                 toggleStep(&track->steps[stepIndex], (track->playingPageBank * polyCount) + selectedNote);
-            } else {
-                toggleDrumkitStep(&track->steps[stepIndex], (track->playingPageBank * polyCount) + selectedNote);
             }
         }
     }
 }
 
-void Sequencer::update(
-    struct Track *track,
-    bool keyStates[SDL_NUM_SCANCODES], 
-    SDL_Scancode key
-) {
-    update(track, keyStates, key, false);
-}
+// void Sequencer::update(
+//     struct Track *track,
+//     bool keyStates[SDL_NUM_SCANCODES], 
+//     SDL_Scancode key
+// ) {
+//     update(track, keyStates, key, false);
+// }
 
 /**
  * Check sequencer for key repeats

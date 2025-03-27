@@ -1,6 +1,8 @@
 #include "base_sequencer.hpp"
 #include "../constants.h"
 #include "../project.h"
+#include "../note_utilities.hpp"
+#include "../utils.h"
 
 // MARK: - Selecting steps
 
@@ -169,4 +171,81 @@ bool BaseSequencer::applySpeedToPulse(
     }
 
     return true;
+}
+
+/**
+ * Handle a key in the note editor
+ */
+void BaseSequencer::handleKeyInNoteEditor(struct Track *selectedTrack, SDL_Scancode key) {
+    for (int i=0; i<16; i++) {
+        if (selectedSteps[i]) {
+            // We need to apply this key input on this step, but only on the selected note
+            int stepIndex = i + (selectedTrack->selectedPage * 16);
+            if (isEditOnAllNotes) {
+                for (int j=0; j<NOTES_IN_STEP; j++) {
+                    struct Note *note = &selectedTrack->steps[stepIndex].notes[j];
+                    applyKeyToNoteInNoteEditor(note, key);
+                }
+            } else {
+                struct Note *note = &selectedTrack->steps[stepIndex].notes[selectedNote];
+                applyKeyToNoteInNoteEditor(note, key);
+            }
+        }
+    }
+}
+
+/**
+ * Apply a key on a single note in the note editor
+ */
+void BaseSequencer::applyKeyToNoteInNoteEditor(struct Note *note, SDL_Scancode key) {
+    if (key == BLIPR_KEY_5) { note->velocity = MAX(0, note->velocity - 1); } else 
+    if (key == BLIPR_KEY_6) { note->velocity = MIN(127, note->velocity + 1); } else 
+    if (key == BLIPR_KEY_7) { note->length = MAX(0, note->length - 1); } else 
+    if (key == BLIPR_KEY_8) { note->length = MIN(127, note->length + 1); } else 
+    if (key == BLIPR_KEY_9) { 
+        note->nudge = MAX(0, note->nudge - 1); 
+    } else if (key == BLIPR_KEY_10) { 
+        note->nudge = MIN(PP16N * 2, note->nudge + 1); 
+    } else if (key == BLIPR_KEY_11) { 
+        int value = get2FByteValue(note->trigg);
+        bool isInversed = get2FByteFlag2(note->trigg);
+        if (isInversed) {
+            value += TRIG_HIGHEST_VALUE;
+        }
+        if (value > 0) {
+            value--;
+            isInversed = value > TRIG_HIGHEST_VALUE;
+            note->trigg = create2FByte(
+                value > 0,
+                isInversed,
+                isInversed ? (value - TRIG_HIGHEST_VALUE) : value
+            );
+        }
+    } else if (key == BLIPR_KEY_12) { 
+        int value = get2FByteValue(note->trigg);
+        bool isInversed = get2FByteFlag2(note->trigg);
+        if (isInversed) {
+            value += TRIG_HIGHEST_VALUE;
+        }
+        if (value < TRIG_HIGHEST_VALUE * 2) {
+            value++;
+            isInversed = value > TRIG_HIGHEST_VALUE;
+            note->trigg = create2FByte(
+                value > 0,
+                isInversed,
+                isInversed ? (value - TRIG_HIGHEST_VALUE) : value
+            );
+        }
+    } else 
+    if (key == BLIPR_KEY_13) { note->cc1Value = MAX(0, note->cc1Value - 1); } else 
+    if (key == BLIPR_KEY_14) { note->cc1Value = MIN(127, note->cc1Value + 1); } else 
+    if (key == BLIPR_KEY_15) { note->cc2Value = MAX(0, note->cc2Value - 1); } else 
+    if (key == BLIPR_KEY_16) { note->cc2Value = MIN(127, note->cc2Value + 1); }
+}
+
+/**
+ * Handle key input when shift 2 is down
+ */
+void handleKeyWithShift2Down(struct Track *selectedTrack, int index) {
+    // Stub
 }

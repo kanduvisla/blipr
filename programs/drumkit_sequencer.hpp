@@ -1,26 +1,22 @@
-#ifndef FOUR_ON_THE_FLOOR_H
-#define FOUR_ON_THE_FLOOR_H
+#ifndef DRUMKIT_SEQUENCER_H
+#define DRUMKIT_SEQUENCER_H
 
-#include <SDL.h>
-#include <portmidi.h>
-#include "abstract_program.hpp"
-#include "../project.h"
+#include "base_sequencer.hpp"
 
 /**
- * Four on the floor
- * Basic generative program
+ * Drumkit Sequencer class
  */
-class FourOnTheFloor : public Program {
+class DrumkitSequencer : public BaseSequencer {
 public:
     /**
      * Constructor 
      */
-    FourOnTheFloor();
+    DrumkitSequencer();
 
-    /**
-     * Destructor 
+    /** 
+     * Destructor
      */
-    virtual ~FourOnTheFloor();
+    virtual ~DrumkitSequencer();
 
     /**
      * Update method. 
@@ -37,6 +33,16 @@ public:
      * Draw this program, gets triggered every step
      */ 
     void draw(uint64_t *ppqnCounter, bool keyStates[SDL_NUM_SCANCODES], struct Track *track) override;
+
+    /**
+     * Toggle a step
+     */
+    void toggleStep(struct Step *step, int noteIndex) override;
+
+    /**
+     * Handle key input when shift 2 is down
+     */
+    void handleKeyWithShift2Down(struct Track *track, int index) override;
 };
 
 #endif
