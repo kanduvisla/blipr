@@ -45,6 +45,7 @@ const char *projectFile = "data.blipr";
 #define OUTPUT_BUFFER_SIZE 100
 
 // Programs:
+// @todo: shouldn't this be instances on tracks instead, instead of one instance per type that is shared?
 FourOnTheFloor progFourOnTheFloor;
 Sequencer progSequencer;
 DrumkitSequencer progDrumkitSequencer;
