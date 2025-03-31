@@ -420,8 +420,10 @@ void* sequencerThread(void* arg) {
                 // Run the program:
                 switch (iTrack->program) {
                     case BLIPR_PROGRAM_SEQUENCER:
-                    case BLIPR_PROGRAM_DRUMKIT_SEQUENCER:
                         progSequencer.run(outputStream[iTrack->midiDevice], &state->ppqnCounter, iTrack);
+                        break;
+                    case BLIPR_PROGRAM_DRUMKIT_SEQUENCER:
+                        progDrumkitSequencer.run(outputStream[iTrack->midiDevice], &state->ppqnCounter, iTrack);
                         break;
                     case BLIPR_PROGRAM_FOUR_ON_THE_FLOOR:
                         progFourOnTheFloor.run(outputStream[iTrack->midiDevice], &state->ppqnCounter, iTrack);
@@ -547,6 +549,8 @@ void* keyThread(void* arg) {
                         .tracks[state->selectedTrack];
                     // Set selected note to 0:
                     progSequencer.resetSelectedNote();
+                    progSequencer.resetTemplateNote();
+                    progDrumkitSequencer.resetTemplateNote();
                 } else if (state->screen == BLIPR_SCREEN_PATTERN_OPTIONS) {
                     struct Sequence *sequence = &state->project->sequences[state->selectedSequence];
                     struct Pattern *pattern = &sequence->patterns[state->selectedPattern];

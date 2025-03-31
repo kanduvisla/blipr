@@ -21,7 +21,9 @@
 /**
  * Constructor
  */
-Sequencer::Sequencer() {}
+Sequencer::Sequencer() {
+    resetTemplateNote();
+}
 
 /**
  * Destructor

@@ -7,11 +7,14 @@
 #include "../drawing_text.h"
 #include "../drawing_icons.h"
 #include "../trigg_helper.hpp"
+#include "../print.h"
 
 /**
  * Constructor 
  */
-DrumkitSequencer::DrumkitSequencer() {}
+DrumkitSequencer::DrumkitSequencer() {
+    resetTemplateNote();
+}
 
 /** 
  * Destructor
@@ -53,7 +56,7 @@ void DrumkitSequencer::toggleStep(struct Step *step, int noteIndex) {
         // Get proper note according to drumkit configuration
         // Use template note
         
-        // copyNote(&templateNote, &step->notes[noteIndex]);
+        copyNote(&templateNote, &step->notes[noteIndex]);
         // Reset enabled state, because template note might be a disabled note :-/
         step->notes[noteIndex].enabled = true;
     }
@@ -169,8 +172,8 @@ void DrumkitSequencer::drawStepButtonOverlay(const int index, const struct Note 
     // Instrument. So we need to make that visually clear:
     if (note->note != templateNote.note) {
         drawDimmedOverlay(
-            index % 4,
-            index / 4 + (index % 4),
+            4 + (index % 4) + ((index % 4) * BUTTON_WIDTH),
+            4 + (index / 4) + ((index / 4) * BUTTON_HEIGHT),
             BUTTON_WIDTH - 4,
             BUTTON_HEIGHT - 4
         );
