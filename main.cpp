@@ -399,7 +399,8 @@ void* sequencerThread(void* arg) {
                         // Set proper screen:
                         setScreenAccordingToActiveTrack(state);
                         if (state->screen == BLIPR_SCREEN_DRUMKIT_SEQUENCER) {
-                            progSequencer.setTemplateNoteForDrumkitSequencer(state->track, 0);
+                            // @TODO: Do this for drumkit sequencer prog, not sequencer prog
+                            progSequencer.resetTemplateNote();
                         }
                         pthread_mutex_unlock(&state->mutex);
                     }                    
@@ -585,11 +586,11 @@ void* keyThread(void* arg) {
                 switch (state->track->program) {
                     case BLIPR_PROGRAM_SEQUENCER:
                     case BLIPR_PROGRAM_DRUMKIT_SEQUENCER:
+                        // TODO: Set proper prog for drumkit sequencer
                         progSequencer.update(
                             state->track, 
                             state->keyStates, 
-                            state->scanCodeKeyDown,
-                            state->track->program == BLIPR_PROGRAM_DRUMKIT_SEQUENCER
+                            state->scanCodeKeyDown
                         );                        
                         break;
                 }
@@ -789,11 +790,11 @@ int main(int argc, char *argv[]) {
                     break;
                 case BLIPR_SCREEN_SEQUENCER: 
                 case BLIPR_SCREEN_DRUMKIT_SEQUENCER:
+                    // TODO: Set proper prog for drumkit sequencer
                     progSequencer.draw(
                         &state.ppqnCounter, 
                         state.keyStates, 
-                        state.track,
-                        state.screen == BLIPR_SCREEN_DRUMKIT_SEQUENCER
+                        state.track
                     );
                     break;
                 case BLIPR_SCREEN_FOUR_ON_THE_FLOOR:
