@@ -10,6 +10,7 @@
 #include "../drawing.h"
 #include "../drawing_components.h"
 #include "../drawing_text.h"
+#include "../midi.h"
 
 // MARK: - Selecting steps
 
@@ -312,8 +313,8 @@ void BaseSequencer::applyKeyToNoteInNoteEditor(struct Note *note, SDL_Scancode k
 /**
  * Handle key input when shift 2 is down
  */
-void handleKeyWithShift2Down(struct Track *selectedTrack, int index) {
-    // Stub
+void BaseSequencer::handleKeyWithShift2Down(struct Track*, int) {
+    // Stub, can be overridden by other classes
 }
 
 /**
@@ -1007,7 +1008,7 @@ void BaseSequencer::drawSequencerMain(
     drawTemplateNote();
 
     // Draw the ABCD Buttons:
-    drawSequencerABCDButtons(keyStates);
+    drawSequencerABCDButtons(keyStates, selectedTrack);
 }
 
 /**

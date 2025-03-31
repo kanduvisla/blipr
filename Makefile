@@ -26,7 +26,7 @@ C_SRCS = print.c \
 	programs/track_options.c \
 	programs/pattern_options.c	
 
-CPP_SRCS = 	main.cpp \
+CPP_SRCS = main.cpp \
 	note_utilities.cpp \
 	trigg_helper.cpp \
 	programs/abstract_program.cpp \

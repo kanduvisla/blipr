@@ -247,6 +247,8 @@ void* timerThread(void *arg) {
 
         prevModulo = modulo;
     }
+    
+    return NULL;
 }
 
 /**
@@ -626,6 +628,8 @@ void* keyThread(void* arg) {
             pthread_mutex_unlock(&state->mutex);
         }
     }
+
+    return NULL;
 }
 
 /**
