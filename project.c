@@ -320,6 +320,7 @@ void initializeProject(struct Project* project) {
  * Get polyphony count for a given track
  */
 int getPolyCount(const struct Track* track) {
+    // TODO, keep track of how many times this is called, might benefit from some micro-optimizing
     int polyCount = 8;
     if (track->polyCount == 1) { polyCount = 4; } else
     if (track->polyCount == 2) { polyCount = 2; } else

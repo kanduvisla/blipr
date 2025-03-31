@@ -38,7 +38,7 @@ struct timespec seqStartTime, seqEndTime;   // To monitor sequencer performance
 struct timespec renStartTime, renEndTime;   // To monitor renderer performance
 
 // Project file
-char *projectFile = "data.blipr";
+const char *projectFile = "data.blipr";
 
 #define INPUT_BUFFER_SIZE 100
 #define OUTPUT_BUFFER_SIZE 100
@@ -82,7 +82,7 @@ uint64_t timespecToNs(struct timespec *ts) {
 /**
  * Check for flags
  */
-bool checkFlag(int argc, char *argv[], char *flag) {
+bool checkFlag(int argc, char *argv[], const char *flag) {
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], flag) == 0) {
             return true;
@@ -409,7 +409,7 @@ void* sequencerThread(void* arg) {
             // Iterate over all tracks, and send proper midi signals
             for (int i=0; i<16; i++) {
                 struct Track* iTrack = &state->project->sequences[state->selectedSequence].patterns[state->selectedPattern].tracks[i];
-                bool isTrackKeyRepeatTriggered = false;
+                // bool isTrackKeyRepeatTriggered = false;
                 
                 // Run the program:
                 switch (iTrack->program) {

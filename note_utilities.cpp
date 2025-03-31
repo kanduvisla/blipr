@@ -1,5 +1,8 @@
 #include "note_utilities.hpp"
 
+/**
+ * Transpose a note by a given value
+ */
 unsigned char NoteUtilities::transpose(unsigned char midiNote, int steps)
 {
     // Ensure the input is a valid MIDI note

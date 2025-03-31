@@ -28,6 +28,7 @@ C_SRCS = print.c \
 
 CPP_SRCS = 	main.cpp \
 	note_utilities.hpp \
+	trigg_helper.hpp \
 	programs/abstract_program.cpp \
 	programs/base_sequencer.cpp \
 	programs/sequencer.cpp \
