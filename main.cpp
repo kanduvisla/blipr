@@ -657,6 +657,7 @@ int main(int argc, char *argv[]) {
     }
 
     printLog("Screen rotated: %s", isScreenRotated ? "true" : "false");
+    printLog("Log MIDI data: %s", isScreenRotated ? "true" : "false");
 
     #ifdef DEBUG
     printWarning("Running in debug mode");

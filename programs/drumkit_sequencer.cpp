@@ -160,7 +160,11 @@ void DrumkitSequencer::handleKeyWithShift2Down(struct Track *track, int index) {
 /**
  * Draw an overlay on the step button (depends on sequencer type)
  */
-void DrumkitSequencer::drawStepButtonOverlay(const int index, const struct Note *note, const struct Track *track) {
+void DrumkitSequencer::drawStepButtonOverlay(const int index, const struct Note *note, const struct Step* step, const struct Track *track) {
+    if (!note->enabled) {
+        return;
+    }
+
     // If this note is not equal to the template note, it means that it is a different drumkit
     // Instrument. So we need to make that visually clear:
     if (note->note != templateNote.note) {

@@ -51,12 +51,14 @@ void openMidiOutput(int deviceId, PmStream **outputStream) {
 }
 
 void sendMidiMessage(PmStream *outputStream, int status, int data1, int data2) {
+    if (isMidiDataLogged) {
+        // Print debug info instead, ignoring clock
+        printLog("MIDI: 0x%X 0x%X 0x%X", status, data1, data2);
+    }
+    
     if (outputStream == NULL) {
         // Failsafe to prevent crashing
         return;
-    } else if (isMidiDataLogged) {
-        // Print debug info instead, ignoring clock
-        printLog("MIDI: 0x%X 0x%X 0x%X", status, data1, data2);
     }
 
     PmEvent event = {0};

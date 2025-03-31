@@ -80,29 +80,33 @@ void Sequencer::applyKeyToNoteInNoteEditor(struct Note *note, SDL_Scancode key) 
 /**
  * Draw an overlay on the step button (depends on sequencer type)
  */
-void Sequencer::drawStepButtonOverlay(const int index, const struct Note *note, const struct Track *track) {
+void Sequencer::drawStepButtonOverlay(const int index, const struct Note* note, const struct Step* step, const struct Track* track) {
     int polyCount = getPolyCount(track);
 
     // Draw the note name:
-    drawTextOnButton(index, getMidiNoteName(note->note));
+    if (note->enabled) {
+        drawTextOnButton(index, getMidiNoteName(note->note));
+    }
 
     // Offset (in pixels) for the note indicator
     int noteIndicatorOffset = 12 - polyCount;
 
     // Draw the dots for poly count:
     drawRect(
-        5 + index + ((index % 4) * BUTTON_WIDTH) + noteIndicatorOffset,
+        5 + (index % 4) + ((index % 4) * BUTTON_WIDTH) + noteIndicatorOffset,
         5 + (index / 4) + ((index / 4) * BUTTON_HEIGHT),
         (polyCount * 2) + 1,
         3,
         COLOR_GRAY
     );
 
+    int baseNoteIndex = (track->playingPageBank * polyCount);
     for (int p=0; p<polyCount; p++) {
+        const struct Note* n = &step->notes[baseNoteIndex + p];
         drawPixel(
-            6 + index + ((index % 4) * BUTTON_WIDTH) + (p * 2) + noteIndicatorOffset,
+            6 + (index % 4) + ((index % 4) * BUTTON_WIDTH) + (p * 2) + noteIndicatorOffset,
             6 + (index / 4) + ((index / 4) * BUTTON_HEIGHT),
-            p == selectedNote ? COLOR_WHITE : (note->enabled ? COLOR_RED : COLOR_LIGHT_GRAY)
+            p == selectedNote ? COLOR_WHITE : (n->enabled ? COLOR_RED : COLOR_LIGHT_GRAY)
         );
     }
 }

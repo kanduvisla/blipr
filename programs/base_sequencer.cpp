@@ -446,7 +446,7 @@ void BaseSequencer::update(
                 }
             }
             // Drumkit sequencer has no options to manually select note
-            if (!isNoteSelectionAllowed) {
+            if (isNoteSelectionAllowed) {
                 if (key == BLIPR_KEY_C) { 
                     selectedNote = MAX(0, selectedNote - 1); 
                 } else if (key == BLIPR_KEY_D) { 
@@ -701,7 +701,7 @@ void BaseSequencer::drawStepEditor(struct Track *track) {
     }     
 
     // Note/Transpose:
-    if (!isNoteSelectionAllowed) {
+    if (isNoteSelectionAllowed) {
         drawCenteredLine(2, 7, "TRANSPOSE", TITLE_WIDTH, COLOR_WHITE);
         const char *midiNoteName;
         if (areAllStepPropertiesTheSame[PROPERTY_NOTE]) {
@@ -917,8 +917,10 @@ void BaseSequencer::drawSequencerMain(
             int height = width;
             for (int i = 0; i < 4; i++) {
                 int stepIndex = ((i + (j * 4)) + (selectedTrack->selectedPage * 16)) % 64;
+                int noteIndex = (selectedTrack->playingPageBank * polyCount) + selectedNote;
+                const struct Step* step = &selectedTrack->steps[stepIndex];
+                const struct Note* note = &step->notes[noteIndex];
 
-                struct Step step = selectedTrack->steps[stepIndex];
                 // Check if this is within the track length, or outside the page length:
                 if (
                     ((selectedTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) && (selectedTrack->selectedPage * 16) + i + (j * 4) > selectedTrack->trackLength) ||
@@ -933,10 +935,7 @@ void BaseSequencer::drawSequencerMain(
                         COLOR_GRAY
                     );
                 } else {
-                    int noteIndex = (selectedTrack->playingPageBank * polyCount) + selectedNote;
-
-                    if (step.notes[noteIndex].enabled) {
-                        const struct Note *note = &step.notes[noteIndex];
+                    if (note->enabled) {
                         SDL_Color noteColor = note->velocity >= 100 ? COLOR_RED : 
                             (note->velocity >= 50 ? COLOR_DARK_RED : COLOR_LIGHT_GRAY);
                         if (TriggHelper::isTrigged(note->trigg, selectedTrack->repeatCount)) {
@@ -956,8 +955,7 @@ void BaseSequencer::drawSequencerMain(
                                     height - 4,
                                     mixColors(COLOR_RED, COLOR_WHITE, 0.5f)
                                 );    
-                            }
-                            drawStepButtonOverlay(i + (j * 4), note, selectedTrack);
+                            }                            
                         } else {
                             // Here is a note, but it is not trigged by the fill condition:
                             drawSingleLineRectOutline(
@@ -989,6 +987,8 @@ void BaseSequencer::drawSequencerMain(
                         }
                     }
                 }
+
+                drawStepButtonOverlay(i + (j * 4), note, step, selectedTrack);
 
                 // Draw selection outline:
                 if (selectedSteps[i + (j * 4)]) {

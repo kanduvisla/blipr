@@ -62,7 +62,7 @@ protected:
     /**
      * Draw an overlay on the step button (depends on sequencer type)
      */
-    void drawStepButtonOverlay(const int index, const struct Note *note, const struct Track *track) override;
+    void drawStepButtonOverlay(const int index, const struct Note *note, const struct Step* step, const struct Track *track) override;
 
 private:
     // void setSelectedPage(struct Track *selectedTrack, int index);

@@ -258,7 +258,7 @@ protected:
     /**
      * Draw an overlay on the step button (depends on sequencer type)
      */
-    virtual void drawStepButtonOverlay(const int index, const struct Note *note, const struct Track *track) = 0;
+    virtual void drawStepButtonOverlay(const int index, const struct Note* note, const struct Step* step, const struct Track* track) = 0;
 
     /**
      * Draw the ABCD buttons for the sequencer
