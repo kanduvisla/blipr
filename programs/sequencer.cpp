@@ -98,7 +98,6 @@ void Sequencer::drawStepButtonOverlay(const int index, const struct Note *note, 
         COLOR_GRAY
     );
 
-    int baseNoteIndex = (track->playingPageBank * polyCount);
     for (int p=0; p<polyCount; p++) {
         drawPixel(
             6 + index + ((index % 4) * BUTTON_WIDTH) + (p * 2) + noteIndicatorOffset,
