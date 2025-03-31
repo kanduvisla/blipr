@@ -174,6 +174,35 @@ void DrumkitSequencer::drawStepButtonOverlay(const int index, const struct Note 
 }
 
 /**
+ * Draw the main sequencer with shift 2 down (overlay)
+ * @return bool to determine if the main sequencer should still be drawn or not
+ */
+bool DrumkitSequencer::drawSequencerMainWithShift2Down() {
+    // Draw drumkit instrument selector:
+    drawIconOnIndex(0, BLIPR_ICON_KICK);
+    // Snare
+    // Clap
+    // Rimshot
+
+    drawIconOnIndex(4, BLIPR_ICON_CHAT_1);
+    drawIconOnIndex(5, BLIPR_ICON_CHAT_2);
+    drawIconOnIndex(6, BLIPR_ICON_OHAT);
+    drawIconOnIndex(7, BLIPR_ICON_RIDE);
+
+    drawIconOnIndex(8, BLIPR_ICON_CRASH);
+    // L. Tom
+    // M. Tom
+    // H. Tom
+
+    // Cowbell
+    // Extra 1
+    // Extra 2
+    // Extra 3
+
+    return false;
+}
+
+/**
  * Draw the sequencer
  */
 /*

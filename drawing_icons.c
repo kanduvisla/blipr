@@ -340,9 +340,6 @@ void drawIconOnIndex(
     int index, 
     Blipr_Icon icon
 ) {
-    int width = HEIGHT / 6;
-    int height = width;
-
     int x = index % 4;
     int y = index / 4;
 

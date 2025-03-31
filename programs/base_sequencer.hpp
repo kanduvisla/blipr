@@ -72,6 +72,11 @@ public:
      */
     void resetSelectedNote();
 
+    /**
+     * Reset template note to default values
+     */
+    virtual void resetTemplateNote() = 0;
+
 protected:
     // MARK: - Protected properties
     
@@ -201,18 +206,13 @@ protected:
     /**
      * Handle key input when shift 2 is down
      */
-    virtual void handleKeyWithShift2Down(struct Track *track, int index) = 0;
-
-    /**
-     * Reset template note to default values
-     */
-    virtual void resetTemplateNote() = 0;
+    virtual void handleKeyWithShift2Down(struct Track *track, int index);
 
     /**
      * Callback when the first pulse of a page/track is played
      * Note that this is AFTER the note has already played
      */
-    virtual void isFirstPulseCallback() = 0;
+    virtual void isFirstPulseCallback();
 
     /**
      * Get track step index - this is the index in the steps-array on the track
@@ -251,8 +251,9 @@ protected:
     
     /**
      * Draw the main sequencer with shift 2 down (overlay)
+     * @return bool to determine if the main sequencer should still be drawn or not
      */
-    virtual void drawSequencerMainWithShift2Down() = 0;
+    virtual bool drawSequencerMainWithShift2Down();
 
     /**
      * Draw an overlay on the step button (depends on sequencer type)

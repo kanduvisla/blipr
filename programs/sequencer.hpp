@@ -43,16 +43,16 @@ public:
      */
     // bool isNoteTrigged(int triggValue, int repeatCount);
 
+    /**
+     * Reset template note to default values
+     */
+    void resetTemplateNote() override;
+
 protected:
     /**
      * Apply Key to Note in note editor
      */
     void applyKeyToNoteInNoteEditor(struct Note *note, SDL_Scancode key) override;
-
-    /**
-     * Reset template note to default values
-     */
-    void resetTemplateNote() override;
 
     /**
      * Toggle a step

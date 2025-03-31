@@ -34,16 +34,16 @@ public:
      */ 
     // void draw(uint64_t *ppqnCounter, bool keyStates[SDL_NUM_SCANCODES], struct Track *track) override;
 
+    /**
+     * Reset template note to default values
+     */
+    void resetTemplateNote() override;
+
 protected:
     /**
      * Is the user allowed to select notes?
      */
     bool isNoteSelectionAllowed = false;
-
-    /**
-     * Reset template note to default values
-     */
-    void resetTemplateNote() override;
 
     /**
      * Toggle a step
@@ -59,6 +59,12 @@ protected:
      * Draw an overlay on the step button (depends on sequencer type)
      */
     void drawStepButtonOverlay(const int index, const struct Note *note, const struct Track *track) override;
+
+    /**
+     * Draw the main sequencer with shift 2 down (overlay)
+     * @return bool to determine if the main sequencer should still be drawn or not
+     */
+    bool drawSequencerMainWithShift2Down() override;
 };
 
 #endif

@@ -276,7 +276,7 @@ void drawIncreaseAndDecreaseButtons(
     const char *header,
     const char *text
 ) {
-    int y = (firstButtonIndex / 4);
+    // int y = (firstButtonIndex / 4);
     drawCenteredLine(
         2 + (BUTTON_WIDTH * (firstButtonIndex % 4)) + (firstButtonIndex % 4), 
         5 + (BUTTON_HEIGHT * (firstButtonIndex / 4)) + (firstButtonIndex / 4), 
