@@ -155,7 +155,7 @@ bool TriggHelper::isTrigged(int triggValue, int repeatCount) {
 /**
  * Set the trigg text to a given string
  */
-void Sequencer::setTriggText(int triggValue, char *text) {
+void TriggHelper::setTriggText(int triggValue, char *text) {
     bool isEnabled = get2FByteFlag1(triggValue);
     if (!isEnabled) {
         snprintf(text, 4, "OFF");

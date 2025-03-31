@@ -67,12 +67,18 @@
 #define TRIG_HIGHEST_VALUE 56         // Used internally for decision making, make sure to change this if you add new trigg conditions
 
 class TriggHelper {
+public:
     /**
      * Check if the note is triggered according to the trigg condition
      * @param triggValue    The Trigg value
      * @param repeatCount   How many times this note has already been played (determined by tracklength or page size)
      */
-    bool TriggHelper::isTrigged(int triggValue, int repeatCount);
+    static bool isTrigged(int triggValue, int repeatCount);
+
+    /**
+     * Set the trigg text to a given string
+     */
+    static void setTriggText(int triggValue, char *text);
 };
 
 #endif
