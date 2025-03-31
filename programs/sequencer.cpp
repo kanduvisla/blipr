@@ -78,37 +78,6 @@ void Sequencer::applyKeyToNoteInNoteEditor(struct Note *note, SDL_Scancode key) 
 }
 
 /**
- * Draw the template note
- */
-void Sequencer::drawTemplateNote() {
-    // drawRect(SIDEBAR_OFFSET + 1, 27, SIDEBAR_WIDTH - 2, (CHAR_HEIGHT * 8) + 8, COLOR_BLACK);
-    drawRect(SIDEBAR_OFFSET + 1, 27, SIDEBAR_WIDTH - 2, CHAR_HEIGHT + 2, COLOR_BLACK);
-    drawText(SIDEBAR_OFFSET + 1, 28, "TEMPLATE", 20, COLOR_ORANGE);
-    char text[8];
-    drawSidebarTemplate(34, "NOT");
-    const char *midiNote = getMidiNoteName(templateNote.note);
-    drawText(SIDEBAR_OFFSET + 24, 35, midiNote, 20, COLOR_ORANGE);
-    drawSidebarTemplate(40, "VEL");
-    snprintf(text, sizeof(text), "%d", templateNote.velocity);
-    drawText(SIDEBAR_OFFSET + 24, 41, text, 18, COLOR_ORANGE);
-    drawSidebarTemplate(46, "LEN");
-    snprintf(text, sizeof(text), "%d", templateNote.length);
-    drawText(SIDEBAR_OFFSET + 24, 47, text, 18, COLOR_ORANGE);
-    drawSidebarTemplate(52, "NDG");
-    snprintf(text, sizeof(text), "%d", templateNote.nudge - PP16N);
-    drawText(SIDEBAR_OFFSET + 24, 53, text, 18, COLOR_ORANGE);
-    drawSidebarTemplate(58, "TRG");
-    TriggHelper::setTriggText(templateNote.trigg, text);
-    drawText(SIDEBAR_OFFSET + 24, 59, text, 18, COLOR_ORANGE);
-    drawSidebarTemplate(64, "CC1");
-    snprintf(text, sizeof(text), "%d", templateNote.cc1Value);
-    drawText(SIDEBAR_OFFSET + 24, 65, text, 18, COLOR_ORANGE);
-    drawSidebarTemplate(70, "CC2");
-    snprintf(text, sizeof(text), "%d", templateNote.cc2Value);
-    drawText(SIDEBAR_OFFSET + 24, 71, text, 18, COLOR_ORANGE);
-}
-
-/**
  * Draw an overlay on the step button (depends on sequencer type)
  */
 void Sequencer::drawStepButtonOverlay(const int index, const struct Note *note, const struct Track *track) {
@@ -129,6 +98,7 @@ void Sequencer::drawStepButtonOverlay(const int index, const struct Note *note, 
         COLOR_GRAY
     );
 
+    int baseNoteIndex = (track->playingPageBank * polyCount);
     for (int p=0; p<polyCount; p++) {
         drawPixel(
             6 + index + ((index % 4) * BUTTON_WIDTH) + (p * 2) + noteIndicatorOffset,

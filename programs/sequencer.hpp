@@ -60,11 +60,6 @@ protected:
     void toggleStep(struct Step *step, int noteIndex) override;
 
     /**
-     * Draw the template note
-     */
-    void drawTemplateNote() override;
-
-    /**
      * Draw an overlay on the step button (depends on sequencer type)
      */
     void drawStepButtonOverlay(const int index, const struct Note *note, const struct Track *track) override;

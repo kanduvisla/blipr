@@ -23,6 +23,7 @@
 #include "programs/program_selection.h"
 #include "programs/track_options.h"
 #include "programs/four_on_the_floor.hpp"
+#include "programs/drumkit_sequencer.hpp"
 #include "programs/pattern_options.h"
 #include "midi.h"
 #include "print.h"
@@ -46,6 +47,7 @@ const char *projectFile = "data.blipr";
 // Programs:
 FourOnTheFloor progFourOnTheFloor;
 Sequencer progSequencer;
+DrumkitSequencer progDrumkitSequencer;
 
 /**
  * Calculate nano seconds per pulse for a given BPM
@@ -401,8 +403,8 @@ void* sequencerThread(void* arg) {
                         // Set proper screen:
                         setScreenAccordingToActiveTrack(state);
                         if (state->screen == BLIPR_SCREEN_DRUMKIT_SEQUENCER) {
-                            // @TODO: Do this for drumkit sequencer prog, not sequencer prog
-                            progSequencer.resetTemplateNote();
+                            // Reset template note:
+                            progDrumkitSequencer.resetTemplateNote();
                         }
                         pthread_mutex_unlock(&state->mutex);
                     }                    
@@ -587,9 +589,14 @@ void* keyThread(void* arg) {
                 setScreenAccordingToActiveTrack(state);
                 switch (state->track->program) {
                     case BLIPR_PROGRAM_SEQUENCER:
-                    case BLIPR_PROGRAM_DRUMKIT_SEQUENCER:
-                        // TODO: Set proper prog for drumkit sequencer
                         progSequencer.update(
+                            state->track, 
+                            state->keyStates, 
+                            state->scanCodeKeyDown
+                        );                        
+                        break;
+                    case BLIPR_PROGRAM_DRUMKIT_SEQUENCER:
+                        progDrumkitSequencer.update(
                             state->track, 
                             state->keyStates, 
                             state->scanCodeKeyDown
@@ -793,9 +800,14 @@ int main(int argc, char *argv[]) {
                     drawCenteredLine(2, 61, "(NO PROGRAM)", TITLE_WIDTH, COLOR_WHITE);
                     break;
                 case BLIPR_SCREEN_SEQUENCER: 
-                case BLIPR_SCREEN_DRUMKIT_SEQUENCER:
-                    // TODO: Set proper prog for drumkit sequencer
                     progSequencer.draw(
+                        &state.ppqnCounter, 
+                        state.keyStates, 
+                        state.track
+                    );
+                    break;
+                case BLIPR_SCREEN_DRUMKIT_SEQUENCER:
+                    progDrumkitSequencer.draw(
                         &state.ppqnCounter, 
                         state.keyStates, 
                         state.track

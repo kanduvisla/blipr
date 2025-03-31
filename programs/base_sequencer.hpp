@@ -201,7 +201,7 @@ protected:
     /**
      * Apply Key to Note in note editor
      */
-    virtual void applyKeyToNoteInNoteEditor(struct Note *note, SDL_Scancode key) = 0;
+    virtual void applyKeyToNoteInNoteEditor(struct Note *note, SDL_Scancode key);
 
     /**
      * Handle key input when shift 2 is down
@@ -242,7 +242,7 @@ protected:
     /**
      * Draw the template note
      */
-    virtual void drawTemplateNote() = 0;
+    virtual void drawTemplateNote();
     
     /**
      * Draw the main sequencer
