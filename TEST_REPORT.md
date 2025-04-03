@@ -6,8 +6,8 @@ These are observations done while testing Blipr with real hardware.
 
 --- Bugs:
 
+- Repeat count is flaky (playing a new sequence does not reset counters, len does not match, for example, len=64, with a track of 16 of 4 repeats, trigg 4:4 is not the last one in that set)
 - Copy / Paste is flaky
-- Double speed does not seem to work good (retest now pp16n is x4)
 - Key repeat is repeating also on steps (not sure if this is a major issue)
 - Steps are set on disabled tiles (takes not in account page length (possible also track length))
 
@@ -98,3 +98,4 @@ These are observations done while testing Blipr with real hardware.
 - (still not working) Midi configuration with multiple device is not working properly. Was unable to set proper midi device for A. Cannot set to "None"
 - Got an error with invalid device Id (probably the Midi Through Port), blipr won't start
 - Weird yellow X (probably "<" and ">" characters of pagebank)
+- Double speed does not seem to work good (retest now pp16n is x4)

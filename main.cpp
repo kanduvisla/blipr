@@ -556,6 +556,7 @@ void* keyThread(void* arg) {
                     struct Pattern *pattern = &sequence->patterns[state->selectedPattern];
                     
                     int startBPM = pattern->bpm;
+                    int startLength = pattern->length;
                     int startProgA = pattern->programA;
                     int startProgB = pattern->programB;
                     int startProgC = pattern->programC;
@@ -569,6 +570,12 @@ void* keyThread(void* arg) {
                     if (startBPM != pattern->bpm) {
                         state->bpm = pattern->bpm + 45;
                         state->nanoSecondsPerPulse = calculateNanoSecondsPerPulse(state->bpm);
+                    }
+
+                    // Reset pattern step counter and ppqn counter if pattern length changes:
+                    if (startLength != pattern->length) {
+                        state->patternStepCounter = 0;
+                        state->ppqnCounter = 0;
                     }
 
                     if (startProgA != pattern->programA) {
