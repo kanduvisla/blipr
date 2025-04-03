@@ -630,6 +630,7 @@ void* keyThread(void* arg) {
                 resetConfigurationScreen();
             } else if (state->scanCodeKeyUp == BLIPR_KEY_SHIFT_1) {
                 progSequencer.resetSelectedSteps();
+                progDrumkitSequencer.resetSelectedSteps();
             }
             
             // Reset flag:

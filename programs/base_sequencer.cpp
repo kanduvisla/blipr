@@ -852,6 +852,7 @@ void BaseSequencer::drawSequencerMain(
     bool isRenderingRequired = true;
 
     if (keyStates[BLIPR_KEY_SHIFT_2]) {
+        drawText(0, 0, "SHIFT 2 IS DOWN", 100, COLOR_YELLOW);
         isRenderingRequired = drawSequencerMainWithShift2Down();
     }
     
