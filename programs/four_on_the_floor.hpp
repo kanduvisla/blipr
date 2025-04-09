@@ -37,6 +37,12 @@ public:
      * Draw this program, gets triggered every step
      */ 
     void draw(uint64_t *ppqnCounter, bool keyStates[SDL_NUM_SCANCODES], struct Track *track) override;
+
+    /**
+     * Reset FOTF
+     */
+    // void reset() override;
+
 };
 
 #endif

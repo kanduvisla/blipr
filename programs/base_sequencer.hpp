@@ -63,6 +63,11 @@ public:
     void draw(uint64_t *ppqnCounter, bool keyStates[SDL_NUM_SCANCODES], struct Track *track) override;
 
     /**
+     * Reset the sequencer
+     */
+    // void reset() override;
+
+    /**
      * Reset the selected step
      */
     void resetSelectedSteps();

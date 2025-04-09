@@ -8,24 +8,20 @@
 /**
  * Update the pattern selection according to user input
  */
-void updatePatternSelection(int *selectedPattern, SDL_Scancode key) {
+int updatePatternSelection(SDL_Scancode key) {
     int index = scancodeToStep(key);
-    if (index == -1) {
-        return;
-    }
-
-    *selectedPattern = index;
+    return index;
 }
 
 /**
  * Draw the pattern selection
  */
-void drawPatternSelection(const int *selectedPattern, const int *queuedPattern) {
+void drawPatternSelection(const int selectedPattern, const int queuedPattern) {
     drawBasicNumbers();
-    drawHighlightedGridTile(*selectedPattern);
+    drawHighlightedGridTile(selectedPattern);
 
-    if (*selectedPattern != *queuedPattern) {
-        drawHighlightedGridTileInColor(*queuedPattern, COLOR_RED);
+    if (selectedPattern != queuedPattern) {
+        drawHighlightedGridTileInColor(queuedPattern, COLOR_RED);
     }
 
     // Title:

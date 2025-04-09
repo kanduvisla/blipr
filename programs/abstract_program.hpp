@@ -33,6 +33,11 @@ public:
      */ 
     virtual void draw(uint64_t *ppqnCounter, bool keyStates[SDL_NUM_SCANCODES], struct Track *track) = 0;
 
+    /**
+     * Reset this program
+     */
+    // virtual void reset() = 0;
+
 protected:
     // MARK: - Protected properties
     /**

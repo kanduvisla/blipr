@@ -1,5 +1,6 @@
 #include "trigg_helper.hpp"
 #include "utils.h"
+#include "print.h"
 
 /**
  * Check if the note is triggered according to the trigg condition

@@ -26,6 +26,10 @@ void FourOnTheFloor::update(struct Track *selectedTrack, bool keyStates[SDL_NUM_
     // TODO
 }
 
+// void FourOnTheFloor::reset() {
+//     // TODO
+// }
+
 /**
  * Run FOTF
  */

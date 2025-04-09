@@ -28,6 +28,13 @@ bool BaseSequencer::isStepsSelected() {
 }
 
 /**
+ * Reset the sequencer
+ */
+// void BaseSequencer::reset() {
+//     // stub for now
+// }
+
+/**
  * Method to check if all step properties are the same
  */
 void BaseSequencer::checkIfAllStepPropertiesAreTheSame(const struct Track *track) {
@@ -483,12 +490,21 @@ void BaseSequencer::isFirstPulseCallback() {
     if (tmpTrack->pagePlayMode == PAGE_PLAY_MODE_CONTINUOUS) {
         tmpTrack->repeatCount += 1;
     } else {
-        if (tmpTrack->selectedPage != tmpTrack->queuedPage && (tmpTrack->repeatCount + 1) % (tmpTrack->transitionRepeats + 1) == 0) {
+        // print("tmptrack selectedPage %d", tmpTrack->selectedPage);
+        // print("tmpTrack queuedPage %d", tmpTrack->queuedPage);
+        // print("tmpTrack repeatCount %d", tmpTrack->repeatCount);
+        // print("tmpTrack transitionRepeats %d", tmpTrack->transitionRepeats);
+        // print("tmpTrack->selectedPage != tmpTrack->queuedPage %d", tmpTrack->selectedPage != tmpTrack->queuedPage ? 1 : 0);
+        // print("tmpTrack->repeatCount % tmpTrack->transitionRepeats %d", tmpTrack->repeatCount % tmpTrack->transitionRepeats);
+
+        if (tmpTrack->selectedPage != tmpTrack->queuedPage && tmpTrack->repeatCount % tmpTrack->transitionRepeats == 0) {
+            // print("- set to 0");
             tmpTrack->playingPageBank = selectedPageBank;
             tmpTrack->selectedPage = tmpTrack->queuedPage;
             // Reset repeat count, since we're switching pages:
             tmpTrack->repeatCount = 0;
         } else {
+            // print("- set to +1");
             tmpTrack->repeatCount += 1;
         }
     }
@@ -663,7 +679,8 @@ void BaseSequencer::drawPageIndicator(const struct Track *track, int playingPage
         "PAGE %d/%d - REP %d/%d", 
         playingPage + 1, 
         totalPageBanks * 4,
-        (track->repeatCount % (track->transitionRepeats + 1)) + 1,
+        track->repeatCount,
+        // (track->repeatCount % (track->transitionRepeats + 1)) + 1,
         track->transitionRepeats + 1
     );
     drawCenteredLine(2, HEIGHT - BUTTON_HEIGHT - 12, bottomText, BUTTON_WIDTH * 4, COLOR_YELLOW);

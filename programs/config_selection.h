@@ -11,13 +11,13 @@ extern "C" {
 /**
  * Draw the config selection
  */
-void drawConfigSelection(struct Project *project);
+void drawConfigSelection(const struct Project *project, const bool isPlaying);
 
 /**
  * Process a key during configuration mode
  * Has some additional boolean flags that can affect the state
  */
-void updateConfiguration(struct Project *project, SDL_Scancode key, bool *reloadMidi, bool *quit);
+void updateConfiguration(struct Project *project, SDL_Scancode key, bool *reloadMidi, bool *quit, bool *isPlaying);
 
 /**
  * Reset configuration screen to start state

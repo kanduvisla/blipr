@@ -19,22 +19,6 @@ public:
     virtual ~DrumkitSequencer();
 
     /**
-     * Update method. 
-     * This happens if there is input to update the parameters (such as a keydown event)
-     */ 
-    // void update(struct Track *selectedTrack, bool keyStates[SDL_NUM_SCANCODES], SDL_Scancode key) override;
-
-    /**
-     * Run this program, gets triggered every clock pulse
-     */ 
-    // void run(PmStream *outputStream, const uint64_t *ppqnCounter, struct Track *selectedTrack) override;
-    
-    /**
-     * Draw this program, gets triggered every step
-     */ 
-    // void draw(uint64_t *ppqnCounter, bool keyStates[SDL_NUM_SCANCODES], struct Track *track) override;
-
-    /**
      * Reset template note to default values
      */
     void resetTemplateNote() override;

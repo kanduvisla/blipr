@@ -27,6 +27,7 @@
 #include "programs/pattern_options.h"
 #include "midi.h"
 #include "print.h"
+#include "pattern_player.hpp"
 
 // Renderer:
 SDL_Renderer *renderer = NULL;
@@ -41,6 +42,7 @@ struct timespec renStartTime, renEndTime;   // To monitor renderer performance
 // Project file
 const char *projectFile = "data.blipr";
 
+// Buffers for MIDI (are these used here?)
 #define INPUT_BUFFER_SIZE 100
 #define OUTPUT_BUFFER_SIZE 100
 
@@ -49,6 +51,9 @@ const char *projectFile = "data.blipr";
 FourOnTheFloor progFourOnTheFloor;
 Sequencer progSequencer;
 DrumkitSequencer progDrumkitSequencer;
+
+// Pattern Player, keeps track of playing the pattern
+PatternPlayer patternPlayer = PatternPlayer();
 
 /**
  * Calculate nano seconds per pulse for a given BPM
@@ -104,7 +109,9 @@ typedef struct {
     bool keyStates[SDL_NUM_SCANCODES];
     
     bool isSetupMidiDevicesRequired;    // Boolean flag to determine if midi devices needs to be set-up (required after changing midi assignment)
-    
+    bool isPlaying;                     // Boolean flag to determine if the sequencer is playing
+    bool isClockResetRequired;          // Boolean flag to determine if a clock reset is required
+
     int programA;                       // Midi programs. Is 255 if no PC is required
     int programB;
     int programC;
@@ -122,9 +129,9 @@ typedef struct {
     SDL_Scancode scanCodeKeyUp;
 
     int selectedTrack;
-    int selectedPattern;
-    int queuedPattern;
-    uint64_t patternStepCounter;       // Is in steps
+    // int selectedPattern;
+    // int queuedPattern;
+    // uint64_t patternStepCounter;       // Is in steps
     int selectedSequence;
 
     // For monitoring:
@@ -168,14 +175,16 @@ void initSharedState(SharedState* state) {
         state->keyStates[i] = false;
     }
     state->isSetupMidiDevicesRequired = true;
+    state->isPlaying = true;
+    state->isClockResetRequired = false;
     state->programA = 255;
     state->programB = 255;
     state->programC = 255;
     state->programD = 255;
     state->selectedTrack = 0;
-    state->selectedPattern = 0;
-    state->queuedPattern = 0;
-    state->patternStepCounter = 0;
+    // state->selectedPattern = 0;
+    // state->queuedPattern = 0;
+    // state->patternStepCounter = 0;
     state->selectedSequence = 0;
     state->quit = false;
     state->bpm = 0;
@@ -203,6 +212,9 @@ void initSharedState(SharedState* state) {
         printLog("Loaded project: %s", state->project->name);
     }
     
+    // Just queue the first pattern:
+    patternPlayer.queuePattern(0);
+
     // Get the BPM from the current pattern:
     state->bpm = state->project->sequences[0].patterns[0].bpm + 45;
     state->nanoSecondsPerPulse = calculateNanoSecondsPerPulse(state->bpm);
@@ -237,18 +249,28 @@ void* timerThread(void *arg) {
     clock_gettime(CLOCK_MONOTONIC, &nowTime);
 
     while (!state->quit) {
-        // Calculate with monotonic clock:
-        clock_gettime(CLOCK_MONOTONIC, &nowTime);
-        modulo = timespecToNs(&nowTime) % state->nanoSecondsPerPulse;
+        if (state->isPlaying) {
+            // Calculate with monotonic clock:
+            clock_gettime(CLOCK_MONOTONIC, &nowTime);
+            modulo = timespecToNs(&nowTime) % state->nanoSecondsPerPulse;
 
-        // if the module is smaller, we now we've passed a new pulse:
-        if (modulo < prevModulo) {
-            pthread_mutex_lock(&state->mutex);
-            state->unprocessedPulses += 1;
-            pthread_mutex_unlock(&state->mutex);
+            // if the module is smaller, we now we've passed a new pulse:
+            if (modulo < prevModulo) {
+                pthread_mutex_lock(&state->mutex);
+                state->unprocessedPulses += 1;
+                pthread_mutex_unlock(&state->mutex);
+            }
+
+            prevModulo = modulo;
+        } else {
+            // Wait for reset signal:
+            if (state->isClockResetRequired) {
+                clock_gettime(CLOCK_MONOTONIC, &nowTime);
+                pthread_mutex_lock(&state->mutex);
+                state->isClockResetRequired = false;
+                pthread_mutex_unlock(&state->mutex);
+            }
         }
-
-        prevModulo = modulo;
     }
     
     return NULL;
@@ -367,24 +389,29 @@ void* sequencerThread(void* arg) {
 
             // Increase pattern steps:
             if (state->ppqnCounter % PP16N == 0) {
-                state->patternStepCounter++;
-                int length = (state->project->sequences[state->selectedSequence].patterns[state->selectedPattern].length + 1);
-                if (state->patternStepCounter % length == 0) {
-                    state->patternStepCounter = 0;
+                patternPlayer.step();
+                // state->patternStepCounter++;
+                int length = (state->project->sequences[state->selectedSequence]
+                    .patterns[patternPlayer.getPlayingPattern()].length + 1);
+                if (patternPlayer.getStep() % length == 0) {
+                    // state->patternStepCounter = 0;
+                    // patternPlayer.resetStep();
                     // This is the moment to switch from the queued pattern to the selected pattern
-                    if (state->selectedPattern != state->queuedPattern) {
+                    if (!patternPlayer.isQueueEmpty()) {
                         // Perform actions when switching pattern:
+                        patternPlayer.playPatternFromQueue();
                         pthread_mutex_lock(&state->mutex);
-                        state->selectedPattern = state->queuedPattern;
+                        // state->selectedPattern = state->queuedPattern;
                         // Set proper track + reset repeat count for all track:
                         state->track = &state->project->sequences[state->selectedSequence]
-                            .patterns[state->selectedPattern]
+                            .patterns[patternPlayer.getPlayingPattern()]
                             .tracks[state->selectedTrack];
                         for (int i=0; i<16; i++) {
-                            state->project->sequences[state->selectedSequence].patterns[state->selectedPattern].tracks[i].repeatCount = 0;
+                            state->project->sequences[state->selectedSequence].patterns[patternPlayer.getPlayingPattern()].tracks[i].repeatCount = 0;
+                            // TODO: prevent that the isFirstPulse callback gets triggered here, maybe by setting current page to -1 and queued page to 0?
                         }
                         // Trigger program change:
-                        const struct Pattern *pattern = &state->project->sequences[state->selectedSequence].patterns[state->selectedPattern];
+                        const struct Pattern *pattern = &state->project->sequences[state->selectedSequence].patterns[patternPlayer.getPlayingPattern()];
                         if (pattern->programA != state->prevProgramA) {
                             state->programA = pattern->programA;
                         }
@@ -399,7 +426,7 @@ void* sequencerThread(void* arg) {
                         }
                         // Set proper BPM:
                         state->bpm = state->project->sequences[state->selectedSequence]
-                            .patterns[state->selectedPattern].bpm + 45;
+                            .patterns[patternPlayer.getPlayingPattern()].bpm + 45;
                         state->nanoSecondsPerPulse = calculateNanoSecondsPerPulse(state->bpm);
                         // Set proper screen:
                         setScreenAccordingToActiveTrack(state);
@@ -414,7 +441,7 @@ void* sequencerThread(void* arg) {
 
             // Iterate over all tracks, and send proper midi signals
             for (int i=0; i<16; i++) {
-                struct Track* iTrack = &state->project->sequences[state->selectedSequence].patterns[state->selectedPattern].tracks[i];
+                struct Track* iTrack = &state->project->sequences[state->selectedSequence].patterns[patternPlayer.getPlayingPattern()].tracks[i];
                 // bool isTrackKeyRepeatTriggered = false;
                 
                 // Run the program:
@@ -503,20 +530,40 @@ void* keyThread(void* arg) {
                 }
                 
                 if (state->screen == BLIPR_SCREEN_PATTERN_SELECTION) {
-                    updatePatternSelection(&state->queuedPattern, state->scanCodeKeyDown);
+                    int queuedPatternIndex = updatePatternSelection(state->scanCodeKeyDown);
+                    if (queuedPatternIndex != -1) {
+                        patternPlayer.queuePattern(queuedPatternIndex);
+                    }
                 } else if (state->screen == BLIPR_SCREEN_SEQUENCE_SELECTION) {
                     updateSequenceSelection(&state->selectedSequence, state->scanCodeKeyDown);
                     // Set proper pattern, track + reset repeat count
                     state->track = &state->project->sequences[state->selectedSequence]
-                        .patterns[state->selectedPattern]
+                        .patterns[patternPlayer.getPlayingPattern()]
                         .tracks[state->selectedTrack];
                     state->track->repeatCount = 0;
                 } else if (state->screen == BLIPR_SCREEN_CONFIGURATION) {
                     bool reloadMidi = false;
                     bool quit = false;
-                    updateConfiguration(state->project, state->scanCodeKeyDown, &reloadMidi, &quit);
+                    bool wasPlaying = state->isPlaying;
+                    updateConfiguration(state->project, state->scanCodeKeyDown, &reloadMidi, &quit, &state->isPlaying);
                     if (reloadMidi) { state->isSetupMidiDevicesRequired = true; }
                     if (quit) { state->quit = true; }
+                    if (wasPlaying != state->isPlaying) {
+                        // state change
+                        if (state->isPlaying) {
+                            state->isClockResetRequired = true;
+                        } else {
+                            // Reset everything:
+                            // TODO: refactor into separate classes:
+                            state->ppqnCounter = 0;
+                            patternPlayer.resetStep();
+                            // state->patternStepCounter = 0;
+                            for (int i=0; i<16; i++) {
+                                state->project->sequences[state->selectedSequence].patterns[patternPlayer.getPlayingPattern()].tracks[i].repeatCount = 0;
+                                // TODO: prevent that the isFirstPulse callback gets triggered here, maybe by setting current page to -1 and queued page to 0?
+                            }
+                        }
+                    }
                 } else if (state->screen == BLIPR_SCREEN_TRANSPORT) {
                     // TODO
                 }
@@ -545,7 +592,7 @@ void* keyThread(void* arg) {
                 } else if (state->screen == BLIPR_SCREEN_TRACK_SELECTION) {
                     updateTrackSelection(&state->selectedTrack, state->scanCodeKeyDown);
                     state->track = &state->project->sequences[state->selectedSequence]
-                        .patterns[state->selectedPattern]
+                        .patterns[patternPlayer.getPlayingPattern()]
                         .tracks[state->selectedTrack];
                     // Set selected note to 0:
                     progSequencer.resetSelectedNote();
@@ -553,7 +600,7 @@ void* keyThread(void* arg) {
                     progDrumkitSequencer.resetTemplateNote();
                 } else if (state->screen == BLIPR_SCREEN_PATTERN_OPTIONS) {
                     struct Sequence *sequence = &state->project->sequences[state->selectedSequence];
-                    struct Pattern *pattern = &sequence->patterns[state->selectedPattern];
+                    struct Pattern *pattern = &sequence->patterns[patternPlayer.getPlayingPattern()];
                     
                     int startBPM = pattern->bpm;
                     int startLength = pattern->length;
@@ -574,7 +621,8 @@ void* keyThread(void* arg) {
 
                     // Reset pattern step counter and ppqn counter if pattern length changes:
                     if (startLength != pattern->length) {
-                        state->patternStepCounter = 0;
+                        patternPlayer.resetStep();
+                        // state->patternStepCounter = 0;
                         state->ppqnCounter = 0;
                     }
 
@@ -767,13 +815,13 @@ int main(int argc, char *argv[]) {
             drawSideBar();
             drawCurrentTrackIndicator(
                 state.selectedSequence + 1,
-                state.selectedPattern + 1,
+                patternPlayer.getPlayingPattern() + 1,
                 state.selectedTrack + 1
             );
             drawBPMIndiciator(state.bpm);
             drawPatternLengthIndicator(
-                state.patternStepCounter, 
-                state.project->sequences[state.selectedSequence].patterns[state.selectedPattern].length
+                patternPlayer.getStep(), 
+                state.project->sequences[state.selectedSequence].patterns[patternPlayer.getPlayingPattern()].length
             );
 
             // Basic Grid:
@@ -785,13 +833,13 @@ int main(int argc, char *argv[]) {
                     drawTrackSelection(&state.selectedTrack);    
                     break;
                 case BLIPR_SCREEN_PATTERN_SELECTION:
-                    drawPatternSelection(&state.selectedPattern, &state.queuedPattern);
+                    drawPatternSelection(patternPlayer.getPlayingPattern(), patternPlayer.getQueuedPattern());
                     break;
                 case BLIPR_SCREEN_SEQUENCE_SELECTION:
                     drawSequenceSelection(&state.selectedSequence);
                     break;
                 case BLIPR_SCREEN_CONFIGURATION:
-                    drawConfigSelection(state.project);    
+                    drawConfigSelection(state.project, state.isPlaying);    
                     break;
                 case BLIPR_SCREEN_TRACK_OPTIONS:
                     drawTrackOptions(state.track);
@@ -801,7 +849,7 @@ int main(int argc, char *argv[]) {
                     break;
                 case BLIPR_SCREEN_PATTERN_OPTIONS:
                     // No sequence options required?
-                    drawPatternOptions(&state.project->sequences[state.selectedSequence].patterns[state.selectedPattern]);
+                    drawPatternOptions(&state.project->sequences[state.selectedSequence].patterns[patternPlayer.getPlayingPattern()]);
                     break;
                 case BLIPR_SCREEN_UTILITIES:
                     // Is this used?

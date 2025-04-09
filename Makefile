@@ -27,6 +27,7 @@ C_SRCS = print.c \
 	programs/pattern_options.c	
 
 CPP_SRCS = main.cpp \
+	pattern_player.cpp \
 	note_utilities.cpp \
 	trigg_helper.cpp \
 	programs/abstract_program.cpp \
@@ -41,14 +42,9 @@ CPP_OBJS = $(patsubst %.cpp,%.o,$(filter %.cpp,$(SRCS)))
 OBJS = $(C_OBJS) $(CPP_OBJS)
 
 TEST_TARGET = build/test_blipr
-TEST_SRCS = $(SRCS:main.c=tests/main_test.c)
-TEST_OBJS = $(TEST_SRCS:.c=.o)
-
-# Debug build settings
-# DEBUG ?= 0
-# ifeq ($(DEBUG), 1)
-# 	CFLAGS += -g -DDEBUG
-# endif
+TEST_SRCS = tests/main.cpp \
+	pattern_player.cpp
+TEST_OBJS = $(TEST_SRCS:.cpp=.o)
 
 # Main build target
 $(TARGET): $(OBJS)

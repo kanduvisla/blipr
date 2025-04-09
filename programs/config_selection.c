@@ -24,7 +24,7 @@ void resetConfigurationScreen() {
     selectedMidiDevice = BLIPR_MIDI_DEVICE_A;
 }
 
-void drawConfigSelection(struct Project *project) {
+void drawConfigSelection(const struct Project *project, const bool isPlaying) {
     if (isMainScreen()) {
         drawIconOnIndex(0, BLIPR_ICON_MIDI);    // Midi Device A
         drawIconOnIndex(1, BLIPR_ICON_MIDI);    // Midi Device B
@@ -41,6 +41,9 @@ void drawConfigSelection(struct Project *project) {
         drawRotatingButton(6, "PC.C", ch);
         sprintf(ch, "%d", project->midiDevicePcChannelD + 1);
         drawRotatingButton(7, "PC.D", ch);
+
+        // Transport:
+        drawIconOnIndex(12, isPlaying ? BLIPR_ICON_STOP : BLIPR_ICON_PLAY);
 
         // Quit:
         drawTextOnButton(15, "Q");  // Quit
@@ -165,7 +168,7 @@ void setMidiDeviceName(struct Project *project, int deviceOnProject, int indexIn
     }
 }
 
-void updateConfiguration(struct Project *project, SDL_Scancode key, bool *reloadMidi, bool *quit) {
+void updateConfiguration(struct Project *project, SDL_Scancode key, bool *reloadMidi, bool *quit, bool *isPlaying) {
     if (isMainScreen()) {
         // No config selected, so we're on the main screen
         if (key == BLIPR_KEY_1) { selectedMidiDevice = BLIPR_MIDI_DEVICE_A; isMidiConfigActive = true; } else 
@@ -192,6 +195,8 @@ void updateConfiguration(struct Project *project, SDL_Scancode key, bool *reload
             if (project->midiDevicePcChannelD >= 16) {
                 project->midiDevicePcChannelD = 0;
             }
+        } else if (key == BLIPR_KEY_13) {
+            *isPlaying = !(*isPlaying);
         } else if (key == BLIPR_KEY_16) { *quit = (true); }
     } else {
         if (isMidiConfigActive) {

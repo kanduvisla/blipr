@@ -10,12 +10,12 @@ extern "C" {
 /**
  * Update the pattern selection according to user input
  */
-void updatePatternSelection(int *selectedPattern, SDL_Scancode key);
+int updatePatternSelection(SDL_Scancode key);
 
 /**
  * Draw the pattern selection
  */
-void drawPatternSelection(const int *selectedPattern, const int *queuedPattern);
+void drawPatternSelection(const int selectedPattern, const int queuedPattern);
 
 #ifdef __cplusplus
 }

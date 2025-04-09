@@ -18,6 +18,8 @@ typedef enum {
     BLIPR_ICON_OHAT = 11,
     BLIPR_ICON_RIDE = 12,
     BLIPR_ICON_CRASH = 13,
+    BLIPR_ICON_PLAY = 14,
+    BLIPR_ICON_STOP = 15
 } Blipr_Icon;
 
 #ifdef __cplusplus

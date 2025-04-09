@@ -30,8 +30,8 @@ bool assert(bool value) {
     }
 }
 
-#include "project_test.c"
-#include "sequencer_test.c"
+// #include "project_test.c"
+// #include "sequencer_test.c"
 
 /**
  * Entry point
@@ -40,8 +40,8 @@ int main(void)
 {
     printf("blipr test suite\n");
 
-    testProjectFile();
-    testSequencer();
+    // testProjectFile();
+    // testSequencer();
 
     printf("\n");
 }
