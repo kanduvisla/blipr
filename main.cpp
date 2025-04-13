@@ -182,9 +182,6 @@ void initSharedState(SharedState* state) {
     state->programC = 255;
     state->programD = 255;
     state->selectedTrack = 0;
-    // state->selectedPattern = 0;
-    // state->queuedPattern = 0;
-    // state->patternStepCounter = 0;
     state->selectedSequence = 0;
     state->quit = false;
     state->bpm = 0;
@@ -277,7 +274,7 @@ void* timerThread(void *arg) {
 }
 
 /**
- * Sequencer thread
+ * Sequencer thread, this is where the magic happens
  */
 void* sequencerThread(void* arg) {
     SharedState* state = (SharedState*)arg;
@@ -287,7 +284,6 @@ void* sequencerThread(void* arg) {
     int midiDevice[4];          // 4 midi devices, for A, B, C and D
 
     progSequencer.resetTemplateNote();
-    //resetTemplateNote();
 
     // Sequencer loop:
     while (!state->quit) {
@@ -403,6 +399,7 @@ void* sequencerThread(void* arg) {
                         pthread_mutex_lock(&state->mutex);
                         // state->selectedPattern = state->queuedPattern;
                         // Set proper track + reset repeat count for all track:
+                        // state->track is only used to determine on which track the keypresses apply to
                         state->track = &state->project->sequences[state->selectedSequence]
                             .patterns[patternPlayer.getPlayingPattern()]
                             .tracks[state->selectedTrack];
@@ -442,7 +439,6 @@ void* sequencerThread(void* arg) {
             // Iterate over all tracks, and send proper midi signals
             for (int i=0; i<16; i++) {
                 struct Track* iTrack = &state->project->sequences[state->selectedSequence].patterns[patternPlayer.getPlayingPattern()].tracks[i];
-                // bool isTrackKeyRepeatTriggered = false;
                 
                 // Run the program:
                 switch (iTrack->program) {
